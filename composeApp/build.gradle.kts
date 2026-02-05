@@ -37,6 +37,8 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.preview)
+            implementation("cafe.adriel.voyager:voyager-navigator:1.1.0-beta02")
+            implementation("cafe.adriel.voyager:voyager-transitions:1.1.0-beta02")
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(projects.shared)
@@ -77,4 +79,3 @@ android {
 dependencies {
     debugImplementation(compose.uiTooling)
 }
-
