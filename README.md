@@ -12,3 +12,5 @@ Bethany Liu; Backend Designer; b57liu@uwaterloo.ca
 Sarah Kwak; Frontend Designer; s3kwak@uwaterloo.ca
 
 Our [team contract](https://git.uwaterloo.ca/b57liu/team-102-8/-/wikis/home/Team-Contract) includes details on how we will work together.
+
+[Project Proposal](https://git.uwaterloo.ca/b57liu/team-102-8/-/wikis/home/Project-Proposal)
