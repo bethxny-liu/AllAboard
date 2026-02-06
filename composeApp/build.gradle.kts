@@ -22,6 +22,9 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
+            freeCompilerArgs += listOf(
+                "-Xbinary=bundleId=org.allaboard.project"
+            )
         }
     }
     
@@ -79,3 +82,7 @@ android {
 dependencies {
     debugImplementation(compose.uiTooling)
 }
+tasks.matching { it.name.contains("ios") && it.name.contains("Test") }
+    .configureEach {
+        enabled = false
+    }

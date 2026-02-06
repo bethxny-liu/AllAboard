@@ -1,5 +1,7 @@
 package org.allaboard.project.ui.screens.login
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,23 +16,31 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import org.allaboard.project.ui.screens.HomeScreen
 import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextPrimary
+import org.allaboard.project.ui.theme.TextSecondary
+import org.jetbrains.compose.resources.painterResource
+import team_102_8.composeapp.generated.resources.Res
+import team_102_8.composeapp.generated.resources.logo
+import team_102_8.composeapp.generated.resources.google_logo
+import team_102_8.composeapp.generated.resources.login_background
 
 class LoginScreen : Screen {
-
+    @Preview
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
@@ -39,98 +49,104 @@ class LoginScreen : Screen {
             modifier = Modifier.fillMaxSize()
         ) {
             // Background image
-            // TODO: Add login_background image
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
+            Image(
+                painter = painterResource(Res.drawable.login_background),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
             )
+
 
             // Content overlay
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 24.dp),
-                verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Spacer(Modifier.height(300.dp))
+
                 // Logo and title section
-                Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.Center
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        // Logo image
-                        // TODO: Add logo image
-                        Box(
-                            modifier = Modifier.size(60.dp)
-                        )
-
-                        Spacer(Modifier.height(16.dp))
-
-                        // App name
-                        Text(
-                            "All Aboard",
-                            fontSize = 32.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary,
-                            textAlign = TextAlign.Center
-                        )
-
-                        Spacer(Modifier.height(8.dp))
-
-                        // Subtitle
-                        Text(
-                            "Your next group adventure\nstarts here",
-                            fontSize = 16.sp,
-                            color = TextPrimary,
-                            textAlign = TextAlign.Center,
-                            lineHeight = 22.sp
-                        )
-                    }
-                }
-
-                Spacer(Modifier.height(48.dp))
-
-                // Sign in button
-                Button(
-                    onClick = {
-                        navigator?.push(HomeScreen())
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .clip(RoundedCornerShape(12.dp)),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Surface,
-                        contentColor = TextPrimary
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
+                    // Logo and App name on same line
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        // Google Logo
-                        // TODO: Add Google logo image
-                        Box(
-                            modifier = Modifier.size(20.dp)
+                        // Logo image
+                        Image(
+                            painter = painterResource(Res.drawable.logo),
+                            contentDescription = null,
+                            modifier = Modifier.size(40.dp)
                         )
-
-                        Spacer(Modifier.width(12.dp))
+                        // App name
                         Text(
-                            "Sign in with Google",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium
+                            "All Aboard",
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = TextPrimary,
+                            textAlign = TextAlign.Center
                         )
                     }
-                }
 
-                Spacer(Modifier.height(48.dp))
+
+                    // Subtitle
+                    Text(
+                        "Your next group adventure\nstarts here",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = TextSecondary,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                Spacer(Modifier.weight(1f))
+
+                // Sign in button
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 60.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Button(
+                        onClick = {
+                            navigator?.push(HomeScreen())
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .clip(RoundedCornerShape(28.dp))
+                            .border(2.dp, Color.White, RoundedCornerShape(28.dp)),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Surface,
+                            contentColor = TextPrimary
+                        ),
+                        shape = RoundedCornerShape(28.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            // Google Logo
+                            Image(
+                                painter = painterResource(Res.drawable.google_logo),
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+
+                            Spacer(Modifier.width(12.dp))
+                            Text(
+                                "Sign in with Google",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = TextPrimary
+                            )
+                        }
+                    }
+                }
             }
         }
     }
