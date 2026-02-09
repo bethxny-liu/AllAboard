@@ -10,6 +10,7 @@ val MintAccent = Color(0xFF5ED1B2)
 // Neutrals
 val Background = Color(0xFFF9FAFB)
 val Surface = Color(0xFFFFFFFF)
+val FieldBackground = Color(0xFFF3F3F3)
 
 // Text
 val TextPrimary = Color(0xFF1F2933)

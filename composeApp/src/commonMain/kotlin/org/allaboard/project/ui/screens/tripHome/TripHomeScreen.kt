@@ -30,6 +30,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.navigator.LocalNavigator
+import org.allaboard.project.ui.screens.createTrip.CreateTripScreen
+import org.allaboard.project.ui.screens.createTrip.CreateTripViewModel
 import org.allaboard.project.ui.theme.BluePrimary
 import org.allaboard.project.ui.theme.MintAccent
 import org.allaboard.project.ui.theme.Surface
@@ -38,12 +41,22 @@ import org.allaboard.project.ui.theme.TextPrimary
 class TripHomeScreen : Screen {
     @Composable
     override fun Content() {
+        val navigator = LocalNavigator.current
         val viewModel = viewModel { TripHomeViewModel() }
         val uiState by viewModel.uiState.collectAsState()
 
         TripHomeScreenContent(
             uiState = uiState,
-            viewModel = viewModel
+            viewModel = viewModel,
+            onEditTrip = {
+                navigator?.push(
+                    CreateTripScreen(
+                        mode = CreateTripViewModel.Mode.Edit,
+                        tripId = uiState.trip.id,
+                        startStep = 0
+                    )
+                )
+            }
         )
     }
 }
@@ -51,7 +64,8 @@ class TripHomeScreen : Screen {
 @Composable
 fun TripHomeScreenContent(
     uiState: TripHomeUiState,
-    viewModel: TripHomeViewModel
+    viewModel: TripHomeViewModel,
+    onEditTrip: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -62,6 +76,7 @@ fun TripHomeScreenContent(
         // Hero Section with Trip Background and Info
         TripHeroSection(
             trip = uiState.trip,
+            onEditClick = onEditTrip,
             onStartSwipingClick = viewModel::onStartSwipingClick,
             onViewItineraryClick = viewModel::onViewItineraryClick
         )
@@ -148,6 +163,7 @@ fun TripHomeScreenContent(
 @Composable
 private fun TripHeroSection(
     trip: Trip,
+    onEditClick: () -> Unit,
     onStartSwipingClick: () -> Unit,
     onViewItineraryClick: () -> Unit
 ) {
@@ -157,11 +173,20 @@ private fun TripHeroSection(
             .height(400.dp)
             .background(BluePrimary)
             .padding(24.dp),
-        contentAlignment = Alignment.BottomStart
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth()
+        Button(
+            onClick = onEditClick,
+            modifier = Modifier.align(Alignment.TopEnd),
+            shape = RoundedCornerShape(20.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Surface)
         ) {
+            Text("Edit", color = TextPrimary)
+        }
+
+        Column(
+            modifier = Modifier.align(Alignment.BottomStart)
+        ) {
+
             // Trip Title
             Text(
                 text = trip.title,
