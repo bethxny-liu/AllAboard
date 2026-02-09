@@ -28,7 +28,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import org.allaboard.project.ui.theme.FieldBackground
-import team_102_8.composeapp.generated.resources.QRCode
 import team_102_8.composeapp.generated.resources.Res
 
 class GroupSetupScreen : Screen {
@@ -184,16 +183,6 @@ class GroupSetupScreen : Screen {
                                 }
                             }
                         }
-
-                        Spacer(Modifier.width(20.dp))
-
-                        // QR Code
-                        Image(
-                            painter = painterResource(Res.drawable.QRCode),
-                            contentDescription = "Invite QR",
-                            modifier = Modifier
-                                .size(96.dp)
-                        )
                     }
                 }
             }
