@@ -33,6 +33,7 @@ import org.allaboard.project.ui.screens.HomeScreen
 import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextPrimary
 import org.allaboard.project.ui.theme.TextSecondary
+import org.allaboard.project.ui.screens.onboarding.OnboardingScreen
 import org.jetbrains.compose.resources.painterResource
 import team_102_8.composeapp.generated.resources.Res
 import team_102_8.composeapp.generated.resources.logo
@@ -111,6 +112,25 @@ class LoginScreen : Screen {
                         .padding(bottom = 60.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    // Temporary sign up button to jump into onboarding
+                    Button(
+                        onClick = { navigator?.push(OnboardingScreen()) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .clip(RoundedCornerShape(28.dp))
+                            .border(2.dp, Color.White, RoundedCornerShape(28.dp)),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFECEFF1),
+                            contentColor = TextPrimary
+                        ),
+                        shape = RoundedCornerShape(28.dp)
+                    ) {
+                        Text("Sign up (Onboarding)")
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+
                     Button(
                         onClick = {
                             navigator?.push(HomeScreen())
