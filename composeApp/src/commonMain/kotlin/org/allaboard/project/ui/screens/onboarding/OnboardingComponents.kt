@@ -121,5 +121,5 @@ fun BackPill(onClick: () -> Unit, modifier: Modifier = Modifier) {
     }
 }
 
-// Shared enum for budget levels used by BudgetScreen
+// Shared enum for budget levels used by BudgetStep
 enum class BudgetLevel { LOW, MEDIUM, HIGH }

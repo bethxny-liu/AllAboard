@@ -33,7 +33,7 @@ import org.allaboard.project.ui.screens.HomeScreen
 import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextPrimary
 import org.allaboard.project.ui.theme.TextSecondary
-import org.allaboard.project.ui.screens.onboarding.WelcomeScreen
+import org.allaboard.project.ui.screens.onboarding.OnboardingScreen
 import org.jetbrains.compose.resources.painterResource
 import team_102_8.composeapp.generated.resources.Res
 import team_102_8.composeapp.generated.resources.logo
@@ -114,7 +114,7 @@ class LoginScreen : Screen {
                 ) {
                     // Temporary sign up button to jump into onboarding
                     Button(
-                        onClick = { navigator?.push(WelcomeScreen()) },
+                        onClick = { navigator?.push(OnboardingScreen()) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp)
