@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
+import org.allaboard.project.domain.Activity
 import org.allaboard.project.ui.theme.BluePrimary
 import org.allaboard.project.ui.theme.Surface
 import org.jetbrains.compose.resources.painterResource
@@ -55,20 +56,19 @@ import org.allaboard.project.ui.theme.TextSecondary
  * description (with see more/less), and map section. Opened from trip home activity cards.
  */
 class ActivityDetailsScreen(
-    private val activityId: String = "1",
-    private val fallbackTitle: String = ""
+    private val activity: Activity,
+    private val fallbackActivityId: String,
 ) : Screen {
 
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
-        val viewModel: ActivityDetailsViewModel = viewModel {
-            ActivityDetailsViewModel(StubActivityDetailsRepository())
-        }
+        val viewModel: ActivityDetailsViewModel = viewModel { ActivityDetailsViewModel() }
         val uiState by viewModel.uiState.collectAsState()
 
-        LaunchedEffect(activityId, fallbackTitle) {
-            viewModel.loadDetails(activityId, fallbackTitle)
+        // Load details using the provided activity or fallback ID
+        LaunchedEffect(activity, fallbackActivityId) {
+            viewModel.loadDetails(activity, fallbackActivityId)
         }
 
         ActivityDetailsContent(
@@ -87,7 +87,7 @@ private fun ActivityDetailsContent(
     onBack: () -> Unit,
     onSeeMoreClick: () -> Unit
 ) {
-    val details = uiState.details
+    val activity = uiState.activity
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -96,7 +96,7 @@ private fun ActivityDetailsContent(
     ) {
         ActivityDetailsTopBar(onBack = onBack)
 
-        if (details == null && !uiState.isLoading) {
+        if (activity == null && !uiState.isLoading) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -108,7 +108,7 @@ private fun ActivityDetailsContent(
             return
         }
 
-        if (details != null) {
+        if (activity != null) {
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -131,7 +131,7 @@ private fun ActivityDetailsContent(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = details.title,
+                            text = activity.title,
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary,
@@ -176,7 +176,7 @@ private fun ActivityDetailsContent(
                             )
                             Spacer(Modifier.width(6.dp))
                             Text(
-                                text = details.location,
+                                text = activity.location,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = TextSecondary,
                                 maxLines = 1,
@@ -185,7 +185,7 @@ private fun ActivityDetailsContent(
                         }
                         Spacer(Modifier.width(12.dp))
                         Text(
-                            text = details.priceLevel,
+                            text = activity.priceLevel,
                             style = MaterialTheme.typography.bodyMedium,
                             color = TextSecondary
                         )
@@ -196,14 +196,14 @@ private fun ActivityDetailsContent(
                     // Description with "see more"
                     val descLines = if (uiState.descriptionExpanded) Int.MAX_VALUE else 4
                     Text(
-                        text = details.description,
+                        text = activity.description,
                         style = MaterialTheme.typography.bodyMedium,
                         color = TextPrimary,
                         lineHeight = 22.sp,
                         maxLines = descLines,
                         overflow = TextOverflow.Ellipsis
                     )
-                    if (!uiState.descriptionExpanded && details.description.length > DESCRIPTION_SEE_MORE_THRESHOLD) {
+                    if (!uiState.descriptionExpanded && activity.description.length > DESCRIPTION_SEE_MORE_THRESHOLD) {
                         Text(
                             text = "see more",
                             style = MaterialTheme.typography.bodyMedium,
@@ -226,7 +226,7 @@ private fun ActivityDetailsContent(
                     Spacer(Modifier.height(32.dp))
 
                     // Map section
-                    MapPlaceholder(pinLabel = details.mapPinLabel)
+                    MapPlaceholder(pinLabel = activity.mapPinLabel)
                 }
             }
         }

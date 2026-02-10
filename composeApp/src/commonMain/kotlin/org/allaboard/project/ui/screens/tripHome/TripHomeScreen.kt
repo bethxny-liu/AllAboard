@@ -1,5 +1,6 @@
 package org.allaboard.project.ui.screens.tripHome
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,12 +26,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
+import org.allaboard.project.domain.Activity
+import org.allaboard.project.domain.ActivityType
 import org.allaboard.project.ui.screens.activityDetails.ActivityDetailsScreen
 import org.allaboard.project.ui.screens.createTrip.CreateTripScreen
 import org.allaboard.project.ui.screens.createTrip.CreateTripViewModel
@@ -38,6 +42,9 @@ import org.allaboard.project.ui.theme.BluePrimary
 import org.allaboard.project.ui.theme.MintAccent
 import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextPrimary
+import org.jetbrains.compose.resources.painterResource
+import team_102_8.composeapp.generated.resources.Res
+import team_102_8.composeapp.generated.resources.prettyplace
 
 class TripHomeScreen : Screen {
     @Composable
@@ -58,8 +65,8 @@ class TripHomeScreen : Screen {
                     )
                 )
             },
-            onActivityDetails = { id, title ->
-                navigator?.push(ActivityDetailsScreen(activityId = id, fallbackTitle = title))
+            onActivitySelected = { activity ->
+                navigator?.push(ActivityDetailsScreen(activity, activity.id))
             }
         )
     }
@@ -70,7 +77,7 @@ fun TripHomeScreenContent(
     uiState: TripHomeUiState,
     viewModel: TripHomeViewModel,
     onEditTrip: () -> Unit,
-    onActivityDetails: (id: String, title: String) -> Unit = { _, _ -> }
+    onActivitySelected: (Activity) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -92,20 +99,21 @@ fun TripHomeScreenContent(
         SectionWithCards(
             title = "Landmarks",
             onSeeAllClick = viewModel::onSeeAllLandmarks,
-            items = uiState.landmarks,
+            items = uiState.activities.filter { it.type == ActivityType.LANDMARK },
             itemId = { it.id },
-            onItemClick = { id -> onActivityDetails(id, uiState.landmarks.find { it.id == id }?.title ?: "") }
+            onItemClick = onActivitySelected
         ) { landmark ->
             ActivityCard(
                 title = landmark.title,
                 voteCount = landmark.voteCount,
                 imageContent = {
-                    // Placeholder for landmark image
-                    Box(
+                    Image(
+                        painter = painterResource(Res.drawable.prettyplace),
+                        contentDescription = null,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(180.dp)
-                            .background(BluePrimary)
+                            .height(180.dp),
+                        contentScale = ContentScale.Crop
                     )
                 }
             )
@@ -117,20 +125,21 @@ fun TripHomeScreenContent(
         SectionWithCards(
             title = "Restaurants & Food",
             onSeeAllClick = viewModel::onSeeAllRestaurants,
-            items = uiState.restaurants,
+            items = uiState.activities.filter { it.type == ActivityType.RESTAURANT },
             itemId = { it.id },
-            onItemClick = { id -> onActivityDetails(id, uiState.restaurants.find { it.id == id }?.title ?: "") }
+            onItemClick = onActivitySelected
         ) { restaurant ->
             ActivityCard(
                 title = restaurant.title,
                 voteCount = restaurant.voteCount,
                 imageContent = {
-                    // Placeholder for restaurant image
-                    Box(
+                    Image(
+                        painter = painterResource(Res.drawable.prettyplace),
+                        contentDescription = null,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(180.dp)
-                            .background(BluePrimary)
+                            .height(180.dp),
+                        contentScale = ContentScale.Crop
                     )
                 }
             )
@@ -142,20 +151,21 @@ fun TripHomeScreenContent(
         SectionWithCards(
             title = "Activities & Experiences",
             onSeeAllClick = viewModel::onSeeAllActivities,
-            items = uiState.activities,
+            items = uiState.activities.filter { it.type == ActivityType.ACTIVITY },
             itemId = { it.id },
-            onItemClick = { id -> onActivityDetails(id, uiState.activities.find { it.id == id }?.title ?: "") }
+            onItemClick = onActivitySelected
         ) { activity ->
             ActivityCard(
                 title = activity.title,
                 voteCount = activity.voteCount,
                 imageContent = {
-                    // Placeholder for activity image
-                    Box(
+                    Image(
+                        painter = painterResource(Res.drawable.prettyplace),
+                        contentDescription = null,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(180.dp)
-                            .background(BluePrimary)
+                            .height(180.dp),
+                        contentScale = ContentScale.Crop
                     )
                 }
             )
@@ -175,97 +185,110 @@ private fun TripHeroSection(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(400.dp)
-            .background(BluePrimary)
-            .padding(24.dp),
+            .height(400.dp),
     ) {
-        Button(
-            onClick = onEditClick,
-            modifier = Modifier.align(Alignment.TopEnd),
-            shape = RoundedCornerShape(20.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Surface)
+        // Background hero image spans edge-to-edge
+        Image(
+            painter = painterResource(Res.drawable.prettyplace),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+
+        // Overlay content with insets
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp)
         ) {
-            Text("Edit", color = TextPrimary)
-        }
-
-        Column(
-            modifier = Modifier.align(Alignment.BottomStart)
-        ) {
-
-            // Trip Title
-            Text(
-                text = trip.title,
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                color = Surface,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Date Range
-            Text(
-                text = trip.dateRange,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Normal,
-                color = Surface,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Member Count
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+            Button(
+                onClick = onEditClick,
+                modifier = Modifier.align(Alignment.TopEnd),
+                shape = RoundedCornerShape(20.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Surface)
             ) {
-                Text(
-                    text = "👥 ${trip.memberCount}",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = Surface
-                )
+                Text("Edit", color = TextPrimary)
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Action Buttons
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            Column(
+                modifier = Modifier.align(Alignment.BottomStart)
             ) {
-                Button(
-                    onClick = onStartSwipingClick,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MintAccent
-                    )
+
+                // Trip Title
+                Text(
+                    text = trip.title,
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Surface,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Date Range
+                Text(
+                    text = trip.dateRange,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Surface,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Member Count
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Start Swiping",
-                        fontWeight = FontWeight.SemiBold,
+                        text = "👥 ${trip.memberCount}",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal,
                         color = Surface
                     )
                 }
 
-                Button(
-                    onClick = onViewItineraryClick,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Surface
-                    )
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Action Buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text(
-                        text = "View Itinerary",
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary
-                    )
+                    Button(
+                        onClick = onStartSwipingClick,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MintAccent
+                        )
+                    ) {
+                        Text(
+                            text = "Start Swiping",
+                            fontWeight = FontWeight.SemiBold,
+                            color = Surface
+                        )
+                    }
+
+                    Button(
+                        onClick = onViewItineraryClick,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Surface
+                        )
+                    ) {
+                        Text(
+                            text = "View Itinerary",
+                            fontWeight = FontWeight.SemiBold,
+                            color = TextPrimary
+                        )
+                    }
                 }
             }
         }
@@ -278,7 +301,7 @@ private fun <T> SectionWithCards(
     onSeeAllClick: () -> Unit,
     items: List<T>,
     itemId: (T) -> String,
-    onItemClick: (String) -> Unit,
+    onItemClick: (T) -> Unit,
     cardContent: @Composable (T) -> Unit
 ) {
     Column(
@@ -320,7 +343,7 @@ private fun <T> SectionWithCards(
                 Box(
                     modifier = Modifier
                         .width(280.dp)
-                        .clickable { onItemClick(itemId(item)) }
+                        .clickable { onItemClick(item) }
                 ) {
                     cardContent(item)
                 }
