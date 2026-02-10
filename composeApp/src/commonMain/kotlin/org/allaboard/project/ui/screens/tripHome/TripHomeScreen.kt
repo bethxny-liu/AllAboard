@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
+import org.allaboard.project.ui.screens.activityDetails.ActivityDetailsScreen
 import org.allaboard.project.ui.screens.createTrip.CreateTripScreen
 import org.allaboard.project.ui.screens.createTrip.CreateTripViewModel
 import org.allaboard.project.ui.theme.BluePrimary
@@ -56,6 +57,9 @@ class TripHomeScreen : Screen {
                         startStep = 0
                     )
                 )
+            },
+            onActivityDetails = { id, title ->
+                navigator?.push(ActivityDetailsScreen(activityId = id, fallbackTitle = title))
             }
         )
     }
@@ -65,7 +69,8 @@ class TripHomeScreen : Screen {
 fun TripHomeScreenContent(
     uiState: TripHomeUiState,
     viewModel: TripHomeViewModel,
-    onEditTrip: () -> Unit
+    onEditTrip: () -> Unit,
+    onActivityDetails: (id: String, title: String) -> Unit = { _, _ -> }
 ) {
     Column(
         modifier = Modifier
@@ -89,7 +94,7 @@ fun TripHomeScreenContent(
             onSeeAllClick = viewModel::onSeeAllLandmarks,
             items = uiState.landmarks,
             itemId = { it.id },
-            onItemClick = viewModel::onLandmarkClick
+            onItemClick = { id -> onActivityDetails(id, uiState.landmarks.find { it.id == id }?.title ?: "") }
         ) { landmark ->
             ActivityCard(
                 title = landmark.title,
@@ -114,7 +119,7 @@ fun TripHomeScreenContent(
             onSeeAllClick = viewModel::onSeeAllRestaurants,
             items = uiState.restaurants,
             itemId = { it.id },
-            onItemClick = viewModel::onRestaurantClick
+            onItemClick = { id -> onActivityDetails(id, uiState.restaurants.find { it.id == id }?.title ?: "") }
         ) { restaurant ->
             ActivityCard(
                 title = restaurant.title,
@@ -139,7 +144,7 @@ fun TripHomeScreenContent(
             onSeeAllClick = viewModel::onSeeAllActivities,
             items = uiState.activities,
             itemId = { it.id },
-            onItemClick = viewModel::onActivityClick
+            onItemClick = { id -> onActivityDetails(id, uiState.activities.find { it.id == id }?.title ?: "") }
         ) { activity ->
             ActivityCard(
                 title = activity.title,
