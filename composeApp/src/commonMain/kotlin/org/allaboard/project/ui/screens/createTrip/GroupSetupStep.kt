@@ -59,8 +59,7 @@ fun GroupSetupStep(
             ) {
                 Text(
                     text = "Group Setup",
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.headlineLarge,
                     color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Center
                 )

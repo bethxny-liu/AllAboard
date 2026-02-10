@@ -33,6 +33,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import org.allaboard.project.ui.screens.createTrip.CreateTripScreen
 import org.allaboard.project.ui.screens.createTrip.CreateTripViewModel
+import org.allaboard.project.ui.screens.tripHome.swipe.SwipingScreen
 import org.allaboard.project.ui.theme.BluePrimary
 import org.allaboard.project.ui.theme.MintAccent
 import org.allaboard.project.ui.theme.Surface
@@ -48,6 +49,7 @@ class TripHomeScreen : Screen {
         TripHomeScreenContent(
             uiState = uiState,
             viewModel = viewModel,
+            onStartSwipingClick = { navigator?.push(SwipingScreen()) },
             onEditTrip = {
                 navigator?.push(
                     CreateTripScreen(
@@ -65,6 +67,7 @@ class TripHomeScreen : Screen {
 fun TripHomeScreenContent(
     uiState: TripHomeUiState,
     viewModel: TripHomeViewModel,
+    onStartSwipingClick: () -> Unit,
     onEditTrip: () -> Unit
 ) {
     Column(
@@ -77,7 +80,7 @@ fun TripHomeScreenContent(
         TripHeroSection(
             trip = uiState.trip,
             onEditClick = onEditTrip,
-            onStartSwipingClick = viewModel::onStartSwipingClick,
+            onStartSwipingClick = onStartSwipingClick,
             onViewItineraryClick = viewModel::onViewItineraryClick
         )
 

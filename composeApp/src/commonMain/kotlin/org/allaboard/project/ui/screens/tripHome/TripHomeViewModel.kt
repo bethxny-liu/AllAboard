@@ -5,6 +5,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+sealed class TripHomeNavEvent {
+    data object ToSwiping : TripHomeNavEvent()
+    data class ToEditTrip(val tripId: String) : TripHomeNavEvent()
+}
+
 /**
  * Data class representing a landmark
  */
@@ -80,6 +85,9 @@ class TripHomeViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(TripHomeUiState())
     val uiState: StateFlow<TripHomeUiState> = _uiState.asStateFlow()
 
+    private val _navEvent = MutableStateFlow<TripHomeNavEvent?>(null)
+    val navEvent: StateFlow<TripHomeNavEvent?> = _navEvent.asStateFlow()
+
     init {
         loadTripData()
     }
@@ -90,7 +98,15 @@ class TripHomeViewModel : ViewModel() {
     }
 
     fun onStartSwipingClick() {
-        // TODO: Navigate to swiping/discovery screen
+        _navEvent.value = TripHomeNavEvent.ToSwiping
+    }
+
+    fun onEditTripClick(tripId: String) {
+        _navEvent.value = TripHomeNavEvent.ToEditTrip(tripId)
+    }
+
+    fun onNavEventConsumed() {
+        _navEvent.value = null
     }
 
     fun onViewItineraryClick() {
