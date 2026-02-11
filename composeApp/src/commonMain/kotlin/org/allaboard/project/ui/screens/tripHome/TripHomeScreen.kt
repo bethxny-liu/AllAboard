@@ -108,7 +108,6 @@ fun TripHomeScreenContent(
         // Landmarks Section
         SectionWithCards(
             title = "Landmarks",
-            onSeeAllClick = viewModel::onSeeAllLandmarks,
             items = uiState.activities.filter { it.type == ActivityType.LANDMARK },
             itemId = { it.id },
             onItemClick = onActivitySelected
@@ -134,7 +133,6 @@ fun TripHomeScreenContent(
         // Restaurants & Food Section
         SectionWithCards(
             title = "Restaurants & Food",
-            onSeeAllClick = viewModel::onSeeAllRestaurants,
             items = uiState.activities.filter { it.type == ActivityType.RESTAURANT },
             itemId = { it.id },
             onItemClick = onActivitySelected
@@ -160,7 +158,6 @@ fun TripHomeScreenContent(
         // Activities & Experiences Section
         SectionWithCards(
             title = "Activities & Experiences",
-            onSeeAllClick = viewModel::onSeeAllActivities,
             items = uiState.activities.filter { it.type == ActivityType.ACTIVITY },
             itemId = { it.id },
             onItemClick = onActivitySelected
@@ -327,7 +324,6 @@ private fun TripHeroSection(
 @Composable
 private fun <T> SectionWithCards(
     title: String,
-    onSeeAllClick: () -> Unit,
     items: List<T>,
     itemId: (T) -> String,
     onItemClick: (T) -> Unit,
@@ -350,14 +346,6 @@ private fun <T> SectionWithCards(
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
-            )
-
-            Text(
-                text = "See All",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Normal,
-                color = BluePrimary,
-                modifier = Modifier.clickable(onClick = onSeeAllClick)
             )
         }
 
