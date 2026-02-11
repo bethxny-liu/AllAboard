@@ -72,38 +72,6 @@ fun ItineraryContent(onBack: () -> Unit, uiState: ItineraryUiState) {
         modifier = Modifier.padding(start = 16.dp)
     )
 
-    // Placeholder itinerary
-    val days = listOf(
-        DaySection(
-            title = "Day 1: Jan 23",
-            items = listOf(
-                ItineraryItem("10:00 AM", "Pretty Place"),
-                ItineraryItem("2:00 PM", "Restaurant")
-            )
-        ),
-        DaySection(
-            title = "Day 2: Jan 24",
-            items = listOf(
-                ItineraryItem("10:00 AM", "Pretty Place"),
-                ItineraryItem("2:00 PM", "Restaurant")
-            )
-        ),
-        DaySection(
-            title = "Day 3: Jan 23",
-            items = listOf(
-                ItineraryItem("10:00 AM", "Pretty Place"),
-                ItineraryItem("2:00 PM", "Restaurant")
-            )
-        ),
-        DaySection(
-            title = "Day 4: Jan 23",
-            items = listOf(
-                ItineraryItem("10:00 AM", "Pretty Place"),
-                ItineraryItem("2:00 PM", "Restaurant")
-            )
-        )
-    )
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -138,10 +106,9 @@ fun ItineraryContent(onBack: () -> Unit, uiState: ItineraryUiState) {
         // List of days
         LazyColumn(modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 0.dp),
-            //contentPadding = PaddingValues(bottom = 120.dp)
+            .padding(horizontal = 0.dp)
         ) {
-            items(days) { day ->
+            items(uiState.days) { day ->
                 Text(
                     text = day.title,
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
