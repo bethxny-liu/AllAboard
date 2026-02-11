@@ -129,16 +129,4 @@ class TripHomeViewModel : ViewModel() {
     fun onViewItineraryClick() {
         // TODO: Navigate to itinerary screen
     }
-
-    fun onSeeAllLandmarks() {
-        // TODO: Navigate to landmarks list screen (filter activities by type LANDMARK)
-    }
-
-    fun onSeeAllRestaurants() {
-        // TODO: Navigate to restaurants list screen (filter activities by type RESTAURANT)
-    }
-
-    fun onSeeAllActivities() {
-        // TODO: Navigate to activities list screen (may include all types or only ActivityType.ACTIVITY)
-    }
 }
