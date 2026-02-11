@@ -25,6 +25,7 @@ import androidx.compose.material3.IconButton
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
+import org.allaboard.project.ui.components.CategoryDropdown
 
 /**
  * Create Custom Activity screen: allows users to create a new activity that others can swipe on.
@@ -53,12 +54,12 @@ class CreateCustomActivityScreen : Screen {
 @Composable
 private fun CreateCustomActivityContent(
     uiState: CreateCustomActivityUiState,
-    onBack: () -> Unit,
-    onCreate: () -> Unit,
-    onCategoryChange: (String) -> Unit = {},
+    onBack: () -> Unit = {},
+    onCategoryChange: (Int) -> Unit = {},
     onNameChange: (String) -> Unit = {},
     onLocationChange: (String) -> Unit = {},
-    onDescriptionChange: (String) -> Unit = {}
+    onDescriptionChange: (String) -> Unit = {},
+    onCreate: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier
@@ -96,14 +97,11 @@ private fun CreateCustomActivityContent(
         Text("Category", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
         Spacer(Modifier.height(8.dp))
 
-        // Use the project's CategoryDropdown pattern (index-based) and map to string API
-        val categories = listOf("Landmark", "Restaurant", "Activity")
-        val selectedIndex = categories.indexOf(uiState.category).coerceAtLeast(0)
-
+        // Use shared CategoryDropdown component
         CategoryDropdown(
-            categories = categories,
-            selectedIndex = selectedIndex,
-            onCategorySelected = { idx -> onCategoryChange(categories.getOrNull(idx) ?: categories.first()) },
+            categories = uiState.categories,
+            selectedIndex = uiState.selectedCategoryIndex,
+            onCategorySelected = onCategoryChange,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -247,74 +245,3 @@ private fun CreateCustomActivityContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun CategoryDropdown(
-    categories: List<String>,
-    selectedIndex: Int,
-    onCategorySelected: (Int) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var expanded by remember { mutableStateOf(false) }
-    val selectedText = categories.getOrNull(selectedIndex) ?: categories.firstOrNull().orEmpty()
-    val interactionSource = remember { MutableInteractionSource() }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
-        modifier = modifier
-    ) {
-        // Wrap the text field in a bordered box so it visually matches the other inputs
-        Box(
-            modifier = Modifier
-                .menuAnchor()
-                .fillMaxWidth()
-                .height(50.dp)
-                .border(BorderStroke(1.dp, Color.Black), RoundedCornerShape(25.dp))
-                .background(FieldBackground, RoundedCornerShape(25.dp))
-        ) {
-            BasicTextField(
-                value = selectedText,
-                onValueChange = {},
-                readOnly = true,
-                singleLine = true,
-                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground),
-                interactionSource = interactionSource,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(start = 20.dp, end = 44.dp), // small inset for the icon
-            ) { innerTextField ->
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) {
-                    innerTextField()
-                }
-            }
-
-            // trailing icon aligned to the end inside the bordered box (reliable right placement)
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(end = 8.dp)
-                    .width(36.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-            }
-        }
-
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.fillMaxWidth() // make menu match the width of the anchor
-        ) {
-            categories.forEachIndexed { index, category ->
-                DropdownMenuItem(
-                    text = { Text(text = category) },
-                    onClick = {
-                        expanded = false
-                        onCategorySelected(index)
-                    }
-                )
-            }
-        }
-    }
-}

@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
+import org.allaboard.project.Category
 import org.allaboard.project.domain.Activity
 import org.allaboard.project.domain.ActivityType
 import org.allaboard.project.ui.screens.activityDetails.ActivityDetailsScreen
@@ -111,7 +112,7 @@ fun TripHomeScreenContent(
 
         // Landmarks Section
         SectionWithCards(
-            title = "Landmarks",
+            title = Category.LANDMARKS.displayName,
             items = uiState.activities.filter { it.type == ActivityType.LANDMARK },
             itemId = { it.id },
             onItemClick = onActivitySelected
@@ -136,7 +137,7 @@ fun TripHomeScreenContent(
 
         // Restaurants & Food Section
         SectionWithCards(
-            title = "Restaurants & Food",
+            title = Category.RESTAURANTS.displayName,
             items = uiState.activities.filter { it.type == ActivityType.RESTAURANT },
             itemId = { it.id },
             onItemClick = onActivitySelected
@@ -159,10 +160,10 @@ fun TripHomeScreenContent(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Activities & Experiences Section
+        // Experiences Section
         SectionWithCards(
-            title = "Activities & Experiences",
-            items = uiState.activities.filter { it.type == ActivityType.ACTIVITY },
+            title = Category.EXPERIENCES.displayName,
+            items = uiState.activities.filter { it.type == ActivityType.EXPERIENCES },
             itemId = { it.id },
             onItemClick = onActivitySelected
         ) { activity ->

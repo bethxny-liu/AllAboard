@@ -46,6 +46,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import org.allaboard.project.Category
 import org.allaboard.project.domain.Activity
 import org.allaboard.project.domain.ActivityType
 import org.allaboard.project.ui.theme.BluePrimaryDark
@@ -220,7 +221,7 @@ private fun CategoryChip(text: ActivityType, modifier: Modifier = Modifier) {
             .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
         Text(
-            text = SwipeCategory.fromType(text).label,
+            text = Category.fromType(text).displayName,
             style = MaterialTheme.typography.labelMedium,
             color = categoryColor
         )
@@ -231,7 +232,7 @@ private fun categoryColorFor(category: ActivityType): Color {
     return when (category) {
         ActivityType.LANDMARK -> BluePrimaryDark
         ActivityType.RESTAURANT -> CoralAccent
-        ActivityType.ACTIVITY -> GreenAccent
+        ActivityType.EXPERIENCES -> GreenAccent
     }
 }
 

@@ -91,7 +91,7 @@ data class TripHomeUiState(
             mapPinLabel = "Fuji Viewpoint",
             voteCount = 4,
             imageUrl = null,
-            type = ActivityType.ACTIVITY
+            type = ActivityType.EXPERIENCES
         ),
         Activity(
             id = "act-3-2",
@@ -103,7 +103,7 @@ data class TripHomeUiState(
             mapPinLabel = "Fuji Viewpoint",
             voteCount = 4,
             imageUrl = null,
-            type = ActivityType.ACTIVITY
+            type = ActivityType.EXPERIENCES
         )
     ),
     val isLoading: Boolean = false,
