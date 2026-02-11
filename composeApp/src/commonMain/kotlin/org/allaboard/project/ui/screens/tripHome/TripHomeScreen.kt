@@ -40,7 +40,7 @@ import org.allaboard.project.ui.screens.createTrip.CreateTripScreen
 import org.allaboard.project.ui.screens.createTrip.CreateTripViewModel
 import org.allaboard.project.ui.screens.createActivity.CreateCustomActivityScreen
 import org.allaboard.project.ui.screens.tripHome.swipe.SwipingScreen
-import org.allaboard.project.ui.theme.BluePrimary
+import org.allaboard.project.ui.screens.itinerary.ItineraryScreen
 import org.allaboard.project.ui.theme.MintAccent
 import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextPrimary
@@ -73,7 +73,8 @@ class TripHomeScreen : Screen {
             },
             onActivitySelected = { activity ->
                 navigator?.push(ActivityDetailsScreen(activity, activity.id))
-            }
+            },
+            onViewItinerary = { navigator?.push(ItineraryScreen()) }
         )
     }
 }
@@ -86,6 +87,7 @@ fun TripHomeScreenContent(
     onEditTrip: () -> Unit,
     onActivitySelected: (Activity) -> Unit,
     onStartSwipingClick: () -> Unit,
+    onViewItinerary: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -98,9 +100,8 @@ fun TripHomeScreenContent(
             trip = uiState.trip,
             onEditClick = onEditTrip,
             onStartSwipingClick = onStartSwipingClick,
-            onViewItineraryClick = viewModel::onViewItineraryClick,
-            onCreateCustomActivity = onCreateCustomActivity
-
+            onCreateCustomActivity = onCreateCustomActivity,
+            onViewItineraryClick = onViewItinerary
         )
 
         Spacer(modifier = Modifier.height(32.dp))
