@@ -38,6 +38,7 @@ import org.allaboard.project.domain.ActivityType
 import org.allaboard.project.ui.screens.activityDetails.ActivityDetailsScreen
 import org.allaboard.project.ui.screens.createTrip.CreateTripScreen
 import org.allaboard.project.ui.screens.createTrip.CreateTripViewModel
+import org.allaboard.project.ui.screens.createActivity.CreateCustomActivityScreen
 import org.allaboard.project.ui.theme.BluePrimary
 import org.allaboard.project.ui.theme.MintAccent
 import org.allaboard.project.ui.theme.Surface
@@ -65,6 +66,9 @@ class TripHomeScreen : Screen {
                     )
                 )
             },
+            onCreateCustomActivity = {
+                navigator?.push(CreateCustomActivityScreen())
+            },
             onActivitySelected = { activity ->
                 navigator?.push(ActivityDetailsScreen(activity, activity.id))
             }
@@ -76,6 +80,7 @@ class TripHomeScreen : Screen {
 fun TripHomeScreenContent(
     uiState: TripHomeUiState,
     viewModel: TripHomeViewModel,
+    onCreateCustomActivity: () -> Unit,
     onEditTrip: () -> Unit,
     onActivitySelected: (Activity) -> Unit
 ) {
@@ -92,6 +97,26 @@ fun TripHomeScreenContent(
             onStartSwipingClick = viewModel::onStartSwipingClick,
             onViewItineraryClick = viewModel::onViewItineraryClick
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Button to create a custom activity (ensures navigation stays inside same Navigator so footer shows)
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)) {
+            Button(
+                onClick = onCreateCustomActivity,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(44.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MintAccent)
+            ) {
+                Text(text = "Create Custom Activity", color = Surface)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         Spacer(modifier = Modifier.height(32.dp))
 
