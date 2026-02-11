@@ -57,6 +57,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.allaboard.project.domain.Activity
 import org.allaboard.project.ui.screens.activityDetails.ActivityDetailsScreen
+import org.allaboard.project.ui.screens.tripHome.swipe.swipingResults.SwipingResultsScreen
 import org.allaboard.project.ui.theme.Background
 import org.allaboard.project.ui.theme.FieldBackground
 import org.allaboard.project.ui.theme.SwipeDislike
@@ -85,9 +86,12 @@ class SwipingScreen(private val activities: List<Activity>) : Screen {
             onLike = viewModel::onLike,
             onCategorySelected = viewModel::onCategorySelected,
             onLearnMore = { activity ->
-                navigator?.push(ActivityDetailsScreen(activity, activity.id))
+                navigator?.push(ActivityDetailsScreen(activity = activity, fallbackActivityId = activity.id))
             },
-            onAllDone = { /*navigator?.push(SwipeResultsScreen()) */}
+            onAllDone = {
+                val results = viewModel.getLikedResults()
+                navigator?.push(SwipingResultsScreen(initialResults = results))
+            }
         )
     }
 }
@@ -100,7 +104,7 @@ fun SwipingScreenContent(
     onSuperLike: () -> Unit,
     onLike: () -> Unit,
     onCategorySelected: (Int) -> Unit,
-    onLearnMore: (Activity) -> Unit,
+    onLearnMore: (Activity) -> Unit = {},
     onAllDone: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -108,6 +112,7 @@ fun SwipingScreenContent(
     val flashAlpha = remember { Animatable(0f) }
     var flashColor by remember { mutableStateOf<Color?>(null) }
     var flashIcon by remember { mutableStateOf<ImageVector?>(null) }
+    var onAllDoneFired by remember { mutableStateOf(false) }
 
     val triggerFlash: (Color, ImageVector) -> Unit = { color, icon ->
         scope.launch {
@@ -126,7 +131,8 @@ fun SwipingScreenContent(
             .background(Background)
     ) {
         LaunchedEffect(uiState.isAllDone) {
-            if (uiState.hasCards && uiState.isAllDone) {
+            if (uiState.hasCards && uiState.isAllDone && !onAllDoneFired) {
+                onAllDoneFired = true
                 onAllDone()
             }
         }

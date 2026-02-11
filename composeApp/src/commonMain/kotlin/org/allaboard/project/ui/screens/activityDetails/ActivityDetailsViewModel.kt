@@ -22,16 +22,11 @@ class ActivityDetailsViewModel() : ViewModel() {
     val uiState: StateFlow<ActivityDetailsUiState> = _uiState.asStateFlow()
 
     fun loadDetails(activity: Activity, fallbackActivityId: String) {
-        // For now, if an Activity is provided, use it directly.
         _uiState.value = _uiState.value.copy(
             activity = activity,
             isLoading = false,
             error = null
         )
-        if (activity == null) {
-            // TODO: If only fallbackActivityId is provided, fetch details from db.
-        }
-
     }
 
     fun toggleDescriptionExpanded() {

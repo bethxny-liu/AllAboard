@@ -2,12 +2,30 @@ package org.allaboard.project.ui.screens.createActivity
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,6 +34,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.allaboard.project.ui.theme.FieldBackground
+import org.allaboard.project.ui.theme.TextPrimary
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CloudUpload
@@ -49,7 +68,6 @@ class CreateCustomActivityScreen : Screen {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CreateCustomActivityContent(
     uiState: CreateCustomActivityUiState,
@@ -247,7 +265,8 @@ private fun CreateCustomActivityContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+private val DropdownBorderColor = Color(0xFF9B87F5)
+
 @Composable
 private fun CategoryDropdown(
     categories: List<String>,
@@ -257,61 +276,42 @@ private fun CategoryDropdown(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val selectedText = categories.getOrNull(selectedIndex) ?: categories.firstOrNull().orEmpty()
-    val interactionSource = remember { MutableInteractionSource() }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
-        modifier = modifier
-    ) {
-        // Wrap the text field in a bordered box so it visually matches the other inputs
-        Box(
+    Box(modifier = modifier) {
+        Row(
             modifier = Modifier
-                .menuAnchor()
                 .fillMaxWidth()
-                .height(50.dp)
-                .border(BorderStroke(1.dp, Color.Black), RoundedCornerShape(25.dp))
-                .background(FieldBackground, RoundedCornerShape(25.dp))
+                .clickable { expanded = true }
+                .background(FieldBackground, RoundedCornerShape(12.dp))
+                .border(2.dp, DropdownBorderColor, RoundedCornerShape(12.dp))
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            BasicTextField(
-                value = selectedText,
-                onValueChange = {},
-                readOnly = true,
-                singleLine = true,
-                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground),
-                interactionSource = interactionSource,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(start = 20.dp, end = 44.dp), // small inset for the icon
-            ) { innerTextField ->
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) {
-                    innerTextField()
-                }
-            }
-
-            // trailing icon aligned to the end inside the bordered box (reliable right placement)
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(end = 8.dp)
-                    .width(36.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-            }
+            Text(
+                text = selectedText,
+                style = MaterialTheme.typography.bodyLarge,
+                color = TextPrimary
+            )
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowDown,
+                contentDescription = "Select category"
+            )
         }
-
-        ExposedDropdownMenu(
+        DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.fillMaxWidth() // make menu match the width of the anchor
+            onDismissRequest = { expanded = false }
         ) {
             categories.forEachIndexed { index, category ->
                 DropdownMenuItem(
-                    text = { Text(text = category) },
+                    text = {
+                        Text(
+                            text = category,
+                            color = TextPrimary
+                        )
+                    },
                     onClick = {
-                        expanded = false
                         onCategorySelected(index)
+                        expanded = false
                     }
                 )
             }

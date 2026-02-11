@@ -6,24 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.allaboard.project.domain.Activity
 import org.allaboard.project.domain.ActivityType
-
-enum class SwipeCategory(val label: String, val type: ActivityType?) {
-    ALL("All", null),
-    LANDMARKS("Landmarks", ActivityType.LANDMARK),
-    FOOD("Food", ActivityType.RESTAURANT),
-    ACTIVITIES("Activities", ActivityType.ACTIVITY)
-    ;
-
-    companion object {
-        fun fromType(type: ActivityType): SwipeCategory {
-            return when (type) {
-                ActivityType.LANDMARK -> LANDMARKS
-                ActivityType.RESTAURANT -> FOOD
-                ActivityType.ACTIVITY -> ACTIVITIES
-            }
-        }
-    }
-}
+import org.allaboard.project.ui.screens.tripHome.swipe.swipingResults.SwipingResult
 
 data class SwipingUiState(
     val categories: List<SwipeCategory> = listOf(
@@ -73,11 +56,20 @@ class SwipingViewModel(initialCards: List<Activity>) : ViewModel() {
     private val _uiState = MutableStateFlow(SwipingUiState(cards = initialCards))
     val uiState: StateFlow<SwipingUiState> = _uiState.asStateFlow()
 
+    /** Card ids that received a like or super-like (for Swiping Results). */
+    private val likedIds = mutableSetOf<String>()
+
     fun onDislike() = advance()
 
-    fun onSuperLike() = advance()
+    fun onSuperLike() {
+        _uiState.value.currentCard?.let { likedIds.add(it.id) }
+        advance()
+    }
 
-    fun onLike() = advance()
+    fun onLike() {
+        _uiState.value.currentCard?.let { likedIds.add(it.id) }
+        advance()
+    }
 
     fun onCategorySelected(index: Int) {
         val state = _uiState.value
@@ -89,5 +81,22 @@ class SwipingViewModel(initialCards: List<Activity>) : ViewModel() {
         val currentCard = state.currentCard ?: return
         if (currentCard.id in state.swipedIds) return
         _uiState.value = state.copy(swipedIds = state.swipedIds + currentCard.id)
+    }
+
+    /**
+     * Returns liked/super-liked activities as [SwipingResult] for the Swiping Results screen.
+     * Call when [SwipingUiState.isAllDone] is true.
+     */
+    fun getLikedResults(): List<SwipingResult> {
+        val state = _uiState.value
+        return state.cards
+            .filter { it.id in likedIds }
+            .map { activity ->
+                SwipingResult(
+                    activity = activity,
+                    voteCount = 1,
+                    voterNames = listOf("You")
+                )
+            }
     }
 }
