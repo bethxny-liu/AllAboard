@@ -4,36 +4,10 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.allaboard.project.domain.Activity
+import org.allaboard.project.domain.ActivityType
 
-/**
- * Data class representing a landmark
- */
-data class Landmark(
-    val id: String,
-    val title: String,
-    val voteCount: Int,
-    val imageUrl: String? = null
-)
 
-/**
- * Data class representing a restaurant
- */
-data class Restaurant(
-    val id: String,
-    val title: String,
-    val voteCount: Int,
-    val imageUrl: String? = null
-)
-
-/**
- * Data class representing an activity
- */
-data class Activity(
-    val id: String,
-    val title: String,
-    val voteCount: Int,
-    val imageUrl: String? = null
-)
 
 /**
  * Data class representing a trip
@@ -57,17 +31,80 @@ data class TripHomeUiState(
         memberCount = 4,
         imageUrl = null
     ),
-    val landmarks: List<Landmark> = listOf(
-        Landmark("1", "Mount Fuji", 4),
-        Landmark("2", "Mount Fuji", 3)
-    ),
-    val restaurants: List<Restaurant> = listOf(
-        Restaurant("1", "Ichiran Ramen", 4),
-        Restaurant("2", "Ichiran Ramen", 3)
-    ),
+    // Use unified activities from domain
     val activities: List<Activity> = listOf(
-        Activity("1", "Big Camera Store", 0),
-        Activity("2", "Big Camera Store", 0)
+        Activity(
+            id = "act-1",
+            title = "Senso-ji Temple",
+            location = "Asakusa, Tokyo",
+            description = "Historic temple with vibrant market streets and iconic Kaminarimon gate.",
+            rating = 4.7f,
+            priceLevel = "$$",
+            mapPinLabel = "Senso-ji",
+            voteCount = 3,
+            imageUrl = null,
+            type = ActivityType.LANDMARK
+        ),
+        Activity(
+            id = "act-1-2",
+            title = "Senso-ji Temple",
+            location = "Asakusa, Tokyo",
+            description = "Historic temple with vibrant market streets and iconic Kaminarimon gate.",
+            rating = 4.7f,
+            priceLevel = "$$",
+            mapPinLabel = "Senso-ji",
+            voteCount = 3,
+            imageUrl = null,
+            type = ActivityType.LANDMARK
+        ),
+        Activity(
+            id = "act-2",
+            title = "Ichiran Ramen",
+            location = "Shibuya, Tokyo",
+            description = "Solo-booth ramen experience known for rich tonkotsu broth.",
+            rating = 4.5f,
+            priceLevel = "$",
+            mapPinLabel = "Ichiran",
+            voteCount = 4,
+            imageUrl = null,
+            type = ActivityType.RESTAURANT
+        ),
+        Activity(
+            id = "act-2-2",
+            title = "Ichiran Ramen",
+            location = "Shibuya, Tokyo",
+            description = "Solo-booth ramen experience known for rich tonkotsu broth.",
+            rating = 4.5f,
+            priceLevel = "$",
+            mapPinLabel = "Ichiran",
+            voteCount = 4,
+            imageUrl = null,
+            type = ActivityType.RESTAURANT
+        ),
+        Activity(
+            id = "act-3",
+            title = "Mount Fuji Day Trip",
+            location = "Yamanashi Prefecture",
+            description = "Scenic day trip with lake views and photo spots near Fuji. asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfadsfasdfad",
+            rating = 4.8f,
+            priceLevel = "$$$",
+            mapPinLabel = "Fuji Viewpoint",
+            voteCount = 4,
+            imageUrl = null,
+            type = ActivityType.ACTIVITY
+        ),
+        Activity(
+            id = "act-3-2",
+            title = "Mount Fuji Day Trip",
+            location = "Yamanashi Prefecture",
+            description = "Scenic day trip with lake views and photo spots near Fuji. asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfadsfasdfad",
+            rating = 4.8f,
+            priceLevel = "$$$",
+            mapPinLabel = "Fuji Viewpoint",
+            voteCount = 4,
+            imageUrl = null,
+            type = ActivityType.ACTIVITY
+        )
     ),
     val isLoading: Boolean = false,
     val error: String? = null
@@ -98,26 +135,14 @@ class TripHomeViewModel : ViewModel() {
     }
 
     fun onSeeAllLandmarks() {
-        // TODO: Navigate to landmarks list screen
+        // TODO: Navigate to landmarks list screen (filter activities by type LANDMARK)
     }
 
     fun onSeeAllRestaurants() {
-        // TODO: Navigate to restaurants list screen
+        // TODO: Navigate to restaurants list screen (filter activities by type RESTAURANT)
     }
 
     fun onSeeAllActivities() {
-        // TODO: Navigate to activities list screen
-    }
-
-    fun onLandmarkClick(landmarkId: String) {
-        // TODO: Navigate to landmark details
-    }
-
-    fun onRestaurantClick(restaurantId: String) {
-        // TODO: Navigate to restaurant details
-    }
-
-    fun onActivityClick(activityId: String) {
-        // TODO: Navigate to activity details
+        // TODO: Navigate to activities list screen (may include all types or only ActivityType.ACTIVITY)
     }
 }
