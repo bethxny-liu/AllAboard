@@ -63,11 +63,4 @@ class HomeViewModel : ViewModel() {
         _uiState.value = _uiState.value.copy(searchQuery = query)
     }
 
-    fun onTripClick(tripId: String) {
-        // TODO: Navigate to trip details
-    }
-
-    fun onCreateTripClick() {
-        // TODO: Navigate to create trip flow
-    }
 }
