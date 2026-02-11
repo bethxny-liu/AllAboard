@@ -18,8 +18,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.People
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -41,6 +44,7 @@ import org.allaboard.project.ui.screens.createTrip.CreateTripScreen
 import org.allaboard.project.ui.screens.createTrip.CreateTripViewModel
 import org.allaboard.project.ui.screens.createActivity.CreateCustomActivityScreen
 import org.allaboard.project.ui.screens.tripHome.swipe.SwipingScreen
+import org.allaboard.project.ui.screens.itinerary.ItineraryScreen
 import org.allaboard.project.ui.theme.MintAccent
 import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextPrimary
@@ -73,7 +77,8 @@ class TripHomeScreen : Screen {
             },
             onActivitySelected = { activity ->
                 navigator?.push(ActivityDetailsScreen(activity, activity.id))
-            }
+            },
+            onViewItinerary = { navigator?.push(ItineraryScreen()) }
         )
     }
 }
@@ -86,6 +91,7 @@ fun TripHomeScreenContent(
     onEditTrip: () -> Unit,
     onActivitySelected: (Activity) -> Unit,
     onStartSwipingClick: () -> Unit,
+    onViewItinerary: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -98,9 +104,8 @@ fun TripHomeScreenContent(
             trip = uiState.trip,
             onEditClick = onEditTrip,
             onStartSwipingClick = onStartSwipingClick,
-            onViewItineraryClick = viewModel::onViewItineraryClick,
-            onCreateCustomActivity = onCreateCustomActivity
-
+            onCreateCustomActivity = onCreateCustomActivity,
+            onViewItineraryClick = onViewItinerary
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -249,8 +254,14 @@ private fun TripHeroSection(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Icon(
+                        imageVector = Icons.Outlined.People,
+                        contentDescription = "Trip members",
+                        tint = Surface
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "👥 ${trip.memberCount}",
+                        text = trip.memberCount.toString(),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Normal,
                         color = Surface

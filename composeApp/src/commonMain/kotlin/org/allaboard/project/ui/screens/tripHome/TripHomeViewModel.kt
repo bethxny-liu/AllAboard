@@ -125,8 +125,4 @@ class TripHomeViewModel : ViewModel() {
         // TODO: Implement actual data loading from repository/API
         // For now, use the default state with sample data
     }
-
-    fun onViewItineraryClick() {
-        // TODO: Navigate to itinerary screen
-    }
 }
