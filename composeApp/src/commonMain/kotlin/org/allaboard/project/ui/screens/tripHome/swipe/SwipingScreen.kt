@@ -70,6 +70,8 @@ import team_102_8.composeapp.generated.resources.Res
 import team_102_8.composeapp.generated.resources.prettyplace
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.allaboard.project.Category
+import org.allaboard.project.ui.components.CategoryDropdown
 
 class SwipingScreen(private val activities: List<Activity>) : Screen {
     @Composable
@@ -86,7 +88,7 @@ class SwipingScreen(private val activities: List<Activity>) : Screen {
             onLike = viewModel::onLike,
             onCategorySelected = viewModel::onCategorySelected,
             onLearnMore = { activity ->
-                navigator?.push(ActivityDetailsScreen(activity = activity, fallbackActivityId = activity.id))
+                navigator?.push(ActivityDetailsScreen(activity, activity.id))
             },
             onAllDone = {
                 val results = viewModel.getLikedResults()
@@ -175,7 +177,8 @@ fun SwipingScreenContent(
             CategoryDropdown(
                 categories = uiState.categories,
                 selectedIndex = uiState.selectedCategoryIndex,
-                onCategorySelected = onCategorySelected
+                onCategorySelected = onCategorySelected,
+                modifier = Modifier.fillMaxWidth()
             )
         }
 
@@ -256,7 +259,7 @@ fun SwipingScreenContent(
 }
 
 @Composable
-private fun CategoryDoneMessage(category: SwipeCategory, modifier: Modifier = Modifier) {
+private fun CategoryDoneMessage(category: Category, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -273,7 +276,7 @@ private fun CategoryDoneMessage(category: SwipeCategory, modifier: Modifier = Mo
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "All set for ${category.label}",
+            text = "All set for ${category.displayName}",
             style = MaterialTheme.typography.titleMedium,
             color = TextPrimary,
             textAlign = TextAlign.Center
@@ -289,7 +292,7 @@ private fun CategoryDoneMessage(category: SwipeCategory, modifier: Modifier = Mo
 }
 
 @Composable
-private fun EmptyCategoryMessage(category: SwipeCategory, modifier: Modifier = Modifier) {
+private fun EmptyCategoryMessage(category: Category, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -299,7 +302,7 @@ private fun EmptyCategoryMessage(category: SwipeCategory, modifier: Modifier = M
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "No activities in ${category.label}",
+            text = "No activities in ${category.displayName}",
             style = MaterialTheme.typography.titleMedium,
             color = TextPrimary,
             textAlign = TextAlign.Center
@@ -311,86 +314,5 @@ private fun EmptyCategoryMessage(category: SwipeCategory, modifier: Modifier = M
             color = TextSecondary,
             textAlign = TextAlign.Center
         )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun CategoryDropdown(
-    categories: List<SwipeCategory>,
-    selectedIndex: Int,
-    onCategorySelected: (Int) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var expanded by remember { mutableStateOf(false) }
-    val selectedText = categories.getOrNull(selectedIndex)?.label.orEmpty()
-    val interactionSource = remember { MutableInteractionSource() }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
-        modifier = modifier
-    ) {
-        BasicTextField(
-            value = selectedText,
-            onValueChange = {},
-            readOnly = true,
-            singleLine = true,
-            textStyle = MaterialTheme.typography.titleMedium.copy(
-                color = TextPrimary,
-                textAlign = TextAlign.Center
-            ),
-            interactionSource = interactionSource,
-            modifier = Modifier
-                .menuAnchor()
-                .fillMaxWidth(0.6f)
-                .height(40.dp)
-        ) { innerTextField ->
-            TextFieldDefaults.DecorationBox(
-                value = selectedText,
-                innerTextField = {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        innerTextField()
-                    }
-                },
-                enabled = true,
-                singleLine = true,
-                visualTransformation = VisualTransformation.None,
-                interactionSource = interactionSource,
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = FieldBackground,
-                    unfocusedContainerColor = FieldBackground,
-                    disabledContainerColor = FieldBackground,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                    focusedTextColor = TextPrimary,
-                    unfocusedTextColor = TextPrimary
-                ),
-                contentPadding = TextFieldDefaults.contentPaddingWithoutLabel(
-                    top = 4.dp,
-                    bottom = 4.dp
-                ),
-                shape = RoundedCornerShape(999.dp)
-            )
-        }
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            categories.forEachIndexed { index, category ->
-                DropdownMenuItem(
-                    text = { Text(text = category.label) },
-                    onClick = {
-                        expanded = false
-                        onCategorySelected(index)
-                    }
-                )
-            }
-        }
     }
 }

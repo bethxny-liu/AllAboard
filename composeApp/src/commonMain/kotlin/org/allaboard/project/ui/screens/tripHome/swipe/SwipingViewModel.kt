@@ -4,27 +4,27 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.allaboard.project.Category
 import org.allaboard.project.domain.Activity
 import org.allaboard.project.domain.ActivityType
 import org.allaboard.project.ui.screens.tripHome.swipe.swipingResults.SwipingResult
 
 data class SwipingUiState(
-    val categories: List<SwipeCategory> = listOf(
-        SwipeCategory.ALL,
-        SwipeCategory.LANDMARKS,
-        SwipeCategory.FOOD,
-        SwipeCategory.ACTIVITIES
-    ),
+    val categories: List<Category> = Category.allCategories,
     val selectedCategoryIndex: Int = 0,
     val cards: List<Activity>,
     val swipedIds: Set<String> = emptySet()
 ) {
-    val selectedCategory: SwipeCategory
+    val selectedCategory: Category
         get() = categories.getOrNull(selectedCategoryIndex) ?: categories.first()
 
-    fun cardsFor(category: SwipeCategory): List<Activity> {
-        val type = category.type
-        val base = if (type == null) cards else cards.filter { it.type == type }
+    fun cardsFor(category: Category): List<Activity> {
+        val base = when (category) {
+            Category.ALL -> cards
+            Category.RESTAURANTS -> cards.filter { it.type == ActivityType.RESTAURANT }
+            Category.LANDMARKS -> cards.filter { it.type == ActivityType.LANDMARK }
+            Category.EXPERIENCES -> cards.filter { it.type == ActivityType.EXPERIENCES }
+        }
         return base.filterNot { it.id in swipedIds }
     }
 
@@ -45,7 +45,7 @@ data class SwipingUiState(
 
     val isAllDone: Boolean
         get() {
-            val categoriesToCheck = categories.filter { it.type != null }
+            val categoriesToCheck = categories.filter { it != Category.ALL }
             return categoriesToCheck.isNotEmpty() && categoriesToCheck.all { category ->
                 cardsFor(category).isEmpty()
             }

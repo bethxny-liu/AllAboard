@@ -1,20 +1,26 @@
 package org.allaboard.project
 
-/**
- * Category labels used for Trip Home sections and Swiping Results filter.
- * Keeps section titles and filter dropdown in sync.
- */
-object CategoryConstants {
-    const val ALL = "All"
-    const val LANDMARKS = "Landmarks"
-    const val RESTAURANTS_AND_FOOD = "Restaurants & Food"
-    const val EXPERIENCES = "Experiences"
+import org.allaboard.project.domain.ActivityType
 
-    /** Category filter options for Swiping Results (match Trip Home sections). */
-    val SWIPING_RESULT_CATEGORIES = listOf(
-        ALL,
-        LANDMARKS,
-        RESTAURANTS_AND_FOOD,
-        EXPERIENCES
-    )
+/**
+ * Standardized category enum for activities across the app
+ */
+enum class Category(val displayName: String, val type: ActivityType?) {
+    ALL("All", null),
+    RESTAURANTS("Restaurants", ActivityType.RESTAURANT),
+    LANDMARKS("Landmarks", ActivityType.LANDMARK),
+    EXPERIENCES("Experiences", ActivityType.EXPERIENCES);
+
+    companion object {
+        fun fromDisplayName(name: String): Category {
+            return entries.find { it.displayName == name } ?: ALL
+        }
+        fun fromType(type: ActivityType): Category {
+            return entries.find { it.type == type } ?: ALL
+        }
+
+        val allCategories: List<Category> = entries
+    }
 }
+
+

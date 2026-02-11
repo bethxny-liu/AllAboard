@@ -38,6 +38,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import org.allaboard.project.domain.Activity
+import org.allaboard.project.ui.components.CategoryDropdown
 import org.allaboard.project.ui.screens.activityDetails.ActivityDetailsScreen
 import org.allaboard.project.ui.screens.tripHome.TripHomeScreen
 import org.allaboard.project.ui.theme.FieldBackground
@@ -76,67 +77,11 @@ class SwipingResultsScreen(
     }
 }
 
-private val DropdownBorderColor = Color(0xFF9B87F5)
-
-@Composable
-private fun CategoryDropdown(
-    selectedCategory: String,
-    categories: List<String>,
-    onCategorySelected: (String) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = true }
-                .background(FieldBackground, RoundedCornerShape(12.dp))
-                .border(2.dp, DropdownBorderColor, RoundedCornerShape(12.dp))
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = selectedCategory,
-                style = MaterialTheme.typography.bodyLarge,
-                color = TextPrimary
-            )
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = "Select category"
-            )
-        }
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            categories.forEach { category ->
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = category,
-                            color = TextPrimary
-                        )
-                    },
-                    onClick = {
-                        onCategorySelected(category)
-                        expanded = false
-                    }
-                )
-            }
-        }
-    }
-}
-
 @Composable
 private fun SwipingResultsContent(
     uiState: SwipingResultsUiState,
     onBack: () -> Unit,
-    onCategorySelected: (String) -> Unit,
+    onCategorySelected: (Int) -> Unit,
     onActivityClick: (Activity) -> Unit
 ) {
     Column(
@@ -177,9 +122,10 @@ private fun SwipingResultsContent(
         ) {
             // Category dropdown (Landmarks, etc.)
             CategoryDropdown(
-                selectedCategory = uiState.selectedCategory,
                 categories = uiState.categories,
-                onCategorySelected = onCategorySelected
+                selectedIndex = uiState.selectedCategoryIndex,
+                onCategorySelected = onCategorySelected,
+                modifier = Modifier.fillMaxWidth()
             )
 
             Text(

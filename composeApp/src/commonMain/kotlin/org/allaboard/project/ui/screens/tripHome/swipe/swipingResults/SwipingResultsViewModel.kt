@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import org.allaboard.project.CategoryConstants
+import org.allaboard.project.Category
 import org.allaboard.project.domain.Activity
 import org.allaboard.project.domain.ActivityType
 
@@ -17,18 +17,24 @@ import org.allaboard.project.domain.ActivityType
  */
 data class SwipingResultsUiState(
     val results: List<SwipingResult> = emptyList(),
-    val selectedCategory: String = CategoryConstants.ALL,
-    val categories: List<String> = CategoryConstants.SWIPING_RESULT_CATEGORIES,
+    val categories: List<Category> = Category.allCategories,
+    val selectedCategoryIndex: Int = 0,
     val isLoading: Boolean = false,
     val error: String? = null
 ) {
+    val selectedCategory: Category
+        get() = categories.getOrNull(selectedCategoryIndex) ?: Category.ALL
+
     /** Results filtered by selected category (or all when "All"), sorted by vote count descending. */
-    val sortedFilteredResults: List<SwipingResult> =
-        if (selectedCategory == CategoryConstants.ALL) {
-            results.sortedByDescending { it.voteCount }
-        } else {
-            results.filter { it.category == selectedCategory }
-                .sortedByDescending { it.voteCount }
+    val sortedFilteredResults: List<SwipingResult>
+        get() {
+            val filtered = when (selectedCategory) {
+                Category.ALL -> results
+                Category.RESTAURANTS -> results.filter { it.activity.type == ActivityType.RESTAURANT }
+                Category.LANDMARKS -> results.filter { it.activity.type == ActivityType.LANDMARK }
+                Category.EXPERIENCES -> results.filter { it.activity.type == ActivityType.EXPERIENCES }
+            }
+            return filtered.sortedByDescending { it.voteCount }
         }
 }
 
@@ -56,8 +62,8 @@ class SwipingResultsViewModel(
         )
     }
 
-    fun onCategorySelected(category: String) {
-        _uiState.value = _uiState.value.copy(selectedCategory = category)
+    fun onCategorySelected(index: Int) {
+        _uiState.value = _uiState.value.copy(selectedCategoryIndex = index)
     }
 
     /** Replace with real data when swiping is merged: activities + yes/no per user. */

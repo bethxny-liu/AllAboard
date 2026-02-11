@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
-import org.allaboard.project.CategoryConstants
+import org.allaboard.project.Category
 import org.allaboard.project.domain.Activity
 import org.allaboard.project.domain.ActivityType
 import org.allaboard.project.ui.screens.activityDetails.ActivityDetailsScreen
@@ -41,7 +41,6 @@ import org.allaboard.project.ui.screens.createTrip.CreateTripScreen
 import org.allaboard.project.ui.screens.createTrip.CreateTripViewModel
 import org.allaboard.project.ui.screens.createActivity.CreateCustomActivityScreen
 import org.allaboard.project.ui.screens.tripHome.swipe.SwipingScreen
-import org.allaboard.project.ui.theme.BluePrimary
 import org.allaboard.project.ui.theme.MintAccent
 import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextPrimary
@@ -108,7 +107,7 @@ fun TripHomeScreenContent(
 
         // Landmarks Section
         SectionWithCards(
-            title = CategoryConstants.LANDMARKS,
+            title = Category.LANDMARKS.displayName,
             items = uiState.activities.filter { it.type == ActivityType.LANDMARK },
             itemId = { it.id },
             onItemClick = onActivitySelected
@@ -133,7 +132,7 @@ fun TripHomeScreenContent(
 
         // Restaurants & Food Section
         SectionWithCards(
-            title = CategoryConstants.RESTAURANTS_AND_FOOD,
+            title = Category.RESTAURANTS.displayName,
             items = uiState.activities.filter { it.type == ActivityType.RESTAURANT },
             itemId = { it.id },
             onItemClick = onActivitySelected
@@ -158,8 +157,8 @@ fun TripHomeScreenContent(
 
         // Experiences Section
         SectionWithCards(
-            title = CategoryConstants.EXPERIENCES,
-            items = uiState.activities.filter { it.type == ActivityType.ACTIVITY },
+            title = Category.EXPERIENCES.displayName,
+            items = uiState.activities.filter { it.type == ActivityType.EXPERIENCES },
             itemId = { it.id },
             onItemClick = onActivitySelected
         ) { activity ->

@@ -2,30 +2,12 @@ package org.allaboard.project.ui.screens.createActivity
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,7 +16,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.allaboard.project.ui.theme.FieldBackground
-import org.allaboard.project.ui.theme.TextPrimary
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CloudUpload
@@ -44,6 +25,7 @@ import androidx.compose.material3.IconButton
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
+import org.allaboard.project.ui.components.CategoryDropdown
 
 /**
  * Create Custom Activity screen: allows users to create a new activity that others can swipe on.
@@ -68,15 +50,16 @@ class CreateCustomActivityScreen : Screen {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CreateCustomActivityContent(
     uiState: CreateCustomActivityUiState,
-    onBack: () -> Unit,
-    onCreate: () -> Unit,
-    onCategoryChange: (String) -> Unit = {},
+    onBack: () -> Unit = {},
+    onCategoryChange: (Int) -> Unit = {},
     onNameChange: (String) -> Unit = {},
     onLocationChange: (String) -> Unit = {},
-    onDescriptionChange: (String) -> Unit = {}
+    onDescriptionChange: (String) -> Unit = {},
+    onCreate: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier
@@ -114,14 +97,11 @@ private fun CreateCustomActivityContent(
         Text("Category", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
         Spacer(Modifier.height(8.dp))
 
-        // Use the project's CategoryDropdown pattern (index-based) and map to string API
-        val categories = listOf("Landmark", "Restaurant", "Activity")
-        val selectedIndex = categories.indexOf(uiState.category).coerceAtLeast(0)
-
+        // Use shared CategoryDropdown component
         CategoryDropdown(
-            categories = categories,
-            selectedIndex = selectedIndex,
-            onCategorySelected = { idx -> onCategoryChange(categories.getOrNull(idx) ?: categories.first()) },
+            categories = uiState.categories,
+            selectedIndex = uiState.selectedCategoryIndex,
+            onCategorySelected = onCategoryChange,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -265,56 +245,3 @@ private fun CreateCustomActivityContent(
     }
 }
 
-private val DropdownBorderColor = Color(0xFF9B87F5)
-
-@Composable
-private fun CategoryDropdown(
-    categories: List<String>,
-    selectedIndex: Int,
-    onCategorySelected: (Int) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var expanded by remember { mutableStateOf(false) }
-    val selectedText = categories.getOrNull(selectedIndex) ?: categories.firstOrNull().orEmpty()
-    Box(modifier = modifier) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = true }
-                .background(FieldBackground, RoundedCornerShape(12.dp))
-                .border(2.dp, DropdownBorderColor, RoundedCornerShape(12.dp))
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = selectedText,
-                style = MaterialTheme.typography.bodyLarge,
-                color = TextPrimary
-            )
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = "Select category"
-            )
-        }
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            categories.forEachIndexed { index, category ->
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = category,
-                            color = TextPrimary
-                        )
-                    },
-                    onClick = {
-                        onCategorySelected(index)
-                        expanded = false
-                    }
-                )
-            }
-        }
-    }
-}

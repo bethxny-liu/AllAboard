@@ -1,6 +1,6 @@
 package org.allaboard.project.ui.screens.tripHome.swipe.swipingResults
 
-import org.allaboard.project.CategoryConstants
+import org.allaboard.project.Category
 import org.allaboard.project.domain.Activity
 import org.allaboard.project.domain.ActivityType
 
@@ -16,9 +16,9 @@ data class SwipingResult(
     /** Display category for filtering (matches Swiping Results dropdown). */
     val category: String
         get() = when (activity.type) {
-            ActivityType.LANDMARK -> CategoryConstants.LANDMARKS
-            ActivityType.RESTAURANT -> CategoryConstants.RESTAURANTS_AND_FOOD
-            ActivityType.ACTIVITY -> CategoryConstants.EXPERIENCES
+            ActivityType.LANDMARK -> Category.LANDMARKS.displayName
+            ActivityType.RESTAURANT -> Category.RESTAURANTS.displayName
+            ActivityType.EXPERIENCES -> Category.EXPERIENCES.displayName
         }
 
     /** Display text for voters, e.g. "Daniel, Rachael + 2 more" */
