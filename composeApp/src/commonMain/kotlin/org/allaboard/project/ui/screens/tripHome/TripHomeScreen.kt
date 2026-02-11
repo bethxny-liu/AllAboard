@@ -38,6 +38,7 @@ import org.allaboard.project.domain.ActivityType
 import org.allaboard.project.ui.screens.activityDetails.ActivityDetailsScreen
 import org.allaboard.project.ui.screens.createTrip.CreateTripScreen
 import org.allaboard.project.ui.screens.createTrip.CreateTripViewModel
+import org.allaboard.project.ui.screens.createActivity.CreateCustomActivityScreen
 import org.allaboard.project.ui.screens.tripHome.swipe.SwipingScreen
 import org.allaboard.project.ui.theme.BluePrimary
 import org.allaboard.project.ui.theme.MintAccent
@@ -67,6 +68,9 @@ class TripHomeScreen : Screen {
                     )
                 )
             },
+            onCreateCustomActivity = {
+                navigator?.push(CreateCustomActivityScreen())
+            },
             onActivitySelected = { activity ->
                 navigator?.push(ActivityDetailsScreen(activity, activity.id))
             }
@@ -78,6 +82,7 @@ class TripHomeScreen : Screen {
 fun TripHomeScreenContent(
     uiState: TripHomeUiState,
     viewModel: TripHomeViewModel,
+    onCreateCustomActivity: () -> Unit,
     onEditTrip: () -> Unit,
     onActivitySelected: (Activity) -> Unit,
     onStartSwipingClick: () -> Unit,
@@ -93,7 +98,9 @@ fun TripHomeScreenContent(
             trip = uiState.trip,
             onEditClick = onEditTrip,
             onStartSwipingClick = onStartSwipingClick,
-            onViewItineraryClick = viewModel::onViewItineraryClick
+            onViewItineraryClick = viewModel::onViewItineraryClick,
+            onCreateCustomActivity = onCreateCustomActivity
+
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -183,12 +190,13 @@ private fun TripHeroSection(
     trip: Trip,
     onEditClick: () -> Unit,
     onStartSwipingClick: () -> Unit,
-    onViewItineraryClick: () -> Unit
+    onViewItineraryClick: () -> Unit,
+    onCreateCustomActivity: () -> Unit
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(400.dp),
+            .height(460.dp),
     ) {
         // Background hero image spans edge-to-edge
         Image(
@@ -252,7 +260,7 @@ private fun TripHeroSection(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Action Buttons
                 Row(
@@ -293,6 +301,24 @@ private fun TripHeroSection(
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // Create Custom Activity under the action buttons, matching View Itinerary styling
+                Button(
+                    onClick = onCreateCustomActivity,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(44.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Surface)
+                ) {
+                    Text(text = "Create Custom Activity", color = TextPrimary)
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+
             }
         }
     }
