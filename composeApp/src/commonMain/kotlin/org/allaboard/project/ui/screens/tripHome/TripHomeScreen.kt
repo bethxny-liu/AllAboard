@@ -95,26 +95,11 @@ fun TripHomeScreenContent(
             trip = uiState.trip,
             onEditClick = onEditTrip,
             onStartSwipingClick = viewModel::onStartSwipingClick,
-            onViewItineraryClick = viewModel::onViewItineraryClick
+            onViewItineraryClick = viewModel::onViewItineraryClick,
+            onCreateCustomActivity = onCreateCustomActivity
         )
 
         Spacer(modifier = Modifier.height(16.dp))
-
-        // Button to create a custom activity (ensures navigation stays inside same Navigator so footer shows)
-        Box(modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)) {
-            Button(
-                onClick = onCreateCustomActivity,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(44.dp),
-                shape = RoundedCornerShape(20.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MintAccent)
-            ) {
-                Text(text = "Create Custom Activity", color = Surface)
-            }
-        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -205,12 +190,13 @@ private fun TripHeroSection(
     trip: Trip,
     onEditClick: () -> Unit,
     onStartSwipingClick: () -> Unit,
-    onViewItineraryClick: () -> Unit
+    onViewItineraryClick: () -> Unit,
+    onCreateCustomActivity: () -> Unit
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(400.dp),
+            .height(460.dp),
     ) {
         // Background hero image spans edge-to-edge
         Image(
@@ -274,7 +260,7 @@ private fun TripHeroSection(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Action Buttons
                 Row(
@@ -315,6 +301,24 @@ private fun TripHeroSection(
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // Create Custom Activity under the action buttons, matching View Itinerary styling
+                Button(
+                    onClick = onCreateCustomActivity,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(44.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Surface)
+                ) {
+                    Text(text = "Create Custom Activity", color = TextPrimary)
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+
             }
         }
     }
