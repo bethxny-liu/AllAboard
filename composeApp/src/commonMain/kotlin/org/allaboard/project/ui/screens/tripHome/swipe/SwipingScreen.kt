@@ -136,8 +136,12 @@ fun SwipingScreenContent(
                 .fillMaxSize()
                 .padding(horizontal = 24.dp, vertical = 20.dp)
         ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-            Box(modifier = Modifier.fillMaxWidth()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 IconButton(
                     onClick = onBack,
                     modifier = Modifier.align(Alignment.CenterStart)
@@ -148,17 +152,13 @@ fun SwipingScreenContent(
                         tint = TextPrimary
                     )
                 }
+                Text(
+                    text = "Swipe!",
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = TextPrimary,
+                    textAlign = TextAlign.Center
+                )
             }
-            Text(
-                text = "Swipe!",
-                style = MaterialTheme.typography.headlineLarge,
-                color = TextPrimary,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .offset(y = (-8).dp),
-                textAlign = TextAlign.Center
-            )
-        }
 
         Spacer(modifier = Modifier.height(12.dp))
 

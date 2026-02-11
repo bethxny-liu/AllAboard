@@ -18,8 +18,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.People
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -244,8 +247,14 @@ private fun TripHeroSection(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Icon(
+                        imageVector = Icons.Outlined.People,
+                        contentDescription = "Trip members",
+                        tint = Surface
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "👥 ${trip.memberCount}",
+                        text = trip.memberCount.toString(),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Normal,
                         color = Surface
