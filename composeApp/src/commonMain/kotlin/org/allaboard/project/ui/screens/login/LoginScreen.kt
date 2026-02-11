@@ -29,7 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
-import org.allaboard.project.ui.screens.HomeScreen
+import org.allaboard.project.ui.screens.home.HomeScreen
 import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextPrimary
 import org.allaboard.project.ui.theme.TextSecondary
