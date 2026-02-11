@@ -9,7 +9,7 @@ import cafe.adriel.voyager.core.annotation.ExperimentalVoyagerApi
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.NavigatorDisposeBehavior
 import cafe.adriel.voyager.transitions.SlideTransition
-import org.allaboard.project.ui.screens.HomeScreen
+import org.allaboard.project.ui.screens.home.HomeScreen
 import org.allaboard.project.ui.screens.login.LoginScreen
 import org.allaboard.project.ui.screens.onboarding.OnboardingScreen
 

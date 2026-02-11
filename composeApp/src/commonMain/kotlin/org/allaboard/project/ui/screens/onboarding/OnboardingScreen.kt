@@ -8,7 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
-import org.allaboard.project.ui.screens.HomeScreen
+import org.allaboard.project.ui.screens.home.HomeScreen
 
 /**
  * Single onboarding screen with 4 step components.
@@ -28,7 +28,7 @@ class OnboardingScreen : Screen {
             2 -> BudgetStep(vm = vm, onNext = { step++ }, onBack = { step-- })
             3 -> InterestsStep(
                 vm = vm,
-                onFinish = { navigator?.push(HomeScreen()) },
+                onFinish = { navigator?.replace(HomeScreen()) },
                 onBack = { step-- }
             )
             else -> WelcomeStep(vm = vm, onNext = { step++ })
