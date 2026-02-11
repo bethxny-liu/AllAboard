@@ -12,6 +12,7 @@ import cafe.adriel.voyager.transitions.SlideTransition
 import org.allaboard.project.ui.screens.home.HomeScreen
 import org.allaboard.project.ui.screens.login.LoginScreen
 import org.allaboard.project.ui.screens.onboarding.OnboardingScreen
+import org.allaboard.project.ui.screens.profile.ProfileScreen
 
 @OptIn(ExperimentalVoyagerApi::class)
 @Composable
@@ -23,6 +24,7 @@ fun AppNavigator() {
         val currentItem = navigator.lastItemOrNull
         val activeItem = when (currentItem) {
             is HomeScreen -> FooterItem.HOME
+            is ProfileScreen -> FooterItem.PROFILE
             // TODO: Add cases for ProfileScreen when implemented
             else -> FooterItem.TRIPS // default to Home styling for now
         }
@@ -40,7 +42,7 @@ fun AppNavigator() {
                 FooterNavBar(
                     onHome = { if (activeItem != FooterItem.HOME) navigator.replace(HomeScreen()) },
                     onTrips = { /* TODO: dummy */ },
-                    onProfile = { /* TODO: dummy */ },
+                    onProfile = { if (activeItem != FooterItem.PROFILE) navigator.push(ProfileScreen()) },
                     activeItem = activeItem
                 )
             }
