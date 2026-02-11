@@ -133,7 +133,7 @@ class LoginScreen : Screen {
 
                     Button(
                         onClick = {
-                            navigator?.push(HomeScreen())
+                            navigator?.replace(HomeScreen())
                         },
                         modifier = Modifier
                             .fillMaxWidth()
