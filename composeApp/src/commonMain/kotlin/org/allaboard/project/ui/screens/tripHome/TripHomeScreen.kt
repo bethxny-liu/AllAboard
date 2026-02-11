@@ -57,7 +57,7 @@ class TripHomeScreen : Screen {
         TripHomeScreenContent(
             uiState = uiState,
             viewModel = viewModel,
-            onStartSwipingClick = { navigator?.push(SwipingScreen()) },
+            onStartSwipingClick = { navigator?.push(SwipingScreen(uiState.activities)) },
             onEditTrip = {
                 navigator?.push(
                     CreateTripScreen(

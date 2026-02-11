@@ -3,6 +3,7 @@ package org.allaboard.project.ui.screens.tripHome.swipe
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,12 +11,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -52,10 +55,12 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import androidx.lifecycle.viewmodel.compose.viewModel
+import org.allaboard.project.domain.Activity
 import org.allaboard.project.ui.theme.Background
 import org.allaboard.project.ui.theme.FieldBackground
 import org.allaboard.project.ui.theme.SwipeDislike
 import org.allaboard.project.ui.theme.SwipeLike
+import org.allaboard.project.ui.theme.SwipeSuperLike
 import org.allaboard.project.ui.theme.TextPrimary
 import org.allaboard.project.ui.theme.TextSecondary
 import org.jetbrains.compose.resources.painterResource
@@ -64,11 +69,11 @@ import team_102_8.composeapp.generated.resources.prettyplace
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class SwipingScreen : Screen {
+class SwipingScreen(private val activities: List<Activity>) : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
-        val viewModel = viewModel { SwipingViewModel() }
+        val viewModel = viewModel { SwipingViewModel(activities) }
         val uiState by viewModel.uiState.collectAsState()
 
         SwipingScreenContent(
@@ -116,7 +121,7 @@ fun SwipingScreenContent(
             .background(Background)
     ) {
         LaunchedEffect(uiState.isAllDone) {
-            if (uiState.isAllDone) {
+            if (uiState.hasCards && uiState.isAllDone) {
                 onAllDone()
             }
         }
@@ -165,10 +170,12 @@ fun SwipingScreenContent(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Box(
+        BoxWithConstraints(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
+            val widthFromHeight = maxHeight * 0.70f
+            val cardWidth = 360.dp.coerceAtMost(widthFromHeight)
             val card = uiState.currentCard
             AnimatedContent(
                 targetState = card,
@@ -178,21 +185,31 @@ fun SwipingScreenContent(
                 if (targetCard != null) {
                     key(targetCard.id) {
                         SwipeCard(
-                            name = targetCard.name,
-                            location = targetCard.location,
-                            category = targetCard.category,
+                            activity = targetCard,
                             imagePainter = painterResource(Res.drawable.prettyplace),
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.width(cardWidth),
                             onDislike = {
                                 triggerFlash(SwipeDislike, Icons.Filled.Close)
                                 onDislike()
                             },
-                            onSuperLike = onSuperLike,
+                            onSuperLike = {
+                                triggerFlash(SwipeSuperLike, Icons.Filled.Star)
+                                onSuperLike()
+                            },
                             onLike = {
                                 triggerFlash(SwipeLike, Icons.Filled.Check)
                                 onLike()
                             }
                         )
+                    }
+                } else if (!uiState.hasCardsInSelectedCategory) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = 24.dp),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        EmptyCategoryMessage(category = uiState.selectedCategory)
                     }
                 } else if (uiState.isCategoryDone) {
                     Box(
@@ -227,7 +244,7 @@ fun SwipingScreenContent(
 }
 
 @Composable
-private fun CategoryDoneMessage(category: String, modifier: Modifier = Modifier) {
+private fun CategoryDoneMessage(category: SwipeCategory, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -244,7 +261,33 @@ private fun CategoryDoneMessage(category: String, modifier: Modifier = Modifier)
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "All set for $category",
+            text = "All set for ${category.label}",
+            style = MaterialTheme.typography.titleMedium,
+            color = TextPrimary,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "Pick another category to keep swiping.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextSecondary,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+private fun EmptyCategoryMessage(category: SwipeCategory, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .background(FieldBackground)
+            .padding(horizontal = 24.dp, vertical = 20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "No activities in ${category.label}",
             style = MaterialTheme.typography.titleMedium,
             color = TextPrimary,
             textAlign = TextAlign.Center
@@ -262,13 +305,13 @@ private fun CategoryDoneMessage(category: String, modifier: Modifier = Modifier)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CategoryDropdown(
-    categories: List<String>,
+    categories: List<SwipeCategory>,
     selectedIndex: Int,
     onCategorySelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val selectedText = categories.getOrNull(selectedIndex) ?: categories.firstOrNull().orEmpty()
+    val selectedText = categories.getOrNull(selectedIndex)?.label.orEmpty()
     val interactionSource = remember { MutableInteractionSource() }
 
     ExposedDropdownMenuBox(
@@ -329,7 +372,7 @@ private fun CategoryDropdown(
         ) {
             categories.forEachIndexed { index, category ->
                 DropdownMenuItem(
-                    text = { Text(text = category) },
+                    text = { Text(text = category.label) },
                     onClick = {
                         expanded = false
                         onCategorySelected(index)

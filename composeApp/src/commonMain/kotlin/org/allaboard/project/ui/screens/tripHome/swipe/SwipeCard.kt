@@ -45,7 +45,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import org.allaboard.project.ui.theme.BluePrimary
+import org.allaboard.project.domain.Activity
+import org.allaboard.project.domain.ActivityType
 import org.allaboard.project.ui.theme.BluePrimaryDark
 import org.allaboard.project.ui.theme.CoralAccent
 import org.allaboard.project.ui.theme.GreenAccent
@@ -60,9 +61,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun SwipeCard(
-    name: String,
-    location: String,
-    category: String,
+    activity: Activity,
     imagePainter: Painter,
     modifier: Modifier = Modifier,
     onDislike: () -> Unit = {},
@@ -146,19 +145,19 @@ fun SwipeCard(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = name,
+                                text = activity.title,
                                 style = MaterialTheme.typography.headlineMedium,
                                 color = TextPrimary
                             )
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
-                                text = location,
+                                text = activity.location,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = TextSecondary
                             )
                         }
                         CategoryChip(
-                            text = category,
+                            text = activity.type,
                             modifier = Modifier.padding(top = 4.dp)
                         )
                     }
@@ -184,7 +183,8 @@ fun SwipeCard(
                             backgroundColor = SwipeDislike,
                             icon = Icons.Filled.Close,
                             contentDescription = "Dislike",
-                            onClick = onDislike
+                            onClick = onDislike,
+                            enabled = false
                         )
                         SwipeActionButton(
                             backgroundColor = SwipeSuperLike,
@@ -196,7 +196,8 @@ fun SwipeCard(
                             backgroundColor = SwipeLike,
                             icon = Icons.Filled.Check,
                             contentDescription = "Like",
-                            onClick = onLike
+                            onClick = onLike,
+                            enabled = false
                         )
                     }
                 }
@@ -206,7 +207,7 @@ fun SwipeCard(
 }
 
 @Composable
-private fun CategoryChip(text: String, modifier: Modifier = Modifier) {
+private fun CategoryChip(text: ActivityType, modifier: Modifier = Modifier) {
     val categoryColor = categoryColorFor(text)
     Box(
         modifier = modifier
@@ -215,19 +216,18 @@ private fun CategoryChip(text: String, modifier: Modifier = Modifier) {
             .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
         Text(
-            text = text,
+            text = SwipeCategory.fromType(text).label,
             style = MaterialTheme.typography.labelMedium,
             color = categoryColor
         )
     }
 }
 
-private fun categoryColorFor(category: String): Color {
-    return when (category.lowercase()) {
-        "landmarks" -> BluePrimaryDark
-        "food" -> CoralAccent
-        "activities" -> GreenAccent
-        else -> BluePrimary
+private fun categoryColorFor(category: ActivityType): Color {
+    return when (category) {
+        ActivityType.LANDMARK -> BluePrimaryDark
+        ActivityType.RESTAURANT -> CoralAccent
+        ActivityType.ACTIVITY -> GreenAccent
     }
 }
 
@@ -237,6 +237,7 @@ private fun SwipeActionButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     contentDescription: String,
     onClick: () -> Unit,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -244,7 +245,7 @@ private fun SwipeActionButton(
         shape = CircleShape,
         color = backgroundColor,
     ) {
-        IconButton(onClick = onClick) {
+        IconButton(onClick = onClick, enabled = enabled) {
             Icon(
                 imageVector = icon,
                 contentDescription = contentDescription,

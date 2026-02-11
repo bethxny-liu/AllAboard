@@ -4,56 +4,73 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.allaboard.project.domain.Activity
+import org.allaboard.project.domain.ActivityType
 
-data class SwipeCardUi(
-    val id: String,
-    val name: String,
-    val location: String,
-    val category: String
-)
+enum class SwipeCategory(val label: String, val type: ActivityType?) {
+    ALL("All", null),
+    LANDMARKS("Landmarks", ActivityType.LANDMARK),
+    FOOD("Food", ActivityType.RESTAURANT),
+    ACTIVITIES("Activities", ActivityType.ACTIVITY)
+    ;
+
+    companion object {
+        fun fromType(type: ActivityType): SwipeCategory {
+            return when (type) {
+                ActivityType.LANDMARK -> LANDMARKS
+                ActivityType.RESTAURANT -> FOOD
+                ActivityType.ACTIVITY -> ACTIVITIES
+            }
+        }
+    }
+}
 
 data class SwipingUiState(
-    val categories: List<String> = listOf("Landmarks", "Food", "Activities"),
+    val categories: List<SwipeCategory> = listOf(
+        SwipeCategory.ALL,
+        SwipeCategory.LANDMARKS,
+        SwipeCategory.FOOD,
+        SwipeCategory.ACTIVITIES
+    ),
     val selectedCategoryIndex: Int = 0,
-    val categoryProgress: List<Int> = List(categories.size) { 0 },
-    val cards: List<SwipeCardUi> = listOf(
-        SwipeCardUi("1", "Pretty Place", "Tokyo, Japan", "Landmarks"),
-        SwipeCardUi("2", "Skyline Walk", "Osaka, Japan", "Landmarks"),
-        SwipeCardUi("3", "Lake View", "Kawaguchiko, Japan", "Landmarks"),
-        SwipeCardUi("4", "Sushi Night", "Tokyo, Japan", "Food"),
-        SwipeCardUi("5", "Street Eats", "Osaka, Japan", "Food"),
-        SwipeCardUi("6", "Tea Ceremony", "Kyoto, Japan", "Activities"),
-        SwipeCardUi("7", "Bike Tour", "Nara, Japan", "Activities")
-    )
+    val cards: List<Activity>,
+    val swipedIds: Set<String> = emptySet()
 ) {
-    val selectedCategory: String
+    val selectedCategory: SwipeCategory
         get() = categories.getOrNull(selectedCategoryIndex) ?: categories.first()
 
-    private val selectedCards: List<SwipeCardUi>
-        get() = cards.filter { it.category == selectedCategory }
+    fun cardsFor(category: SwipeCategory): List<Activity> {
+        val type = category.type
+        val base = if (type == null) cards else cards.filter { it.type == type }
+        return base.filterNot { it.id in swipedIds }
+    }
 
-    val currentCard: SwipeCardUi?
-        get() = selectedCards.getOrNull(
-            categoryProgress.getOrNull(selectedCategoryIndex) ?: 0
-        )
+    private val selectedCards: List<Activity>
+        get() = cardsFor(selectedCategory)
+
+    val currentCard: Activity?
+        get() = selectedCards.firstOrNull()
+
+    val hasCards: Boolean
+        get() = cards.isNotEmpty()
+
+    val hasCardsInSelectedCategory: Boolean
+        get() = selectedCards.isNotEmpty()
 
     val isCategoryDone: Boolean
-        get() {
-            val progress = categoryProgress.getOrNull(selectedCategoryIndex) ?: 0
-            return progress >= selectedCards.size
-        }
+        get() = cardsFor(selectedCategory).isEmpty()
 
     val isAllDone: Boolean
-        get() = categories.indices.all { index ->
-            val category = categories[index]
-            val total = cards.count { it.category == category }
-            val progress = categoryProgress.getOrNull(index) ?: 0
-            progress >= total
+        get() {
+            val categoriesToCheck = categories.filter { it.type != null }
+            return categoriesToCheck.isNotEmpty() && categoriesToCheck.all { category ->
+                cardsFor(category).isEmpty()
+            }
         }
 }
 
-class SwipingViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow(SwipingUiState())
+class SwipingViewModel(initialCards: List<Activity>) : ViewModel() {
+    private val _uiState = MutableStateFlow(SwipingUiState(cards = initialCards))
     val uiState: StateFlow<SwipingUiState> = _uiState.asStateFlow()
 
     fun onDislike() = advance()
@@ -69,17 +86,8 @@ class SwipingViewModel : ViewModel() {
 
     private fun advance() {
         val state = _uiState.value
-        val selectedIndex = state.selectedCategoryIndex
-        val cards = state.cards.filter { it.category == state.selectedCategory }
-        val progress = state.categoryProgress.toMutableList()
-        val current = progress.getOrNull(selectedIndex) ?: 0
-        val nextIndex = (current + 1).coerceAtMost(cards.size)
-
-        if (selectedIndex >= progress.size) {
-            return
-        }
-
-        progress[selectedIndex] = nextIndex
-        _uiState.value = state.copy(categoryProgress = progress)
+        val currentCard = state.currentCard ?: return
+        if (currentCard.id in state.swipedIds) return
+        _uiState.value = state.copy(swipedIds = state.swipedIds + currentCard.id)
     }
 }
