@@ -60,31 +60,35 @@ private fun CreateCustomActivityContent(
     onLocationChange: (String) -> Unit = {},
     onDescriptionChange: (String) -> Unit = {}
 ) {
+    Row(
+        modifier = Modifier
+        .fillMaxWidth()
+        .padding(top=40.dp, start = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onBack) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back"
+            )
+        }
+
+        Spacer(Modifier.width(8.dp))
+
+        Text(
+            text = "Create Custom Activity",
+            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+            modifier = Modifier.weight(1f)
+        )
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 96.dp)
+            // match ActivityDetailsScreen top spacing
+            .padding(start = 24.dp, end = 24.dp, top = 80.dp, bottom = 96.dp)
     ) {
         // Back arrow and Title on same row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back"
-                )
-            }
 
-            Spacer(Modifier.width(8.dp))
-
-            Text(
-                text = "Create Custom Activity",
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.weight(1f)
-            )
-        }
 
         Spacer(Modifier.height(20.dp))
 
