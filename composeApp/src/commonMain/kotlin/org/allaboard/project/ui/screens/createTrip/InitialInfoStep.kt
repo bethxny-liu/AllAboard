@@ -58,7 +58,7 @@ fun InitialInfoStep(
                 start = 24.dp,
                 end = 24.dp,
                 top = 45.dp,
-                bottom = 40.dp
+                bottom = 20.dp
             )
     ) {
 
