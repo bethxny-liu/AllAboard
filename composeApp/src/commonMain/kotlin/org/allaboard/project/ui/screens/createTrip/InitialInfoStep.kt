@@ -47,8 +47,7 @@ fun InitialInfoStep(
         ) {
             Text(
                 text = "Create a trip",
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center
             )

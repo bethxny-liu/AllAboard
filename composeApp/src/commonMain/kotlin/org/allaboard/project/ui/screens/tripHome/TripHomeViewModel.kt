@@ -126,10 +126,6 @@ class TripHomeViewModel : ViewModel() {
         // For now, use the default state with sample data
     }
 
-    fun onStartSwipingClick() {
-        // TODO: Navigate to swiping/discovery screen
-    }
-
     fun onViewItineraryClick() {
         // TODO: Navigate to itinerary screen
     }
