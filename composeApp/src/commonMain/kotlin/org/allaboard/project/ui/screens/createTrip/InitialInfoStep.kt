@@ -17,10 +17,26 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.DateRangePicker
+import androidx.compose.material3.DateRangePickerDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Surface
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import org.allaboard.project.ui.theme.FieldBackground
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InitialInfoStep(
     vm: CreateTripViewModel,
@@ -28,6 +44,12 @@ fun InitialInfoStep(
     onNext: () -> Unit
 ) {
     val state = vm.uiState
+    var showDatePicker by remember { mutableStateOf(false) }
+    val dateRangePickerState = rememberDateRangePickerState()
+    val dateTextStyle = TextStyle(
+        color = MaterialTheme.colorScheme.onBackground,
+        fontSize = 14.sp
+    )
 
     Column(
         modifier = Modifier
@@ -154,7 +176,7 @@ fun InitialInfoStep(
                         onValueChange = {},
                         singleLine = true,
                         readOnly = true,
-                        textStyle = TextStyle(color = MaterialTheme.colorScheme.onBackground),
+                        textStyle = dateTextStyle,
                         modifier = Modifier.fillMaxWidth()
                     )
                     if (vm.uiState.dateRange.isEmpty()) {
@@ -166,7 +188,7 @@ fun InitialInfoStep(
                     }
                 }
                 Box(modifier = Modifier.padding(end = 12.dp)) {
-                    IconButton(onClick = { /* open date picker */ }) {
+                    IconButton(onClick = { showDatePicker = true }) {
                         Icon(
                             imageVector = Icons.Outlined.DateRange,
                             contentDescription = "Select dates"
@@ -174,6 +196,47 @@ fun InitialInfoStep(
                     }
                 }
 
+            }
+        }
+
+        if (showDatePicker) {
+            DatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val formatted = formatDateRange(
+                                dateRangePickerState.selectedStartDateMillis,
+                                dateRangePickerState.selectedEndDateMillis
+                            )
+                            if (formatted.isNotEmpty()) {
+                                vm.updateDateRange(formatted)
+                            }
+                            showDatePicker = false
+                        },
+                        enabled = dateRangePickerState.selectedStartDateMillis != null
+                    ) {
+                        Text("OK")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDatePicker = false }) {
+                        Text("Cancel")
+                    }
+                }
+                ,
+                properties = DialogProperties(usePlatformDefaultWidth = true)
+            ) {
+                DateRangePicker(
+                    state = dateRangePickerState,
+                    title = null,
+                    headline = null,
+                    showModeToggle = true,
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .width(360.dp)
+                        .heightIn(max = 380.dp)
+                )
             }
         }
 
@@ -258,4 +321,18 @@ fun InitialInfoStep(
             }
         }
     }
+}
+
+private fun formatDateRange(startMillis: Long?, endMillis: Long?): String {
+    if (startMillis == null) return ""
+    val start = formatDate(startMillis)
+    val end = endMillis?.let { formatDate(it) }
+    return if (end == null) start else "$start - $end"
+}
+
+private fun formatDate(millis: Long): String {
+    val date = Instant.fromEpochMilliseconds(millis)
+        .toLocalDateTime(TimeZone.currentSystemDefault())
+        .date
+    return date.toString()
 }
