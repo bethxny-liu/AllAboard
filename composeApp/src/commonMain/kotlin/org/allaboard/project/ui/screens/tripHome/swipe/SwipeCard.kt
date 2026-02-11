@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -66,7 +67,8 @@ fun SwipeCard(
     modifier: Modifier = Modifier,
     onDislike: () -> Unit = {},
     onSuperLike: () -> Unit = {},
-    onLike: () -> Unit = {}
+    onLike: () -> Unit = {},
+    onLearnMore: () -> Unit = {}
 ) {
     val cardShape = RoundedCornerShape(28.dp)
     val scope = rememberCoroutineScope()
@@ -167,7 +169,9 @@ fun SwipeCard(
                         style = MaterialTheme.typography.labelMedium,
                         color = TextSecondary,
                         textDecoration = TextDecoration.Underline,
-                        modifier = Modifier.align(Alignment.End)
+                        modifier = Modifier
+                            .align(Alignment.End)
+                            .clickable(onClick = onLearnMore)
                     )
 
                     Spacer(modifier = Modifier.height(22.dp))

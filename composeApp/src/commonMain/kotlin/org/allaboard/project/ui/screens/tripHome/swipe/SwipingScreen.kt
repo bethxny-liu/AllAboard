@@ -56,6 +56,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.allaboard.project.domain.Activity
+import org.allaboard.project.ui.screens.activityDetails.ActivityDetailsScreen
 import org.allaboard.project.ui.theme.Background
 import org.allaboard.project.ui.theme.FieldBackground
 import org.allaboard.project.ui.theme.SwipeDislike
@@ -83,6 +84,9 @@ class SwipingScreen(private val activities: List<Activity>) : Screen {
             onSuperLike = viewModel::onSuperLike,
             onLike = viewModel::onLike,
             onCategorySelected = viewModel::onCategorySelected,
+            onLearnMore = { activity ->
+                navigator?.push(ActivityDetailsScreen(activity, activity.id))
+            },
             onAllDone = { /*navigator?.push(SwipeResultsScreen()) */}
         )
     }
@@ -96,6 +100,7 @@ fun SwipingScreenContent(
     onSuperLike: () -> Unit,
     onLike: () -> Unit,
     onCategorySelected: (Int) -> Unit,
+    onLearnMore: (Activity) -> Unit,
     onAllDone: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -196,6 +201,7 @@ fun SwipingScreenContent(
                                 triggerFlash(SwipeSuperLike, Icons.Filled.Star)
                                 onSuperLike()
                             },
+                            onLearnMore = { onLearnMore(targetCard) },
                             onLike = {
                                 triggerFlash(SwipeLike, Icons.Filled.Check)
                                 onLike()
