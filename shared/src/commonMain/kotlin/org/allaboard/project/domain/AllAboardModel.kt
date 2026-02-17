@@ -1,0 +1,201 @@
+package org.allaboard.project.domain
+
+import org.allaboard.project.data.repository.ActivityRepository
+import org.allaboard.project.data.repository.ItineraryRepository
+import org.allaboard.project.data.repository.TripRepository
+import org.allaboard.project.data.repository.UserRepository
+import org.allaboard.project.data.repository.VoteRepository
+import kotlin.random.Random
+
+/**
+ * Thin coordinator layer for the frontend.
+ *
+ * Key principle: Business logic lives in BACKEND.
+ * This class only:
+ * 1. Coordinates multiple repository calls
+ * 2. Combines data for UI consumption
+ * 3. Manages what to fetch and when
+ *
+ * Does NOT:
+ * - Calculate vote percentages (backend does this)
+ * - Determine if activity is confirmed (backend does this)
+ * - Filter recommendations (backend does this)
+ */
+class AllAboardModel(
+    private val tripRepository: TripRepository,
+    private val activityRepository: ActivityRepository,
+    private val voteRepository: VoteRepository,
+    private val userRepository: UserRepository,
+    private val itineraryRepository: ItineraryRepository
+) {
+    // ========================================
+    // TRIP OPERATIONS (Simple delegation)
+    // ========================================
+
+    suspend fun getTrip(tripId: String): Trip? {
+        return tripRepository.getTrip(tripId)
+    }
+
+    suspend fun getAllTripsForUser(userId: String): List<Trip> {
+        return tripRepository.getTripsForUser(userId)
+    }
+
+    suspend fun getUpcomingTrips(userId: String): List<Trip> {
+        return getAllTripsForUser(userId).filter { it.status == TripStatus.UPCOMING }
+    }
+
+    suspend fun getPastTrips(userId: String): List<Trip> {
+        return getAllTripsForUser(userId).filter { it.status == TripStatus.COMPLETED }
+    }
+
+    suspend fun createTrip(
+        destination: String,
+        region: String,
+        startDate: String,
+        endDate: String,
+        creatorId: String
+    ): Trip {
+        val trip = Trip(
+            id = "",
+            title = "All Aboard to $destination!",
+            destination = destination,
+            region = region,
+            startDate = startDate,
+            endDate = endDate,
+            members = emptyList()
+        )
+        return tripRepository.createTrip(trip)
+    }
+
+    suspend fun addUserToTrip(tripId: String, userId: String) {
+        val user = userRepository.getUser(userId) ?: return
+        tripRepository.addMemberToTrip(tripId, user)
+    }
+
+    // ========================================
+    // ACTIVITY OPERATIONS
+    // ========================================
+
+    suspend fun getActivitiesForTrip(tripId: String): List<Activity> {
+        return activityRepository.getActivitiesForTrip(tripId)
+    }
+
+    suspend fun addActivityToTrip(tripId: String, activity: Activity) {
+        activityRepository.addActivity(tripId, activity)
+    }
+
+    // ========================================
+    // VOTING OPERATIONS
+    // Backend computes all vote logic - we just delegate
+    // ========================================
+
+    /**
+     * Submit a vote. Backend handles:
+     * - Storing the vote
+     * - Recalculating vote percentages
+     * - Determining if activity is confirmed
+     * - Adding to itinerary if confirmed
+     */
+    suspend fun voteOnActivity(
+        tripId: String,
+        activityId: String,
+        userId: String,
+        voteType: VoteType
+    ): ActivityVoteResult {
+        val vote = Vote(
+            id = generateId(),
+            activityId = activityId,
+            userId = userId,
+            tripId = tripId,
+            voteType = voteType,
+            timestamp = currentTimeMillis()
+        )
+        voteRepository.submitVote(vote)
+
+        return voteRepository.getVotingResultForActivity(tripId, activityId)
+    }
+
+    /**
+     * Get voting results - backend computes percentages, confirmation status, etc.
+     */
+    suspend fun getVotingResults(tripId: String): List<ActivityVoteResult> {
+        return voteRepository.getVotingResultsForTrip(tripId)
+    }
+
+    /**
+     * Get activities user hasn't voted on - backend filters
+     */
+    suspend fun getUnvotedActivities(tripId: String, userId: String): List<Activity> {
+        val unvotedIds = voteRepository.getUnvotedActivityIds(tripId, userId)
+        val allActivities = activityRepository.getActivitiesForTrip(tripId)
+        return allActivities.filter { it.id in unvotedIds }
+    }
+
+    /**
+     * Get recommended activities - backend computes based on user preferences
+     */
+    suspend fun getRecommendedActivities(tripId: String, userId: String): List<Activity> {
+        return activityRepository.getRecommendedActivities(tripId, userId)
+    }
+
+    // ========================================
+    // USER OPERATIONS
+    // ========================================
+
+    suspend fun getCurrentUser(): User? {
+        return userRepository.getCurrentUser()
+    }
+
+    suspend fun updateUserPreferences(
+        userId: String,
+        budget: BudgetLevel,
+        vibe: TravelVibe,
+        interests: Set<String>
+    ) {
+        userRepository.updateUserPreferences(userId, budget, vibe, interests)
+    }
+
+    // ========================================
+    // ITINERARY OPERATIONS
+    // ========================================
+
+    suspend fun getItinerary(tripId: String): Itinerary? {
+        return itineraryRepository.getItinerary(tripId)
+    }
+
+    // ========================================
+    // DASHBOARD - Combines multiple calls for UI
+    // This is the main value of the Model layer
+    // ========================================
+
+    /**
+     * Get all data needed for TripHomeScreen in one call.
+     * This is where the Model adds value - coordinating multiple fetches.
+     */
+    suspend fun getTripDashboard(tripId: String): TripDashboard {
+        val trip = tripRepository.getTrip(tripId)
+        val activities = activityRepository.getActivitiesForTrip(tripId)
+        val votingResults = voteRepository.getVotingResultsForTrip(tripId)
+        val itinerary = itineraryRepository.getItinerary(tripId)
+
+        return TripDashboard(
+            trip = trip,
+            activities = activities,
+            votingResults = votingResults,
+            itinerary = itinerary
+        )
+    }
+
+    // ========================================
+    // HELPERS
+    // ========================================
+
+    private fun generateId(): String {
+        val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+        return (1..20).map { chars[Random.nextInt(chars.length)] }.joinToString("")
+    }
+
+    private fun currentTimeMillis(): Long {
+        return kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
+    }
+}
