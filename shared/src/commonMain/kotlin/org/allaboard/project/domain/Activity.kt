@@ -1,4 +1,5 @@
 package org.allaboard.project.domain
+
 enum class ActivityType {
     LANDMARK,
     RESTAURANT,
