@@ -16,5 +16,6 @@ data class Activity(
     val mapPinLabel: String,
     val voteCount: Int,
     val imageUrl: String? = null,
+    val link: String? = null,
     val type: ActivityType
 )

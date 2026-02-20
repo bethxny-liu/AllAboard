@@ -84,6 +84,32 @@ class AllAboardModel(
         activityRepository.addActivity(tripId, activity)
     }
 
+    suspend fun createActivityForTrip(
+        tripId: String,
+        title: String,
+        location: String,
+        description: String,
+        type: ActivityType?,
+        imageUrl: String? = null,
+        link: String? = null
+    ): Activity {
+        val activity = Activity(
+            id = generateId(),
+            title = title,
+            location = location,
+            description = description,
+            rating = 0f,
+            priceLevel = "$$",
+            mapPinLabel = title.ifEmpty { location },
+            voteCount = 0,
+            imageUrl = imageUrl,
+            link = link,
+            type = type ?: ActivityType.EXPERIENCES
+        )
+        activityRepository.addActivity(tripId, activity)
+        return activity
+    }
+
     // ========================================
     // VOTING OPERATIONS
     // Backend computes all vote logic - we just delegate

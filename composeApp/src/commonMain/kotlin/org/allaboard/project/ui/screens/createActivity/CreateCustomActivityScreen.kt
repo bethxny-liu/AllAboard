@@ -2,7 +2,7 @@ package org.allaboard.project.ui.screens.createActivity
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -26,16 +26,25 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import org.allaboard.project.ui.components.CategoryDropdown
+import org.allaboard.project.di.AppModule
 
 /**
  * Create Custom Activity screen: allows users to create a new activity that others can swipe on.
  * Modeled after Create Trip screens with similar design and user flow.
  */
-class CreateCustomActivityScreen : Screen {
+class CreateCustomActivityScreen(
+    private val tripId: String
+) : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
-        val viewModel: CreateCustomActivityViewModel = viewModel { CreateCustomActivityViewModel() }
+        // Create the ViewModel using the lambda form and pass tripId into the constructor
+        val viewModel: CreateCustomActivityViewModel = viewModel {
+            CreateCustomActivityViewModel(
+                model = AppModule.allAboardModel,
+                tripId = tripId
+            )
+        }
         val uiState by viewModel.uiState.collectAsState()
 
         CreateCustomActivityContent(
@@ -45,7 +54,8 @@ class CreateCustomActivityScreen : Screen {
             onCategoryChange = viewModel::updateCategory,
             onNameChange = viewModel::updateName,
             onLocationChange = viewModel::updateLocation,
-            onDescriptionChange = viewModel::updateDescription
+            onDescriptionChange = viewModel::updateDescription,
+            onLinkChange = viewModel::updateLink
         )
     }
 }
@@ -59,12 +69,16 @@ private fun CreateCustomActivityContent(
     onNameChange: (String) -> Unit = {},
     onLocationChange: (String) -> Unit = {},
     onDescriptionChange: (String) -> Unit = {},
+    onLinkChange: (String) -> Unit = {},
     onCreate: () -> Unit = {}
 ) {
+    // Local UI state to show the link entry dialog
+    var showLinkDialog by remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier
-        .fillMaxWidth()
-        .padding(top=40.dp, start = 8.dp),
+            .fillMaxWidth()
+            .padding(top = 40.dp, start = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onBack) {
@@ -192,6 +206,8 @@ private fun CreateCustomActivityContent(
             }
         )
 
+        Spacer(Modifier.height(16.dp))
+
         Spacer(Modifier.height(20.dp))
 
         Text("Add Photo or Link", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
@@ -218,11 +234,47 @@ private fun CreateCustomActivityContent(
                 modifier = Modifier
                     .size(60.dp)
                     .border(BorderStroke(1.dp, Color.Black), RoundedCornerShape(16.dp))
-                    .background(FieldBackground, RoundedCornerShape(16.dp)),
+                    .background(FieldBackground, RoundedCornerShape(16.dp))
+                    .clickable { showLinkDialog = true },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(imageVector = Icons.Filled.Link, contentDescription = "Add link", tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(24.dp))
             }
+        }
+
+        // Link entry dialog (reuses ViewModel's link state via onLinkChange)
+        if (showLinkDialog) {
+            AlertDialog(
+                onDismissRequest = { showLinkDialog = false },
+                title = { Text("Add a link") },
+                text = {
+                    Column {
+                        Text("Paste a website URL or reservation link below:")
+                        Spacer(Modifier.height(8.dp))
+                        TextField(
+                            value = uiState.link,
+                            onValueChange = onLinkChange,
+                            singleLine = true,
+                            placeholder = { Text("https://example.com") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showLinkDialog = false }) {
+                        Text("Done")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        // clear link and close
+                        onLinkChange("")
+                        showLinkDialog = false
+                    }) {
+                        Text("Clear")
+                    }
+                }
+            )
         }
 
         // push remaining content (including the button) to the bottom
@@ -244,4 +296,3 @@ private fun CreateCustomActivityContent(
         Spacer(Modifier.height(12.dp))
     }
 }
-
