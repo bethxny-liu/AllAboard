@@ -73,7 +73,7 @@ class TripHomeScreen : Screen {
                 )
             },
             onCreateCustomActivity = {
-                navigator?.push(CreateCustomActivityScreen())
+                navigator?.push(CreateCustomActivityScreen(uiState.trip.id))
             },
             onActivitySelected = { activity ->
                 navigator?.push(ActivityDetailsScreen(activity, activity.id))
