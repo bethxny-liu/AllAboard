@@ -1,7 +1,6 @@
 package org.allaboard.project.ui.screens.tripHome.swipe
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -9,25 +8,18 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -49,7 +41,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
@@ -72,13 +63,22 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.allaboard.project.Category
 import org.allaboard.project.ui.components.CategoryDropdown
+import org.allaboard.project.di.AppModule
 
-class SwipingScreen(private val activities: List<Activity>) : Screen {
+class SwipingScreen(private val activities: List<Activity>, private val tripId: String) : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
-        val viewModel = viewModel { SwipingViewModel(activities) }
+        val viewModel: SwipingViewModel = viewModel {
+            SwipingViewModel(
+                initialCards = activities,
+                model = AppModule.allAboardModel,
+                tripId = tripId
+            )
+        }
         val uiState by viewModel.uiState.collectAsState()
+
+        val scope = rememberCoroutineScope()
 
         SwipingScreenContent(
             uiState = uiState,
@@ -91,8 +91,11 @@ class SwipingScreen(private val activities: List<Activity>) : Screen {
                 navigator?.push(ActivityDetailsScreen(activity, activity.id))
             },
             onAllDone = {
-                val results = viewModel.getLikedResults()
-                navigator?.push(SwipingResultsScreen(initialResults = results))
+                // Fetch authoritative liked results from the ViewModel (suspend) before navigating
+                scope.launch {
+                    val results = viewModel.getLikedResults()
+                    navigator?.push(SwipingResultsScreen(results, tripId))
+                }
             }
         )
     }
@@ -155,7 +158,7 @@ fun SwipingScreenContent(
                     modifier = Modifier.align(Alignment.CenterStart)
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
                         tint = TextPrimary
                     )

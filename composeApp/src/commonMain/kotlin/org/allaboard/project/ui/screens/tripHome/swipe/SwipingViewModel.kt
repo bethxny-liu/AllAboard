@@ -1,18 +1,22 @@
 package org.allaboard.project.ui.screens.tripHome.swipe
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import org.allaboard.project.Category
 import org.allaboard.project.domain.Activity
+import org.allaboard.project.domain.AllAboardModel
+import org.allaboard.project.domain.VoteType
 import org.allaboard.project.domain.ActivityType
 import org.allaboard.project.ui.screens.tripHome.swipe.swipingResults.SwipingResult
 
 data class SwipingUiState(
     val categories: List<Category> = Category.allCategories,
     val selectedCategoryIndex: Int = 0,
-    val cards: List<Activity>,
+    val cards: List<Activity> = emptyList(),
     val swipedIds: Set<String> = emptySet()
 ) {
     val selectedCategory: Category
@@ -52,7 +56,14 @@ data class SwipingUiState(
         }
 }
 
-class SwipingViewModel(initialCards: List<Activity>) : ViewModel() {
+/**
+ * ViewModel that drives the swipe UI and persists likes/super-likes as YES votes.
+ */
+class SwipingViewModel(
+    initialCards: List<Activity> = emptyList(),
+    private val model: AllAboardModel,
+    private val tripId: String
+) : ViewModel() {
     private val _uiState = MutableStateFlow(SwipingUiState(cards = initialCards))
     val uiState: StateFlow<SwipingUiState> = _uiState.asStateFlow()
 
@@ -62,12 +73,35 @@ class SwipingViewModel(initialCards: List<Activity>) : ViewModel() {
     fun onDislike() = advance()
 
     fun onSuperLike() {
+        //currently acts the same as a like
         _uiState.value.currentCard?.let { likedIds.add(it.id) }
+        val id = _uiState.value.currentCard?.id ?: return
+        viewModelScope.launch {
+            try {
+                val user = model.getCurrentUser()?.id
+                if (user != null) {
+                    model.voteOnActivity(tripId, id, user, VoteType.YES)
+                }
+            } catch (_: Throwable) {
+                // ignore persistence errors
+            }
+        }
         advance()
     }
 
     fun onLike() {
         _uiState.value.currentCard?.let { likedIds.add(it.id) }
+        val id = _uiState.value.currentCard?.id ?: return
+        viewModelScope.launch {
+            try {
+                val user = model.getCurrentUser()?.id
+                if (user != null) {
+                    model.voteOnActivity(tripId, id, user, VoteType.YES)
+                }
+            } catch (_: Throwable) {
+                // ignore
+            }
+        }
         advance()
     }
 
@@ -85,7 +119,7 @@ class SwipingViewModel(initialCards: List<Activity>) : ViewModel() {
 
     /**
      * Returns liked/super-liked activities as [SwipingResult] for the Swiping Results screen.
-     * Call when [SwipingUiState.isAllDone] is true.
+     * For the mock flow we include a simple voter label.
      */
     fun getLikedResults(): List<SwipingResult> {
         val state = _uiState.value
