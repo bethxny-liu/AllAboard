@@ -35,7 +35,7 @@ class CreateCustomActivityScreen : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
-        val viewModel: CreateCustomActivityViewModel = viewModel()
+        val viewModel: CreateCustomActivityViewModel = viewModel { CreateCustomActivityViewModel() }
         val uiState by viewModel.uiState.collectAsState()
 
         CreateCustomActivityContent(

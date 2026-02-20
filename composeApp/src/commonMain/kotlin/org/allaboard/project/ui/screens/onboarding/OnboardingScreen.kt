@@ -19,7 +19,7 @@ class OnboardingScreen : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
-        val vm: OnboardingViewModel = viewModel()
+        val vm: OnboardingViewModel = viewModel { OnboardingViewModel() }
         var step by remember { mutableIntStateOf(0) }
 
         when (step) {

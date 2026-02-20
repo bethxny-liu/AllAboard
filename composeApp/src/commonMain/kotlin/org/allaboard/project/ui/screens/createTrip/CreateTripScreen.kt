@@ -19,7 +19,7 @@ class CreateTripScreen(
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
-        val vm: CreateTripViewModel = viewModel()
+        val vm: CreateTripViewModel = viewModel { CreateTripViewModel() }
 
         LaunchedEffect(mode, tripId) {
             vm.initialize(mode, tripId)
