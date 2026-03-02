@@ -23,6 +23,7 @@ data class TripSummary(
  * UI State for HomeScreen
  */
 data class HomeUiState(
+    val displayName: String = "",
     val searchQuery: String = "",
     val upcomingTrips: List<TripSummary> = emptyList(),
     val pastTrips: List<TripSummary> = emptyList(),
@@ -57,7 +58,7 @@ class HomeViewModel(private val model: AllAboardModel) : ViewModel() {
                 val userId = currentUser?.id ?: "user-1"
                 val upcoming = model.getUpcomingTrips(userId).map { mapTrip(it) }
                 val past = model.getPastTrips(userId).map { mapTrip(it) }
-                _uiState.value = _uiState.value.copy(upcomingTrips = upcoming, pastTrips = past, isLoading = false)
+                _uiState.value = _uiState.value.copy(upcomingTrips = upcoming, pastTrips = past, isLoading = false, displayName = currentUser?.displayName ?: "")
             } catch (t: Throwable) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = t.message)
             }

@@ -47,6 +47,13 @@ class MockUserRepository : UserRepository {
         return users[currentUserId]
     }
 
+    override suspend fun setCurrentUserId(userId: String) {
+        delay(50)
+        if (users.containsKey(userId)) {
+            currentUserId = userId
+        }
+    }
+
     override suspend fun getUser(userId: String): User? {
         delay(50)
         return users[userId]

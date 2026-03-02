@@ -19,6 +19,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,13 +29,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
+import org.allaboard.project.di.AppModule
 import org.allaboard.project.ui.screens.home.HomeScreen
+import org.allaboard.project.ui.screens.onboarding.OnboardingScreen
 import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextPrimary
 import org.allaboard.project.ui.theme.TextSecondary
-import org.allaboard.project.ui.screens.onboarding.OnboardingScreen
 import org.jetbrains.compose.resources.painterResource
 import team_102_8.composeapp.generated.resources.Res
 import team_102_8.composeapp.generated.resources.logo
@@ -45,6 +49,10 @@ class LoginScreen : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
+        val viewModel: LoginViewModel = viewModel {
+            LoginViewModel(model = AppModule.allAboardModel)
+        }
+        val uiState by viewModel.uiState.collectAsState()
 
         Box(
             modifier = Modifier.fillMaxSize()
@@ -133,7 +141,7 @@ class LoginScreen : Screen {
 
                     Button(
                         onClick = {
-                            navigator?.replace(HomeScreen())
+                            viewModel.signIn { navigator?.replace(HomeScreen()) }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -144,7 +152,8 @@ class LoginScreen : Screen {
                             containerColor = Surface,
                             contentColor = TextPrimary
                         ),
-                        shape = RoundedCornerShape(28.dp)
+                        shape = RoundedCornerShape(28.dp),
+                        enabled = !uiState.isLoading
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
