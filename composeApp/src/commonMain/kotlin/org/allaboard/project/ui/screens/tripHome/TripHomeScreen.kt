@@ -79,7 +79,7 @@ class TripHomeScreen(private val tripId: String) : Screen {
         TripHomeScreenContent(
             trip = tripNonNull,
             activities = uiState.activities,
-            onStartSwipingClick = { navigator?.push(SwipingScreen(uiState.activities, tripNonNull.id)) },
+            onStartSwipingClick = { navigator?.push(SwipingScreen(tripNonNull.id)) },
             onEditTrip = {
                 navigator?.push(
                     CreateTripScreen(

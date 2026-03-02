@@ -64,38 +64,31 @@ import kotlinx.coroutines.launch
 import org.allaboard.project.Category
 import org.allaboard.project.ui.components.CategoryDropdown
 import org.allaboard.project.di.AppModule
+import org.allaboard.project.domain.VoteType
 
-class SwipingScreen(private val activities: List<Activity>, private val tripId: String) : Screen {
+class SwipingScreen(private val tripId: String) : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
         val viewModel: SwipingViewModel = viewModel {
             SwipingViewModel(
-                initialCards = activities,
                 model = AppModule.allAboardModel,
                 tripId = tripId
             )
         }
         val uiState by viewModel.uiState.collectAsState()
 
-        val scope = rememberCoroutineScope()
-
         SwipingScreenContent(
             uiState = uiState,
             onBack = { navigator?.pop() },
-            onDislike = viewModel::onDislike,
-            onSuperLike = viewModel::onSuperLike,
-            onLike = viewModel::onLike,
+            vote = viewModel::vote,
             onCategorySelected = viewModel::onCategorySelected,
             onLearnMore = { activity ->
                 navigator?.push(ActivityDetailsScreen(activity, activity.id))
             },
             onAllDone = {
-                // Fetch authoritative liked results from the ViewModel (suspend) before navigating
-                scope.launch {
-                    val results = viewModel.getLikedResults()
-                    navigator?.push(SwipingResultsScreen(results, tripId))
-                }
+                // Navigate to results screen which loads results from the model
+                navigator?.push(SwipingResultsScreen(tripId))
             }
         )
     }
@@ -105,9 +98,7 @@ class SwipingScreen(private val activities: List<Activity>, private val tripId: 
 fun SwipingScreenContent(
     uiState: SwipingUiState,
     onBack: () -> Unit,
-    onDislike: () -> Unit,
-    onSuperLike: () -> Unit,
-    onLike: () -> Unit,
+    vote: (VoteType) -> Unit,
     onCategorySelected: (Int) -> Unit,
     onLearnMore: (Activity) -> Unit = {},
     onAllDone: () -> Unit,
@@ -207,16 +198,16 @@ fun SwipingScreenContent(
                             modifier = Modifier.width(cardWidth),
                             onDislike = {
                                 triggerFlash(SwipeDislike, Icons.Filled.Close)
-                                onDislike()
+                                vote(VoteType.NO)
                             },
                             onSuperLike = {
                                 triggerFlash(SwipeSuperLike, Icons.Filled.Star)
-                                onSuperLike()
+                                vote(VoteType.YES)
                             },
                             onLearnMore = { onLearnMore(targetCard) },
                             onLike = {
                                 triggerFlash(SwipeLike, Icons.Filled.Check)
-                                onLike()
+                                vote(VoteType.YES)
                             }
                         )
                     }

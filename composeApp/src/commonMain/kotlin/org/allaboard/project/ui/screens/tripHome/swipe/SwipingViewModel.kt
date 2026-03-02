@@ -11,13 +11,14 @@ import org.allaboard.project.domain.Activity
 import org.allaboard.project.domain.AllAboardModel
 import org.allaboard.project.domain.VoteType
 import org.allaboard.project.domain.ActivityType
-import org.allaboard.project.ui.screens.tripHome.swipe.swipingResults.SwipingResult
 
 data class SwipingUiState(
     val categories: List<Category> = Category.allCategories,
     val selectedCategoryIndex: Int = 0,
     val cards: List<Activity> = emptyList(),
-    val swipedIds: Set<String> = emptySet()
+    val swipedIds: Set<String> = emptySet(),
+    val isLoading: Boolean = false,
+    val error: String? = null
 ) {
     val selectedCategory: Category
         get() = categories.getOrNull(selectedCategoryIndex) ?: categories.first()
@@ -60,46 +61,52 @@ data class SwipingUiState(
  * ViewModel that drives the swipe UI and persists likes/super-likes as YES votes.
  */
 class SwipingViewModel(
-    initialCards: List<Activity> = emptyList(),
     private val model: AllAboardModel,
     private val tripId: String
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(SwipingUiState(cards = initialCards))
+    private val _uiState = MutableStateFlow(SwipingUiState(isLoading = true))
     val uiState: StateFlow<SwipingUiState> = _uiState.asStateFlow()
 
-    /** Card ids that received a like or super-like (for Swiping Results). */
-    private val likedIds = mutableSetOf<String>()
+    init {
+        loadUnvotedActivities()
+    }
 
-    fun onDislike() = advance()
+    private fun loadUnvotedActivities() {
+        viewModelScope.launch {
+            try {
+                val user = model.getCurrentUser()
+                if (user != null) {
+                    val activities = model.getUnvotedActivities(tripId, user.id)
+                    _uiState.value = _uiState.value.copy(
+                        cards = activities,
+                        isLoading = false,
+                        error = null
+                    )
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = "User not logged in"
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "Failed to load activities"
+                )
+            }
+        }
+    }
 
-    fun onSuperLike() {
-        //currently acts the same as a like
-        _uiState.value.currentCard?.let { likedIds.add(it.id) }
+    fun vote(voteType: VoteType) {
         val id = _uiState.value.currentCard?.id ?: return
         viewModelScope.launch {
             try {
                 val user = model.getCurrentUser()?.id
                 if (user != null) {
-                    model.voteOnActivity(tripId, id, user, VoteType.YES)
+                    model.voteOnActivity(tripId, id, user, voteType)
                 }
             } catch (_: Throwable) {
                 // ignore persistence errors
-            }
-        }
-        advance()
-    }
-
-    fun onLike() {
-        _uiState.value.currentCard?.let { likedIds.add(it.id) }
-        val id = _uiState.value.currentCard?.id ?: return
-        viewModelScope.launch {
-            try {
-                val user = model.getCurrentUser()?.id
-                if (user != null) {
-                    model.voteOnActivity(tripId, id, user, VoteType.YES)
-                }
-            } catch (_: Throwable) {
-                // ignore
             }
         }
         advance()
@@ -115,22 +122,5 @@ class SwipingViewModel(
         val currentCard = state.currentCard ?: return
         if (currentCard.id in state.swipedIds) return
         _uiState.value = state.copy(swipedIds = state.swipedIds + currentCard.id)
-    }
-
-    /**
-     * Returns liked/super-liked activities as [SwipingResult] for the Swiping Results screen.
-     * For the mock flow we include a simple voter label.
-     */
-    fun getLikedResults(): List<SwipingResult> {
-        val state = _uiState.value
-        return state.cards
-            .filter { it.id in likedIds }
-            .map { activity ->
-                SwipingResult(
-                    activity = activity,
-                    voteCount = 1,
-                    voterNames = listOf("You")
-                )
-            }
     }
 }

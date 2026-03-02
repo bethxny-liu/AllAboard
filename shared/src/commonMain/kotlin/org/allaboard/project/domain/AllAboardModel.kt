@@ -134,7 +134,7 @@ class AllAboardModel(
         activityId: String,
         userId: String,
         voteType: VoteType
-    ): ActivityVoteResult {
+    ) {
         val vote = Vote(
             id = generateId(),
             activityId = activityId,
@@ -147,8 +147,6 @@ class AllAboardModel(
 
         // Notify listeners that votes changed for this trip so UI can refresh
         _events.emit(tripId)
-
-        return voteRepository.getVotingResultForActivity(tripId, activityId)
     }
 
     /**

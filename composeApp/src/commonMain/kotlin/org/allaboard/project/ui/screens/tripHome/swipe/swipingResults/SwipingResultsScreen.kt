@@ -26,7 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
-import org.allaboard.project.domain.Activity
+import org.allaboard.project.di.AppModule
+import org.allaboard.project.domain.ActivityVoteResult
 import org.allaboard.project.ui.components.CategoryDropdown
 import org.allaboard.project.ui.screens.activityDetails.ActivityDetailsScreen
 import org.allaboard.project.ui.screens.tripHome.TripHomeScreen
@@ -36,11 +37,8 @@ import org.allaboard.project.ui.theme.TextPrimary
 /**
  * Screen showing swiping results: category filter and "Top Matches" list (scrollable,
  * sorted by votes). Back goes to trip dashboard; tapping a card opens activity details.
- *
- * @param initialResults When coming from the swipe flow, pass the liked activities here.
  */
 class SwipingResultsScreen(
-    private val initialResults: List<SwipingResult>? = null,
     private val tripId: String
 ) : Screen {
 
@@ -48,7 +46,7 @@ class SwipingResultsScreen(
     override fun Content() {
         val navigator = LocalNavigator.current
         val viewModel: SwipingResultsViewModel = viewModel {
-            SwipingResultsViewModel(initialResults = initialResults)
+            SwipingResultsViewModel(tripId = tripId, model = AppModule.allAboardModel)
         }
         val uiState by viewModel.uiState.collectAsState()
 
@@ -58,8 +56,8 @@ class SwipingResultsScreen(
                 navigator?.replace(TripHomeScreen(tripId))
             },
             onCategorySelected = viewModel::onCategorySelected,
-            onActivityClick = { activity ->
-                navigator?.push(ActivityDetailsScreen(activity = activity, fallbackActivityId = activity.id))
+            onActivityClick = { result ->
+                navigator?.push(ActivityDetailsScreen(activity = result.activity, fallbackActivityId = result.activity.id))
             }
         )
     }
@@ -70,7 +68,7 @@ private fun SwipingResultsContent(
     uiState: SwipingResultsUiState,
     onBack: () -> Unit,
     onCategorySelected: (Int) -> Unit,
-    onActivityClick: (Activity) -> Unit
+    onActivityClick: (ActivityVoteResult) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -132,7 +130,7 @@ private fun SwipingResultsContent(
                     SwipingResultCard(
                         result = result,
                         showMostVotesTag = (index == 0),
-                        onClick = { onActivityClick(result.activity) }
+                        onClick = { onActivityClick(result) }
                     )
                 }
             }
