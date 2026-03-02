@@ -106,7 +106,7 @@ fun HomeScreenContent(
 
             // Greeting above search bar (same style as "Welcome aboard!" on onboarding)
             Text(
-                text = if (uiState.displayName.isNotBlank()) "Where to, ${uiState.displayName}" else "Where to?",
+                text = if (uiState.displayName.isNotBlank()) "Where to, ${uiState.displayName}?" else "Where to?",
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.fillMaxWidth()
