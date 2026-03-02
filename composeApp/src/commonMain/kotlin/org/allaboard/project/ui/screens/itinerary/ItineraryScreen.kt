@@ -1,6 +1,7 @@
 package org.allaboard.project.ui.screens.itinerary
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,120 +24,163 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import androidx.lifecycle.viewmodel.compose.viewModel
+import org.allaboard.project.di.AppModule
+import org.allaboard.project.domain.Activity
+import org.allaboard.project.ui.screens.activityDetails.ActivityDetailsScreen
 
-class ItineraryScreen : Screen {
+class ItineraryScreen(private val tripId: String) : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
-        val viewModel: ItineraryViewModel = viewModel<ItineraryViewModel>()
-        val uiState by viewModel.uiState.collectAsState(initial = viewModel.uiState.value)
+        val viewModel: ItineraryViewModel = viewModel {
+            ItineraryViewModel(tripId = tripId, model = AppModule.allAboardModel)
+        }
+        val uiState by viewModel.uiState.collectAsState()
 
         ItineraryContent(
             uiState = uiState,
-            onBack = { navigator?.pop() }
+            onBack = { navigator?.pop() },
+            onActivityClick = { activity ->
+                navigator?.push(ActivityDetailsScreen(activity = activity, fallbackActivityId = activity.id))
+            }
         )
     }
 }
 
 @Composable
-fun ItineraryContent(onBack: () -> Unit, uiState: ItineraryUiState) {
-    // Top row matches CreateCustomActivityScreen: back button + title with spacing
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 40.dp, start = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = onBack) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-            )
-        }
-
-        Spacer(Modifier.width(8.dp))
-
-        Text(
-            text = "Itinerary",
-            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-            modifier = Modifier.weight(1f)
-        )
-    }
-
-    // Show selected date range using uiState to avoid unused parameter warning
-    Spacer(modifier = Modifier.height(8.dp))
-    Text(
-        text = "${uiState.rangeStart} - ${uiState.rangeEnd}",
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onBackground,
-        modifier = Modifier.padding(start = 16.dp)
-    )
-
+fun ItineraryContent(
+    onBack: () -> Unit,
+    uiState: ItineraryUiState,
+    onActivityClick: (Activity) -> Unit = {}
+) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(start = 24.dp, end = 24.dp, top = 104.dp, bottom = 0.dp)
+        modifier = Modifier.fillMaxSize()
     ) {
-        // Export button (replaces previous calendar image). Uses project theme colors and rounded shape.
-        Button(
-            onClick = {
-                // TODO: implement export to Google Calendar
-            },
+        // Top row matches CreateCustomActivityScreen: back button + title with spacing
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
-                .clip(RoundedCornerShape(12.dp)),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                .padding(top = 40.dp, start = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Filled.CalendarToday,
-                contentDescription = "Export",
-                tint = MaterialTheme.colorScheme.onPrimary
-            )
-            Spacer(Modifier.width(12.dp))
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                )
+            }
+
+            Spacer(Modifier.width(8.dp))
+
             Text(
-                text = "Export to Google Calendar",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onPrimary
+                text = "Itinerary",
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                modifier = Modifier.weight(1f)
             )
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
 
-        // List of days
-        LazyColumn(modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 0.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 0.dp)
         ) {
-            items(uiState.days) { day ->
-                Text(
-                    text = day.title,
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(start = 8.dp, top = 12.dp, bottom = 8.dp)
+            // Export button
+            Button(
+                onClick = {
+                    // TODO: implement export to Google Calendar
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.CalendarToday,
+                    contentDescription = "Export",
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    text = "Export to Google Calendar",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            }
 
-                day.items.forEach { item ->
-                    val bg = MaterialTheme.colorScheme.surfaceVariant
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                            .height(56.dp)
-                            .shadow(4.dp, RoundedCornerShape(12.dp))
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(bg),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Loading state
+            if (uiState.isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else if (uiState.error != null) {
+                // Error state
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = uiState.error,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            } else if (uiState.days.isEmpty()) {
+                // Empty state
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No itinerary items yet",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                // List of days
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 0.dp)
+                ) {
+                    items(uiState.days) { day ->
                         Text(
-                            text = "${item.time} ${item.title}",
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.padding(start = 24.dp)
+                            text = "Day ${day.dayNumber}: ${day.date}",
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.padding(start = 8.dp, top = 12.dp, bottom = 8.dp)
                         )
+
+                        day.activities.forEach { scheduledActivity ->
+                            val bg = MaterialTheme.colorScheme.surfaceVariant
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp)
+                                    .height(56.dp)
+                                    .shadow(4.dp, RoundedCornerShape(12.dp))
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(bg)
+                                    .clickable { onActivityClick(scheduledActivity.activity) },
+                                contentAlignment = Alignment.CenterStart
+                            ) {
+                                Text(
+                                    text = "${scheduledActivity.startTime} ${scheduledActivity.activity.title}",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    modifier = Modifier.padding(start = 24.dp)
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }

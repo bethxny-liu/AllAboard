@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
+import org.allaboard.project.di.AppModule
 import org.allaboard.project.ui.screens.createTrip.CreateTripScreen
 import org.allaboard.project.ui.screens.tripHome.TripHomeScreen
 import org.allaboard.project.ui.theme.Background
@@ -51,13 +52,13 @@ class HomeScreen : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
-        val viewModel: HomeViewModel = viewModel { HomeViewModel() }
-        val uiState by viewModel.uiState.collectAsState()
+        val viewModel: HomeViewModel = viewModel { HomeViewModel(model = AppModule.allAboardModel) }
+        val uiState by viewModel.uiState.collectAsState(initial = viewModel.uiState.value)
 
         HomeScreenContent(
             uiState = uiState,
             onSearchQueryChange = viewModel::onSearchQueryChange,
-            onTripClick = { tripId -> navigator?.push(TripHomeScreen()) },
+            onTripClick = { tripId -> navigator?.push(TripHomeScreen(tripId)) },
             onCreateTripClick = { navigator?.push(CreateTripScreen()) }
         )
     }
@@ -103,34 +104,15 @@ fun HomeScreenContent(
 
             Spacer(Modifier.height(24.dp))
 
-            // Search bar
-            OutlinedTextField(
-                value = uiState.searchQuery,
-                onValueChange = onSearchQueryChange,
-                placeholder = {
-                    Text("Search", color = TextHint)
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Filled.Search,
-                        contentDescription = "Search",
-                        tint = TextSecondary
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedContainerColor = FieldBackground,
-                    focusedContainerColor = FieldBackground,
-                    unfocusedBorderColor = FieldBackground,
-                    focusedBorderColor = TextSecondary
-                ),
-                singleLine = true
+            // Greeting above search bar (same style as "Welcome aboard!" on onboarding)
+            Text(
+                text = if (uiState.displayName.isNotBlank()) "Where to, ${uiState.displayName}?" else "Where to?",
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(16.dp))
 
             // Upcoming Trips section
             Text(
