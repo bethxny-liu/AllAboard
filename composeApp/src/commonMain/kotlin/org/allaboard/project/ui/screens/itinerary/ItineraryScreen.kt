@@ -1,6 +1,7 @@
 package org.allaboard.project.ui.screens.itinerary
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -24,7 +25,8 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.allaboard.project.di.AppModule
-import org.allaboard.project.domain.ItineraryDay
+import org.allaboard.project.domain.Activity
+import org.allaboard.project.ui.screens.activityDetails.ActivityDetailsScreen
 
 class ItineraryScreen(private val tripId: String) : Screen {
     @Composable
@@ -37,13 +39,20 @@ class ItineraryScreen(private val tripId: String) : Screen {
 
         ItineraryContent(
             uiState = uiState,
-            onBack = { navigator?.pop() }
+            onBack = { navigator?.pop() },
+            onActivityClick = { activity ->
+                navigator?.push(ActivityDetailsScreen(activity = activity, fallbackActivityId = activity.id))
+            }
         )
     }
 }
 
 @Composable
-fun ItineraryContent(onBack: () -> Unit, uiState: ItineraryUiState) {
+fun ItineraryContent(
+    onBack: () -> Unit,
+    uiState: ItineraryUiState,
+    onActivityClick: (Activity) -> Unit = {}
+) {
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -157,7 +166,8 @@ fun ItineraryContent(onBack: () -> Unit, uiState: ItineraryUiState) {
                                     .height(56.dp)
                                     .shadow(4.dp, RoundedCornerShape(12.dp))
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(bg),
+                                    .background(bg)
+                                    .clickable { onActivityClick(scheduledActivity.activity) },
                                 contentAlignment = Alignment.CenterStart
                             ) {
                                 Text(
