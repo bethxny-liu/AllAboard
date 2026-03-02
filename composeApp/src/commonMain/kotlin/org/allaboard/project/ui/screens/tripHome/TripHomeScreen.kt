@@ -91,7 +91,7 @@ class TripHomeScreen(private val tripId: String) : Screen {
             },
             onCreateCustomActivity = { navigator?.push(CreateCustomActivityScreen(tripNonNull.id)) },
             onActivitySelected = { activity -> navigator?.push(ActivityDetailsScreen(activity, activity.id)) },
-            onViewItinerary = { navigator?.push(ItineraryScreen()) } //TODO: pass tripId to ItineraryScreen when implemented
+            onViewItinerary = { navigator?.push(ItineraryScreen(tripNonNull.id)) }
         )
     }
 }
