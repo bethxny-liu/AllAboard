@@ -9,6 +9,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
+import org.allaboard.project.di.AppModule
 
 class CreateTripScreen(
     private val mode: CreateTripViewModel.Mode = CreateTripViewModel.Mode.Create,
@@ -19,7 +20,9 @@ class CreateTripScreen(
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
-        val vm: CreateTripViewModel = viewModel { CreateTripViewModel() }
+        val vm: CreateTripViewModel = viewModel {
+            CreateTripViewModel(AppModule.allAboardModel)
+        }
 
         LaunchedEffect(mode, tripId) {
             vm.initialize(mode, tripId)

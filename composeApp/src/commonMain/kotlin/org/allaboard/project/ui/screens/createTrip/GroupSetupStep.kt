@@ -203,15 +203,19 @@ fun GroupSetupStep(
 
             Button(
                 onClick = {
-                    vm.onCreateTrip()
-                    onCreateTrip()
+                    vm.onCreateTrip(onSuccess = onCreateTrip)
                 },
                 modifier = Modifier
                     .height(48.dp)
                     .weight(1f),
+                enabled = !state.isCreatingTrip && !state.isLoading
             ) {
                 Text(
-                    text = if (state.isCreatingTrip) "Creating..." else "Create trip",
+                    text = when {
+                        state.isCreatingTrip -> if (state.isEditMode) "Saving..." else "Creating..."
+                        state.isEditMode -> "Save trip"
+                        else -> "Create trip"
+                    },
                     color = Color.Black
                 )
             }

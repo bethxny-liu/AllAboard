@@ -62,6 +62,7 @@ class AllAboardModel(
         endDate: String,
         creatorId: String
     ): Trip {
+        val creator = userRepository.getUser(creatorId)
         val trip = Trip(
             id = "",
             title = "All Aboard to $destination!",
@@ -69,9 +70,31 @@ class AllAboardModel(
             region = region,
             startDate = startDate,
             endDate = endDate,
-            members = emptyList()
+            members = creator?.let { listOf(it) } ?: emptyList()
         )
         return tripRepository.createTrip(trip)
+    }
+
+    suspend fun updateTripDetails(
+        tripId: String,
+        destination: String,
+        region: String,
+        startDate: String,
+        endDate: String
+    ): Trip? {
+        val existingTrip = tripRepository.getTrip(tripId) ?: return null
+        val updatedTrip = existingTrip.copy(
+            title = "All Aboard to $destination!",
+            destination = destination,
+            region = region,
+            startDate = startDate,
+            endDate = endDate
+        )
+        return tripRepository.updateTrip(updatedTrip)
+    }
+
+    fun getTripInviteLink(tripId: String): String {
+        return "AllAboard.ca/join/$tripId"
     }
 
     suspend fun addUserToTrip(tripId: String, userId: String) {
