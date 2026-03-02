@@ -1,61 +1,55 @@
 package org.allaboard.project.ui.screens.itinerary
 
-import kotlinx.datetime.LocalDate
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import androidx.lifecycle.ViewModel
-import kotlin.collections.listOf
+import kotlinx.coroutines.launch
+import org.allaboard.project.domain.AllAboardModel
+import org.allaboard.project.domain.Itinerary
+import org.allaboard.project.domain.ItineraryDay
 
 // UI state for Itinerary screen
 data class ItineraryUiState(
-    val rangeStart: LocalDate = LocalDate(2026, 2, 10),
-    val rangeEnd: LocalDate = LocalDate(2026, 2, 14),
-    val monthToShowYear: Int = rangeStart.year,
-    val monthToShowMonth: Int = rangeStart.month.ordinal + 1,
-    val days: List<DaySection> = emptyList()
+    val itinerary: Itinerary? = null,
+    val days: List<ItineraryDay> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: String? = null
 )
 
-class ItineraryViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow(
-        ItineraryUiState(
-            days = listOf(
-                DaySection(
-                    title = "Day 1: Jan 23",
-                    items = listOf(
-                        ItineraryItem("10:00 AM", "Pretty Place"),
-                        ItineraryItem("2:00 PM", "Restaurant")
-                    )
-                ),
-                DaySection(
-                    title = "Day 2: Jan 24",
-                    items = listOf(
-                        ItineraryItem("10:00 AM", "Pretty Place"),
-                        ItineraryItem("2:00 PM", "Restaurant")
-                    )
-                ),
-                DaySection(
-                    title = "Day 3: Jan 25",
-                    items = listOf(
-                        ItineraryItem("10:00 AM", "Pretty Place"),
-                        ItineraryItem("2:00 PM", "Restaurant")
-                    )
-                ),
-                DaySection(
-                    title = "Day 4: Jan 26",
-                    items = listOf(
-                        ItineraryItem("10:00 AM", "Pretty Place"),
-                        ItineraryItem("2:00 PM", "Restaurant")
-                    )
-                )
-            )
-        )
-    )
+class ItineraryViewModel(
+    private val tripId: String,
+    private val model: AllAboardModel
+) : ViewModel() {
+    private val _uiState = MutableStateFlow(ItineraryUiState(isLoading = true))
     val uiState: StateFlow<ItineraryUiState> = _uiState.asStateFlow()
 
-    // In the future: functions to update dates, load itinerary, etc.
-}
+    init {
+        loadItinerary()
+    }
 
-// Simple data models for the placeholder
-data class ItineraryItem(val time: String, val title: String)
-data class DaySection(val title: String, val items: List<ItineraryItem>)
+    private fun loadItinerary() {
+        viewModelScope.launch {
+            try {
+                val itinerary = model.getItinerary(tripId)
+                _uiState.value = _uiState.value.copy(
+                    itinerary = itinerary,
+                    days = itinerary?.days ?: emptyList(),
+                    isLoading = false,
+                    error = null
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "Failed to load itinerary"
+                )
+            }
+        }
+    }
+
+    fun refresh() {
+        _uiState.value = _uiState.value.copy(isLoading = true)
+        loadItinerary()
+    }
+}

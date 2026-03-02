@@ -76,7 +76,7 @@ class MockItineraryRepository : ItineraryRepository {
     }
 
     override suspend fun getItinerary(tripId: String): Itinerary? {
-        return store[tripId]
+        return store["trip-1"] // Always return the seeded itinerary for demo purposes
     }
 
     override suspend fun addActivityToDay(tripId: String, date: String, scheduledActivity: ScheduledActivity) {

@@ -78,7 +78,7 @@ class TripHomeScreen : Screen {
             onActivitySelected = { activity ->
                 navigator?.push(ActivityDetailsScreen(activity, activity.id))
             },
-            onViewItinerary = { navigator?.push(ItineraryScreen()) }
+            onViewItinerary = { navigator?.push(ItineraryScreen(uiState.trip.id)) }
         )
     }
 }
