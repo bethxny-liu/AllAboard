@@ -46,18 +46,19 @@ import org.allaboard.project.ui.theme.TextSecondary
 import org.jetbrains.compose.resources.painterResource
 import team_102_8.composeapp.generated.resources.Res
 import team_102_8.composeapp.generated.resources.logo
+import org.allaboard.project.di.AppModule
 
 class HomeScreen : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
-        val viewModel: HomeViewModel = viewModel { HomeViewModel() }
-        val uiState by viewModel.uiState.collectAsState()
+        val viewModel: HomeViewModel = viewModel { HomeViewModel(model = AppModule.allAboardModel) }
+        val uiState by viewModel.uiState.collectAsState(initial = viewModel.uiState.value)
 
         HomeScreenContent(
             uiState = uiState,
             onSearchQueryChange = viewModel::onSearchQueryChange,
-            onTripClick = { tripId -> navigator?.push(TripHomeScreen()) },
+            onTripClick = { tripId -> navigator?.push(TripHomeScreen(tripId)) },
             onCreateTripClick = { navigator?.push(CreateTripScreen()) }
         )
     }
@@ -189,4 +190,3 @@ fun HomeScreenContent(
         }
     }
 }
-

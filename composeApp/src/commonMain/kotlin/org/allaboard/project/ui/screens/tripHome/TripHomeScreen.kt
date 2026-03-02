@@ -27,18 +27,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import org.allaboard.project.Category
 import org.allaboard.project.domain.Activity
 import org.allaboard.project.domain.ActivityType
+import org.allaboard.project.domain.Trip
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import org.allaboard.project.ui.screens.activityDetails.ActivityDetailsScreen
 import org.allaboard.project.ui.screens.createTrip.CreateTripScreen
 import org.allaboard.project.ui.screens.createTrip.CreateTripViewModel
@@ -51,42 +52,54 @@ import org.allaboard.project.ui.theme.TextPrimary
 import org.jetbrains.compose.resources.painterResource
 import team_102_8.composeapp.generated.resources.Res
 import team_102_8.composeapp.generated.resources.prettyplace
+import org.allaboard.project.di.AppModule
 
-class TripHomeScreen : Screen {
+class TripHomeScreen(private val tripId: String) : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
-        val viewModel = viewModel { TripHomeViewModel() }
+        val viewModel: TripHomeViewModel = viewModel {
+            TripHomeViewModel(
+                model = AppModule.allAboardModel,
+                tripId = tripId
+            )
+        }
         val uiState by viewModel.uiState.collectAsState()
 
+        // If trip is null (should not happen), render the UI with a lightweight placeholder and the trip details will be filled in when the model returns.
+        val tripNonNull: Trip = uiState.trip ?: Trip(
+            id = tripId,
+            title = "",
+            destination = "",
+            region = "",
+            startDate = "",
+            endDate = ""
+        )
+
         TripHomeScreenContent(
-            uiState = uiState,
-            viewModel = viewModel,
-            onStartSwipingClick = { navigator?.push(SwipingScreen(uiState.activities)) },
+            trip = tripNonNull,
+            activities = uiState.activities,
+            onStartSwipingClick = { navigator?.push(SwipingScreen(tripNonNull.id)) },
             onEditTrip = {
                 navigator?.push(
                     CreateTripScreen(
                         mode = CreateTripViewModel.Mode.Edit,
-                        tripId = uiState.trip.id,
+                        tripId = tripNonNull.id,
                         startStep = 0
                     )
                 )
             },
-            onCreateCustomActivity = {
-                navigator?.push(CreateCustomActivityScreen(uiState.trip.id))
-            },
-            onActivitySelected = { activity ->
-                navigator?.push(ActivityDetailsScreen(activity, activity.id))
-            },
-            onViewItinerary = { navigator?.push(ItineraryScreen()) }
+            onCreateCustomActivity = { navigator?.push(CreateCustomActivityScreen(tripNonNull.id)) },
+            onActivitySelected = { activity -> navigator?.push(ActivityDetailsScreen(activity, activity.id)) },
+            onViewItinerary = { navigator?.push(ItineraryScreen()) } //TODO: pass tripId to ItineraryScreen when implemented
         )
     }
 }
 
 @Composable
 fun TripHomeScreenContent(
-    uiState: TripHomeUiState,
-    viewModel: TripHomeViewModel,
+    trip: Trip,
+    activities: List<Activity>,
     onCreateCustomActivity: () -> Unit,
     onEditTrip: () -> Unit,
     onActivitySelected: (Activity) -> Unit,
@@ -101,7 +114,7 @@ fun TripHomeScreenContent(
     ) {
         // Hero Section with Trip Background and Info
         TripHeroSection(
-            trip = uiState.trip,
+            trip = trip,
             onEditClick = onEditTrip,
             onStartSwipingClick = onStartSwipingClick,
             onCreateCustomActivity = onCreateCustomActivity,
@@ -113,7 +126,7 @@ fun TripHomeScreenContent(
         // Landmarks Section
         SectionWithCards(
             title = Category.LANDMARKS.displayName,
-            items = uiState.activities.filter { it.type == ActivityType.LANDMARK },
+            items = activities.filter { it.type == ActivityType.LANDMARK },
             itemId = { it.id },
             onItemClick = onActivitySelected
         ) { landmark ->
@@ -138,7 +151,7 @@ fun TripHomeScreenContent(
         // Restaurants & Food Section
         SectionWithCards(
             title = Category.RESTAURANTS.displayName,
-            items = uiState.activities.filter { it.type == ActivityType.RESTAURANT },
+            items = activities.filter { it.type == ActivityType.RESTAURANT },
             itemId = { it.id },
             onItemClick = onActivitySelected
         ) { restaurant ->
@@ -163,7 +176,7 @@ fun TripHomeScreenContent(
         // Experiences Section
         SectionWithCards(
             title = Category.EXPERIENCES.displayName,
-            items = uiState.activities.filter { it.type == ActivityType.EXPERIENCES },
+            items = activities.filter { it.type == ActivityType.EXPERIENCES },
             itemId = { it.id },
             onItemClick = onActivitySelected
         ) { activity ->
@@ -240,7 +253,7 @@ private fun TripHeroSection(
 
                 // Date Range
                 Text(
-                    text = trip.dateRange,
+                    text = "${trip.startDate} - ${trip.endDate}",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal,
                     color = Surface,
