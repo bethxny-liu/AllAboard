@@ -21,6 +21,7 @@ data class CreateCustomActivityUiState(
     val description: String = "",
     val link: String = "",
     val isCreating: Boolean = false,
+    val isSuccess: Boolean = false,
     val error: String? = null
 ) {
     val selectedCategory: Category
@@ -80,7 +81,7 @@ class CreateCustomActivityViewModel(
                     imageUrl = null, // need to implement image upload separately
                     link = state.link.ifBlank { null }
                 )
-                _uiState.value = _uiState.value.copy(isCreating = false)
+                _uiState.value = _uiState.value.copy(isCreating = false, isSuccess = true)
             } catch (t: Throwable) {
                 _uiState.value = _uiState.value.copy(isCreating = false, error = t.message)
             }

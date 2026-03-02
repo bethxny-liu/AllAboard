@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import org.allaboard.project.ui.theme.FieldBackground
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material3.Icon
@@ -27,6 +28,8 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import org.allaboard.project.ui.components.CategoryDropdown
 import org.allaboard.project.di.AppModule
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
 
 /**
  * Create Custom Activity screen: allows users to create a new activity that others can swipe on.
@@ -47,16 +50,29 @@ class CreateCustomActivityScreen(
         }
         val uiState by viewModel.uiState.collectAsState()
 
-        CreateCustomActivityContent(
-            uiState = uiState,
-            onBack = { navigator?.pop() },
-            onCreate = { viewModel.onCreateActivity() },
-            onCategoryChange = viewModel::updateCategory,
-            onNameChange = viewModel::updateName,
-            onLocationChange = viewModel::updateLocation,
-            onDescriptionChange = viewModel::updateDescription,
-            onLinkChange = viewModel::updateLink
-        )
+        // When success, wait a moment and then navigate back
+        LaunchedEffect(uiState.isSuccess) {
+            if (uiState.isSuccess) {
+                delay(1000) // Show success for 1.5 seconds
+                navigator?.pop()
+            }
+        }
+
+        if (uiState.isSuccess) {
+            // Success screen
+            SuccessScreen()
+        } else {
+            CreateCustomActivityContent(
+                uiState = uiState,
+                onBack = { navigator?.pop() },
+                onCreate = { viewModel.onCreateActivity() },
+                onCategoryChange = viewModel::updateCategory,
+                onNameChange = viewModel::updateName,
+                onLocationChange = viewModel::updateLocation,
+                onDescriptionChange = viewModel::updateDescription,
+                onLinkChange = viewModel::updateLink
+            )
+        }
     }
 }
 
@@ -135,7 +151,13 @@ private fun CreateCustomActivityContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp)
-                        .border(BorderStroke(1.dp, Color.Black), RoundedCornerShape(25.dp))
+                        .border(
+                            BorderStroke(
+                                width = if (uiState.error == "Name required") 2.dp else 1.dp,
+                                color = if (uiState.error == "Name required") MaterialTheme.colorScheme.error else Color.Black
+                            ),
+                            RoundedCornerShape(25.dp)
+                        )
                         .background(FieldBackground, RoundedCornerShape(25.dp))
                         .padding(start = 20.dp),
                     contentAlignment = Alignment.CenterStart
@@ -147,6 +169,14 @@ private fun CreateCustomActivityContent(
                 }
             }
         )
+        if (uiState.error == "Name required") {
+            Text(
+                text = uiState.error,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(start = 20.dp, top = 4.dp)
+            )
+        }
 
         Spacer(Modifier.height(16.dp))
 
@@ -296,3 +326,30 @@ private fun CreateCustomActivityContent(
         Spacer(Modifier.height(12.dp))
     }
 }
+
+@Composable
+private fun SuccessScreen() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Check,
+                contentDescription = "Success",
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(Modifier.height(16.dp))
+            Text(
+                text = "Activity Created!",
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
+    }
+}
+
