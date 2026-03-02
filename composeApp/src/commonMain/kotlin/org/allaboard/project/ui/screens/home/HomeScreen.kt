@@ -53,12 +53,12 @@ class HomeScreen : Screen {
     override fun Content() {
         val navigator = LocalNavigator.current
         val viewModel: HomeViewModel = viewModel { HomeViewModel(model = AppModule.allAboardModel) }
-        val uiState by viewModel.uiState.collectAsState()
+        val uiState by viewModel.uiState.collectAsState(initial = viewModel.uiState.value)
 
         HomeScreenContent(
             uiState = uiState,
             onSearchQueryChange = viewModel::onSearchQueryChange,
-            onTripClick = { tripId -> navigator?.push(TripHomeScreen()) },
+            onTripClick = { tripId -> navigator?.push(TripHomeScreen(tripId)) },
             onCreateTripClick = { navigator?.push(CreateTripScreen()) }
         )
     }
@@ -113,35 +113,6 @@ fun HomeScreenContent(
             )
 
             Spacer(Modifier.height(16.dp))
-
-            // Search bar
-            OutlinedTextField(
-                value = uiState.searchQuery,
-                onValueChange = onSearchQueryChange,
-                placeholder = {
-                    Text("Search", color = TextHint)
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Filled.Search,
-                        contentDescription = "Search",
-                        tint = TextSecondary
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedContainerColor = FieldBackground,
-                    focusedContainerColor = FieldBackground,
-                    unfocusedBorderColor = FieldBackground,
-                    focusedBorderColor = TextSecondary
-                ),
-                singleLine = true
-            )
-
-            Spacer(Modifier.height(32.dp))
 
             // Upcoming Trips section
             Text(

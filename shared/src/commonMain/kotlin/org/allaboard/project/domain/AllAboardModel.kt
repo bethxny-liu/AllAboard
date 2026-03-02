@@ -6,6 +6,9 @@ import org.allaboard.project.data.repository.TripRepository
 import org.allaboard.project.data.repository.UserRepository
 import org.allaboard.project.data.repository.VoteRepository
 import kotlin.random.Random
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 /**
  * Thin coordinator layer for the frontend.
@@ -28,6 +31,10 @@ class AllAboardModel(
     private val userRepository: UserRepository,
     private val itineraryRepository: ItineraryRepository
 ) {
+    // Events to notify viewmodels about backend changes (e.g., votes submitted)
+    private val _events = MutableSharedFlow<String>(extraBufferCapacity = 64)
+    val events: SharedFlow<String> = _events.asSharedFlow()
+
     // ========================================
     // TRIP OPERATIONS (Simple delegation)
     // ========================================
@@ -55,6 +62,7 @@ class AllAboardModel(
         endDate: String,
         creatorId: String
     ): Trip {
+        val creator = userRepository.getUser(creatorId)
         val trip = Trip(
             id = "",
             title = "All Aboard to $destination!",
@@ -62,9 +70,31 @@ class AllAboardModel(
             region = region,
             startDate = startDate,
             endDate = endDate,
-            members = emptyList()
+            members = creator?.let { listOf(it) } ?: emptyList()
         )
         return tripRepository.createTrip(trip)
+    }
+
+    suspend fun updateTripDetails(
+        tripId: String,
+        destination: String,
+        region: String,
+        startDate: String,
+        endDate: String
+    ): Trip? {
+        val existingTrip = tripRepository.getTrip(tripId) ?: return null
+        val updatedTrip = existingTrip.copy(
+            title = "All Aboard to $destination!",
+            destination = destination,
+            region = region,
+            startDate = startDate,
+            endDate = endDate
+        )
+        return tripRepository.updateTrip(updatedTrip)
+    }
+
+    fun getTripInviteLink(tripId: String): String {
+        return "AllAboard.ca/join/$tripId"
     }
 
     suspend fun addUserToTrip(tripId: String, userId: String) {
@@ -127,7 +157,7 @@ class AllAboardModel(
         activityId: String,
         userId: String,
         voteType: VoteType
-    ): ActivityVoteResult {
+    ) {
         val vote = Vote(
             id = generateId(),
             activityId = activityId,
@@ -138,7 +168,8 @@ class AllAboardModel(
         )
         voteRepository.submitVote(vote)
 
-        return voteRepository.getVotingResultForActivity(tripId, activityId)
+        // Notify listeners that votes changed for this trip so UI can refresh
+        _events.emit(tripId)
     }
 
     /**
@@ -186,7 +217,6 @@ class AllAboardModel(
         userRepository.updateUserPreferences(userId, budget, vibe, interests)
     }
 
-    // ========================================
     // ITINERARY OPERATIONS
     // ========================================
 
@@ -212,6 +242,30 @@ class AllAboardModel(
         return TripDashboard(
             trip = trip,
             activities = activities,
+            votingResults = votingResults,
+            itinerary = itinerary
+        )
+    }
+
+    /**
+     * Helper returning a TripDashboard where activity.voteCount is populated using
+     * the voting results. This keeps UI merging logic inside the Model
+     */
+    suspend fun getTripDashboardWithMergedActivityVotes(tripId: String): TripDashboard {
+        val trip = tripRepository.getTrip(tripId)
+        val activities = activityRepository.getActivitiesForTrip(tripId)
+        val votingResults = voteRepository.getVotingResultsForTrip(tripId)
+        val itinerary = itineraryRepository.getItinerary(tripId)
+
+        val votesByActivity = votingResults.associateBy { it.activity.id }
+        val mergedActivities = activities.map { activity ->
+            val vr = votesByActivity[activity.id]
+            if (vr != null) activity.copy(voteCount = vr.totalVotes) else activity
+        }
+
+        return TripDashboard(
+            trip = trip,
+            activities = mergedActivities,
             votingResults = votingResults,
             itinerary = itinerary
         )

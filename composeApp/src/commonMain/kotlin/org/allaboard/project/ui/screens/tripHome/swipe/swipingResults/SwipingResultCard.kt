@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.allaboard.project.domain.ActivityVoteResult
 import org.allaboard.project.ui.theme.Success
 import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextPrimary
@@ -39,7 +40,7 @@ import team_102_8.composeapp.generated.resources.prettyplace
  * Reusable card for the Swiping Results page. Shows activity image, name, vote count,
  * and the people who voted, with an optional "Most Votes" tag.
  *
- * @param result The swiping result data (name, votes, voters).
+ * @param result The activity vote result data (activity, votes, voters).
  * @param showMostVotesTag When true, shows a "Most Votes" badge (e.g. for the top result).
  * @param imageContent Optional custom image content; defaults to placeholder/prettyplace.
  * @param onClick Optional click handler; when set, tapping the card opens activity details.
@@ -47,7 +48,7 @@ import team_102_8.composeapp.generated.resources.prettyplace
  */
 @Composable
 fun SwipingResultCard(
-    result: SwipingResult,
+    result: ActivityVoteResult,
     showMostVotesTag: Boolean = false,
     modifier: Modifier = Modifier,
     imageContent: @Composable (() -> Unit)? = null,
@@ -107,7 +108,7 @@ fun SwipingResultCard(
                     )
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(
-                            text = "${result.voteCount} votes",
+                            text = "${result.yesVotes} votes",
                             style = MaterialTheme.typography.bodyMedium,
                             color = TextSecondary,
                             fontSize = 14.sp
@@ -123,7 +124,7 @@ fun SwipingResultCard(
                                 tint = TextSecondary
                             )
                             Text(
-                                text = result.voterDisplayText(),
+                                text = voterDisplayText(result.voterNames),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = TextSecondary,
                                 fontSize = 12.sp,
@@ -160,3 +161,16 @@ fun SwipingResultCard(
         }
     }
 }
+
+/** Display text for voters, e.g. "Daniel, Rachael + 2 more" */
+private fun voterDisplayText(voterNames: List<String>, maxVisible: Int = 2): String {
+    if (voterNames.isEmpty()) return "No votes"
+    val visible = voterNames.take(maxVisible)
+    val extra = voterNames.size - visible.size
+    return if (extra > 0) {
+        "${visible.joinToString(", ")} + $extra more"
+    } else {
+        visible.joinToString(", ")
+    }
+}
+
