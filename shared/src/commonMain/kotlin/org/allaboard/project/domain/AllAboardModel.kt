@@ -172,6 +172,11 @@ class AllAboardModel(
         return userRepository.getCurrentUser()
     }
 
+    /** Sets the current user (e.g. after login). Mock uses this; real impl may validate token. */
+    suspend fun setCurrentUser(userId: String) {
+        userRepository.setCurrentUserId(userId)
+    }
+
     suspend fun updateUserPreferences(
         userId: String,
         budget: BudgetLevel,
