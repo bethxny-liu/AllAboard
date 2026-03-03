@@ -87,8 +87,8 @@ class SwipingScreen(private val tripId: String) : Screen {
                 navigator?.push(ActivityDetailsScreen(activity, activity.id))
             },
             onAllDone = {
-                // Navigate to results screen which loads results from the model
-                navigator?.push(SwipingResultsScreen(tripId))
+                // Replace the screen so it gets destroyed - fresh data will load next time
+                navigator?.replace(SwipingResultsScreen(tripId))
             }
         )
     }
@@ -108,7 +108,14 @@ fun SwipingScreenContent(
     val flashAlpha = remember { Animatable(0f) }
     var flashColor by remember { mutableStateOf<Color?>(null) }
     var flashIcon by remember { mutableStateOf<ImageVector?>(null) }
-    var onAllDoneFired by remember { mutableStateOf(false) }
+
+    // Navigate when all activities are swiped
+    // Key on swipedIds.size so it only triggers when user swipes, not on initial load
+    LaunchedEffect(uiState.swipedIds.size) {
+        if (uiState.isAllDone) {
+            onAllDone()
+        }
+    }
 
     val triggerFlash: (Color, ImageVector) -> Unit = { color, icon ->
         scope.launch {
@@ -126,12 +133,6 @@ fun SwipingScreenContent(
             .fillMaxSize()
             .background(Background)
     ) {
-        LaunchedEffect(uiState.isAllDone) {
-            if (uiState.hasCards && uiState.isAllDone && !onAllDoneFired) {
-                onAllDoneFired = true
-                onAllDone()
-            }
-        }
 
         Column(
             modifier = Modifier
