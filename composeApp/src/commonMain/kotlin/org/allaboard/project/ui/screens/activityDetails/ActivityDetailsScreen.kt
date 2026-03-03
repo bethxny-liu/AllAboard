@@ -27,7 +27,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -42,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
+import org.allaboard.project.di.AppModule
 import org.allaboard.project.domain.Activity
 import org.allaboard.project.ui.theme.BluePrimary
 import org.allaboard.project.ui.theme.Surface
@@ -56,20 +56,22 @@ import org.allaboard.project.ui.theme.TextSecondary
  * description (with see more/less), and map section. Opened from trip home activity cards.
  */
 class ActivityDetailsScreen(
-    private val activity: Activity,
+    private val activity: Activity? = null,
     private val fallbackActivityId: String,
 ) : Screen {
 
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
-        val viewModel: ActivityDetailsViewModel = viewModel { ActivityDetailsViewModel() }
+        val viewModel: ActivityDetailsViewModel = viewModel {
+            ActivityDetailsViewModel(
+                model = AppModule.allAboardModel,
+                initialActivity = activity,
+                activityId = fallbackActivityId
+            )
+        }
         val uiState by viewModel.uiState.collectAsState()
 
-        // Load details using the provided activity or fallback ID
-        LaunchedEffect(activity, fallbackActivityId) {
-            viewModel.loadDetails(activity, fallbackActivityId)
-        }
 
         ActivityDetailsContent(
             uiState = uiState,

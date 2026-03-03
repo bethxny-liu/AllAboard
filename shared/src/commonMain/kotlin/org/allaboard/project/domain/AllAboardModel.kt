@@ -106,6 +106,10 @@ class AllAboardModel(
     // ACTIVITY OPERATIONS
     // ========================================
 
+    suspend fun getActivity(activityId: String): Activity? {
+        return activityRepository.getActivity(activityId)
+    }
+
     suspend fun getActivitiesForTrip(tripId: String): List<Activity> {
         return activityRepository.getActivitiesForTrip(tripId)
     }
