@@ -56,9 +56,6 @@ import org.allaboard.project.ui.theme.SwipeLike
 import org.allaboard.project.ui.theme.SwipeSuperLike
 import org.allaboard.project.ui.theme.TextPrimary
 import org.allaboard.project.ui.theme.TextSecondary
-import org.jetbrains.compose.resources.painterResource
-import team_102_8.composeapp.generated.resources.Res
-import team_102_8.composeapp.generated.resources.prettyplace
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.allaboard.project.Category
@@ -194,7 +191,6 @@ fun SwipingScreenContent(
                     key(targetCard.id) {
                         SwipeCard(
                             activity = targetCard,
-                            imagePainter = painterResource(Res.drawable.prettyplace),
                             modifier = Modifier.width(cardWidth),
                             onDislike = {
                                 triggerFlash(SwipeDislike, Icons.Filled.Close)

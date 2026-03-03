@@ -1,6 +1,5 @@
 package org.allaboard.project.ui.screens.tripHome.swipe.swipingResults
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,13 +27,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.allaboard.project.domain.ActivityVoteResult
+import org.allaboard.project.ui.components.NetworkImage
 import org.allaboard.project.ui.theme.Success
 import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextPrimary
 import org.allaboard.project.ui.theme.TextSecondary
-import org.jetbrains.compose.resources.painterResource
-import team_102_8.composeapp.generated.resources.Res
-import team_102_8.composeapp.generated.resources.prettyplace
 
 /**
  * Reusable card for the Swiping Results page. Shows activity image, name, vote count,
@@ -79,8 +76,8 @@ fun SwipingResultCard(
                     if (imageContent != null) {
                         imageContent()
                     } else {
-                        Image(
-                            painter = painterResource(Res.drawable.prettyplace),
+                        NetworkImage(
+                            imageUrl = result.activity.imageUrl,
                             contentDescription = result.activity.title,
                             modifier = Modifier
                                 .fillMaxWidth()

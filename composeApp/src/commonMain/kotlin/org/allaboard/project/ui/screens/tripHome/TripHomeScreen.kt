@@ -1,6 +1,5 @@
 package org.allaboard.project.ui.screens.tripHome
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,6 +39,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import org.allaboard.project.ui.components.NetworkImage
 import org.allaboard.project.ui.screens.activityDetails.ActivityDetailsScreen
 import org.allaboard.project.ui.screens.createTrip.CreateTripScreen
 import org.allaboard.project.ui.screens.createTrip.CreateTripViewModel
@@ -49,9 +49,6 @@ import org.allaboard.project.ui.screens.itinerary.ItineraryScreen
 import org.allaboard.project.ui.theme.MintAccent
 import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextPrimary
-import org.jetbrains.compose.resources.painterResource
-import team_102_8.composeapp.generated.resources.Res
-import team_102_8.composeapp.generated.resources.prettyplace
 import org.allaboard.project.di.AppModule
 
 class TripHomeScreen(private val tripId: String) : Screen {
@@ -134,9 +131,9 @@ fun TripHomeScreenContent(
                 title = landmark.title,
                 voteCount = landmark.voteCount,
                 imageContent = {
-                    Image(
-                        painter = painterResource(Res.drawable.prettyplace),
-                        contentDescription = null,
+                    NetworkImage(
+                        imageUrl = landmark.imageUrl,
+                        contentDescription = landmark.title,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(180.dp),
@@ -159,9 +156,9 @@ fun TripHomeScreenContent(
                 title = restaurant.title,
                 voteCount = restaurant.voteCount,
                 imageContent = {
-                    Image(
-                        painter = painterResource(Res.drawable.prettyplace),
-                        contentDescription = null,
+                    NetworkImage(
+                        imageUrl = restaurant.imageUrl,
+                        contentDescription = restaurant.title,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(180.dp),
@@ -184,9 +181,9 @@ fun TripHomeScreenContent(
                 title = activity.title,
                 voteCount = activity.voteCount,
                 imageContent = {
-                    Image(
-                        painter = painterResource(Res.drawable.prettyplace),
-                        contentDescription = null,
+                    NetworkImage(
+                        imageUrl = activity.imageUrl,
+                        contentDescription = activity.title,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(180.dp),
@@ -214,9 +211,9 @@ private fun TripHeroSection(
             .height(460.dp),
     ) {
         // Background hero image spans edge-to-edge
-        Image(
-            painter = painterResource(Res.drawable.prettyplace),
-            contentDescription = null,
+        NetworkImage(
+            imageUrl = trip.imageUrl,
+            contentDescription = trip.title,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )

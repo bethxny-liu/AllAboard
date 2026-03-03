@@ -28,6 +28,7 @@ class MockActivityRepository(
             description = "Solo-booth ramen experience known for rich tonkotsu broth.",
             rating = 4.5f,
             priceLevel = "$",
+            imageUrl = "https://cdn2.tablecheck.com/images/68a458b3f46f7ace6da0a8b0/images/original/779daccf.png?1755601076",
             mapPinLabel = "Ichiran",
             voteCount = 0,
             type = ActivityType.RESTAURANT
