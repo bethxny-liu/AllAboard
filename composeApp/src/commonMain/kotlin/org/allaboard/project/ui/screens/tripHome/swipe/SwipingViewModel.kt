@@ -50,6 +50,9 @@ data class SwipingUiState(
 
     val isAllDone: Boolean
         get() {
+            // Not done if still loading or if there's an error
+            if (isLoading || error != null) return false
+            // Check if all non-ALL categories have been fully swiped
             val categoriesToCheck = categories.filter { it != Category.ALL }
             return categoriesToCheck.isNotEmpty() && categoriesToCheck.all { category ->
                 cardsFor(category).isEmpty()
@@ -68,6 +71,11 @@ class SwipingViewModel(
     val uiState: StateFlow<SwipingUiState> = _uiState.asStateFlow()
 
     init {
+        loadUnvotedActivities()
+    }
+
+    fun refresh() {
+        _uiState.value = _uiState.value.copy(isLoading = true, swipedIds = emptySet())
         loadUnvotedActivities()
     }
 
