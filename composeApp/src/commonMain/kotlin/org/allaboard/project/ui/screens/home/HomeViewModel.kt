@@ -39,6 +39,18 @@ class HomeViewModel(private val model: AllAboardModel) : ViewModel() {
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
+        // Listen for events from the model (e.g., trip created/updated) and refresh
+        viewModelScope.launch {
+            try {
+                model.events.collect {
+                    // Refresh trips when any event is received
+                    loadTrips()
+                }
+            } catch (_: Throwable) {
+                // ignore collection errors
+            }
+        }
+
         loadTrips()
     }
 

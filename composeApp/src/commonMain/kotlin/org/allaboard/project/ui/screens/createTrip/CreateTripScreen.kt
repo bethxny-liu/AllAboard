@@ -41,8 +41,7 @@ class CreateTripScreen(
                 vm = vm,
                 onBack = { step = 0 },
                 onCreateTrip = {
-                    // later: navigate to TripHome or whatever screen after creating
-                    // navigator?.replace(TripHomeScreen(...))
+                    navigator?.pop()
                 }
             )
         }

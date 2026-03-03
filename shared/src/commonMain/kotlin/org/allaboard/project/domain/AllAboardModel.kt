@@ -72,7 +72,12 @@ class AllAboardModel(
             endDate = endDate,
             members = creator?.let { listOf(it) } ?: emptyList()
         )
-        return tripRepository.createTrip(trip)
+        val createdTrip = tripRepository.createTrip(trip)
+
+        // Notify listeners that a trip was created so UI can refresh
+        _events.emit(createdTrip.id)
+
+        return createdTrip
     }
 
     suspend fun updateTripDetails(
@@ -90,7 +95,12 @@ class AllAboardModel(
             startDate = startDate,
             endDate = endDate
         )
-        return tripRepository.updateTrip(updatedTrip)
+        val result = tripRepository.updateTrip(updatedTrip)
+
+        // Notify listeners that trip was updated so UI can refresh
+        _events.emit(tripId)
+
+        return result
     }
 
     fun getTripInviteLink(tripId: String): String {
