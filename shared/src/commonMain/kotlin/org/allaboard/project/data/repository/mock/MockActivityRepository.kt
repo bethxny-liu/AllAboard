@@ -6,9 +6,7 @@ import org.allaboard.project.domain.Activity
 import org.allaboard.project.domain.ActivityType
 import org.allaboard.project.domain.BudgetLevel
 
-class MockActivityRepository(
-    private val userRepository: MockUserRepository? = null
-) : ActivityRepository {
+class MockActivityRepository() : ActivityRepository {
     private val activities = mutableListOf(
         Activity(
             id = "act-1",
@@ -100,27 +98,5 @@ class MockActivityRepository(
     override suspend fun deleteActivity(activityId: String) {
         delay(50)
         activities.removeAll { it.id == activityId }
-    }
-
-    /**
-     * Simulates backend recommendation logic.
-     * In Sprint 3, this will be a backend API call.
-     */
-    override suspend fun getRecommendedActivities(tripId: String, userId: String): List<Activity> {
-        delay(100)
-        val user = userRepository?.getUser(userId) ?: return getActivitiesForTrip(tripId)
-        val tripActivitiesList = getActivitiesForTrip(tripId)
-
-        return tripActivitiesList.filter { activity ->
-            matchesBudget(activity, user.budget)
-        }
-    }
-
-    private fun matchesBudget(activity: Activity, budget: BudgetLevel): Boolean {
-        return when (budget) {
-            BudgetLevel.LOW -> activity.priceLevel in listOf("$", "$$")
-            BudgetLevel.MEDIUM -> activity.priceLevel in listOf("$$", "$$$")
-            BudgetLevel.HIGH -> true
-        }
     }
 }

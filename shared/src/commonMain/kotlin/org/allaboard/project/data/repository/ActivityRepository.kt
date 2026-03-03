@@ -8,5 +8,4 @@ interface ActivityRepository {
     suspend fun addActivity(tripId: String, activity: Activity)
     suspend fun updateActivity(activity: Activity)
     suspend fun deleteActivity(activityId: String)
-    suspend fun getRecommendedActivities(tripId: String, userId: String): List<Activity>
 }

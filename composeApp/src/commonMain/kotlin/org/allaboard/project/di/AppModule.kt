@@ -24,7 +24,7 @@ object AppModule {
 
     // Repositories with dependencies (simulate backend data access)
     private val mockActivityRepository by lazy {
-        MockActivityRepository(mockUserRepository)
+        MockActivityRepository()
     }
     private val mockVoteRepository by lazy {
         MockVoteRepository(mockActivityRepository, mockTripRepository)
