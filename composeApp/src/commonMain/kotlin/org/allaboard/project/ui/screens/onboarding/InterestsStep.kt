@@ -33,11 +33,11 @@ import team_102_8.composeapp.generated.resources.logo
 
 @Composable
 fun InterestsStep(
+    uiState: OnboardingUiState,
     vm: OnboardingViewModel,
     onFinish: () -> Unit,
     onBack: () -> Unit
 ) {
-    val state = vm.uiState
 
     Box(
         modifier = Modifier
@@ -119,7 +119,7 @@ fun InterestsStep(
                                 Box(modifier = Modifier.width(cellWidth)) {
                                     InterestChip(
                                         label = opt,
-                                        selected = state.interests.contains(opt),
+                                        selected = uiState.interests.contains(opt),
                                         onClick = { vm.toggleInterest(opt) }
                                     )
                                 }
@@ -161,7 +161,7 @@ fun InterestsStep(
                     modifier = Modifier
                         .width(buttonWidth)
                         .height(48.dp),
-                    enabled = state.interests.isNotEmpty(),
+                    enabled = uiState.interests.isNotEmpty(),
                 ) {
                     Text("Finish", color = Color.Black)
                 }

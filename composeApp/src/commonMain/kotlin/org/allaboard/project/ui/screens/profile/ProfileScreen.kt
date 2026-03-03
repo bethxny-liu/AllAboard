@@ -35,7 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
-import org.allaboard.project.ui.screens.home.HomeScreen
+import org.allaboard.project.di.AppModule
+import org.allaboard.project.ui.screens.login.LoginScreen
+import org.allaboard.project.ui.screens.onboarding.OnboardingScreen
 import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextPrimary
 import org.allaboard.project.ui.theme.TextSecondary
@@ -44,13 +46,14 @@ class ProfileScreen : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
-        val viewModel: ProfileViewModel = viewModel { ProfileViewModel() }
+        val viewModel: ProfileViewModel = viewModel { ProfileViewModel(AppModule.allAboardModel) }
         val uiState by viewModel.uiState.collectAsState()
 
         ProfileScreenContent(
             uiState = uiState,
             onBack = { navigator?.pop() },
-            onRowClick = { /* TODO: navigate to sub-screens */ }
+            onChangePreferences = { navigator?.replace(OnboardingScreen(editMode = true)) },
+            onLogOut = { /* TODO: figure out login/logout process */ }
         )
     }
 }
@@ -59,7 +62,8 @@ class ProfileScreen : Screen {
 fun ProfileScreenContent(
     uiState: ProfileUiState,
     onBack: () -> Unit,
-    onRowClick: (String) -> Unit
+    onChangePreferences: () -> Unit,
+    onLogOut: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -128,13 +132,9 @@ fun ProfileScreenContent(
             }
 
             // Settings rows
-            SettingsRow(text = "Travel Preferences", onClick = { onRowClick("preferences") })
+            SettingsRow(text = "Change Preferences", onClick = onChangePreferences)
             Spacer(Modifier.height(24.dp))
-            SettingsRow(text = "Past Trips", onClick = { onRowClick("past_trips") })
-            Spacer(Modifier.height(24.dp))
-            SettingsRow(text = "Friends", onClick = { onRowClick("friends") })
-            Spacer(Modifier.height(24.dp))
-            SettingsRow(text = "Settings", onClick = { onRowClick("settings") })
+            SettingsRow(text = "Log Out", onClick = onLogOut)
 
             Spacer(Modifier.height(32.dp))
         }

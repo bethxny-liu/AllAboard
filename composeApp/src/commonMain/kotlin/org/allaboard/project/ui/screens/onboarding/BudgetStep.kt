@@ -36,18 +36,19 @@ import androidx.compose.ui.unit.sp
 import org.allaboard.project.ui.theme.BluePrimary
 import org.allaboard.project.ui.theme.FieldBackground
 import org.allaboard.project.ui.theme.TextSecondary
+import org.allaboard.project.domain.BudgetLevel
 import org.jetbrains.compose.resources.painterResource
 import team_102_8.composeapp.generated.resources.Res
 import team_102_8.composeapp.generated.resources.logo
 
 @Composable
 fun BudgetStep(
+    uiState: OnboardingUiState,
     vm: OnboardingViewModel,
     onNext: () -> Unit,
     onBack: () -> Unit
 ) {
-    val state = vm.uiState
-    val currentBudget = state.budget ?: BudgetLevel.MEDIUM
+    val currentBudget = uiState.budget
     var sliderPos by remember(currentBudget) {
         mutableFloatStateOf(
             when (currentBudget) {
