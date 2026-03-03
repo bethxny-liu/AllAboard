@@ -28,6 +28,7 @@ kotlin {
     }
     
     sourceSets {
+        commonTest.get().kotlin.srcDirs("src/test/kotlin")
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
@@ -56,6 +57,8 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            // Compose UI testing (createComposeRule, testTag, onNodeWithTag, etc.)
+            implementation(compose.uiTestJUnit4)
         }
     }
 }
@@ -89,6 +92,9 @@ android {
 
 dependencies {
     debugImplementation(compose.uiTooling)
+}
+tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
+    useJUnitPlatform()
 }
 tasks.matching { it.name.contains("ios") && it.name.contains("Test") }
     .configureEach {

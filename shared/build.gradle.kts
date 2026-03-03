@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.gradle.api.tasks.testing.Test
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -18,6 +19,7 @@ kotlin {
     jvm()
     
     sourceSets {
+        commonTest.get().kotlin.srcDirs("src/test/kotlin")
         commonMain.dependencies {
             // put your Multiplatform dependencies here
             implementation(libs.kotlinx.datetime)
@@ -39,4 +41,8 @@ android {
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
     }
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }
