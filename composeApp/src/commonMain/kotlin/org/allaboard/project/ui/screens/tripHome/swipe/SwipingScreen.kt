@@ -109,9 +109,8 @@ fun SwipingScreenContent(
     var flashColor by remember { mutableStateOf<Color?>(null) }
     var flashIcon by remember { mutableStateOf<ImageVector?>(null) }
 
-    // Navigate when all activities are swiped
-    // Key on swipedIds.size so it only triggers when user swipes, not on initial load
-    LaunchedEffect(uiState.swipedIds.size) {
+    // Navigate when all activities are swiped (triggers on swipe or after loading completes)
+    LaunchedEffect(uiState.swipedIds.size, uiState.isLoading) {
         if (uiState.isAllDone) {
             onAllDone()
         }

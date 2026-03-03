@@ -52,8 +52,6 @@ data class SwipingUiState(
         get() {
             // Not done if still loading or if there's an error
             if (isLoading || error != null) return false
-            // Not done if there are no cards loaded yet
-            if (cards.isEmpty()) return false
             // Check if all non-ALL categories have been fully swiped
             val categoriesToCheck = categories.filter { it != Category.ALL }
             return categoriesToCheck.isNotEmpty() && categoriesToCheck.all { category ->
