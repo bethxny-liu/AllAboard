@@ -33,6 +33,7 @@ import org.allaboard.project.Category
 import org.allaboard.project.domain.Activity
 import org.allaboard.project.domain.ActivityType
 import org.allaboard.project.domain.Trip
+import org.allaboard.project.domain.displayDateRange
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.layout.ContentScale
@@ -255,7 +256,7 @@ private fun TripHeroSection(
 
                 // Date Range
                 Text(
-                    text = "${trip.startDate} - ${trip.endDate}",
+                    text = trip.displayDateRange,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal,
                     color = Surface,
