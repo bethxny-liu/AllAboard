@@ -15,6 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -27,13 +28,13 @@ import org.junit.Test
 /**
  * UI tests for Login screen (08-02-Testing slides 25–29).
  *
- * Slides: "Testing interaction & output (View)" – use createComposeRule(),
+ * Slides: "Testing interaction & output (View)" — use createComposeRule(),
  * setContent { … }, Modifier.testTag("id"), then rule.onNodeWithTag(…).performClick()
- * and assertTextEquals(…).
+ * and assertTextEquals(…) / assertHasClickAction() (slide 29).
  *
- * This test uses a minimal composable that mirrors the Login UI (app title, sign-in button)
- * so we can test interaction without Voyager/navigator. Same pattern applies when testing
- * the full LoginScreen once testTags are added there.
+ * This test uses a minimal composable that mirrors the real Login UI (title, subtitle,
+ * Sign in with Google button) so we can test interaction without Voyager/navigator.
+ * The real LoginScreen has the same testTags for consistency.
  */
 internal class LoginTest {
 
@@ -41,14 +42,16 @@ internal class LoginTest {
     val rule = createComposeRule()
 
     @Test
-    fun initialScreen_showsAppTitleAndSignInButton() {
+    fun initialScreen_showsAppTitleSubtitleAndSignInButton() {
         rule.setContent {
             AppTheme {
                 LoginTestContent(showStatus = false)
             }
         }
         rule.onNodeWithTag("app_title").assertTextEquals("All Aboard")
+        rule.onNodeWithTag("subtitle").assertTextEquals("Your next group adventure\nstarts here")
         rule.onNodeWithTag("sign_in_button_text").assertTextEquals("Sign in with Google")
+        rule.onNodeWithTag("sign_in_button").assertHasClickAction()
     }
 
     @Test

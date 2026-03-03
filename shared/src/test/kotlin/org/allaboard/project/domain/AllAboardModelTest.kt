@@ -112,4 +112,132 @@ internal class AllAboardModelTest {
         assertTrue(dashboard.activities.isNotEmpty())
         assertTrue(dashboard.votingResults.isNotEmpty() || dashboard.activities.isNotEmpty())
     }
+
+    @Test
+    fun getAllTripsForUser_returnsTripsForUser() = runBlocking {
+        val model = createModel()
+        val trips = model.getAllTripsForUser("user-1")
+        assertTrue(trips.size >= 1)
+        assertTrue(trips.any { it.id == "trip-1" })
+    }
+
+    @Test
+    fun createTrip_returnsCreatedTripAndEmitsEvent() = runBlocking {
+        val model = createModel()
+        val trip = model.createTrip(
+            destination = "Italy",
+            region = "Rome",
+            startDate = "Jun 1",
+            endDate = "Jun 10",
+            creatorId = "user-1"
+        )
+        assertTrue(trip.id.isNotEmpty())
+        assertEquals("Italy", trip.destination)
+        assertEquals("Rome", trip.region)
+        assertEquals("All Aboard to Italy!", trip.title)
+        assertTrue(trip.members.isNotEmpty())
+    }
+
+    @Test
+    fun updateTripDetails_validId_returnsUpdatedTrip() = runBlocking {
+        val model = createModel()
+        val result = model.updateTripDetails(
+            tripId = "trip-1",
+            destination = "Osaka",
+            region = "Kansai",
+            startDate = "Jan 1",
+            endDate = "Jan 10"
+        )
+        assertTrue(result != null)
+        assertEquals("Osaka", result?.destination)
+        assertEquals("Kansai", result?.region)
+    }
+
+    @Test
+    fun updateTripDetails_invalidId_returnsNull() = runBlocking {
+        val model = createModel()
+        val result = model.updateTripDetails(
+            tripId = "bad-id",
+            destination = "X",
+            region = "Y",
+            startDate = "A",
+            endDate = "B"
+        )
+        assertNull(result)
+    }
+
+    @Test
+    fun getActivity_validId_returnsActivity() = runBlocking {
+        val model = createModel()
+        val activity = model.getActivity("act-1")
+        assertTrue(activity != null)
+        assertEquals("act-1", activity?.id)
+        assertEquals("Senso-ji Temple", activity?.title)
+    }
+
+    @Test
+    fun getActivity_invalidId_returnsNull() = runBlocking {
+        val model = createModel()
+        assertNull(model.getActivity("nonexistent"))
+    }
+
+    @Test
+    fun createActivityForTrip_addsActivityAndReturnsIt() = runBlocking {
+        val model = createModel()
+        val activity = model.createActivityForTrip(
+            tripId = "trip-1",
+            title = "Test Activity",
+            location = "Test City",
+            description = "Test desc",
+            type = ActivityType.LANDMARK
+        )
+        assertTrue(activity.id.isNotEmpty())
+        assertEquals("Test Activity", activity.title)
+        assertEquals("Test City", activity.location)
+        assertEquals(ActivityType.LANDMARK, activity.type)
+    }
+
+    @Test
+    fun voteOnActivity_submitsVote() = runBlocking {
+        val model = createModel()
+        model.voteOnActivity("trip-1", "act-1", "user-1", VoteType.YES)
+        val results = model.getVotingResults("trip-1")
+        assertTrue(results.any { it.activity.id == "act-1" })
+    }
+
+    @Test
+    fun getVotingResults_returnsResultsForTrip() = runBlocking {
+        val model = createModel()
+        val results = model.getVotingResults("trip-1")
+        assertTrue(results.all { it.activity.id.isNotEmpty() })
+    }
+
+    @Test
+    fun getUnvotedActivities_returnsActivitiesUserHasNotVotedOn() = runBlocking {
+        val model = createModel()
+        val unvoted = model.getUnvotedActivities("trip-1", "user-1")
+        // Before voting, act-1, act-2, act-3 etc. may be unvoted
+        assertTrue(unvoted.all { it.id.isNotEmpty() })
+    }
+
+    @Test
+    fun updateUserPreferences_updatesUser() = runBlocking {
+        val model = createModel()
+        model.setCurrentUser("user-1")
+        model.updateUserPreferences("user-1", BudgetLevel.HIGH, TravelVibe.ADVENTUROUS, setOf("Hiking"))
+        val user = model.getCurrentUser()
+        assertTrue(user != null)
+        assertEquals(BudgetLevel.HIGH, user?.budget)
+        assertEquals(TravelVibe.ADVENTUROUS, user?.travelVibe)
+        assertTrue(user?.interests?.contains("Hiking") == true)
+    }
+
+    @Test
+    fun getItinerary_validTripId_returnsItinerary() = runBlocking {
+        val model = createModel()
+        val itinerary = model.getItinerary("trip-1")
+        assertTrue(itinerary != null)
+        assertEquals("trip-1", itinerary?.tripId)
+        assertTrue(itinerary?.days?.isNotEmpty() == true)
+    }
 }

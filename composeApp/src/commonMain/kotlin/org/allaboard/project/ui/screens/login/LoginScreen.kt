@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
@@ -98,7 +99,8 @@ class LoginScreen : Screen {
                             "All Aboard",
                             style = MaterialTheme.typography.headlineLarge,
                             color = TextPrimary,
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.testTag("app_title")
                         )
                     }
 
@@ -108,7 +110,8 @@ class LoginScreen : Screen {
                         "Your next group adventure\nstarts here",
                         style = MaterialTheme.typography.headlineMedium,
                         color = TextSecondary,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.testTag("subtitle")
                     )
                 }
                 Spacer(Modifier.weight(1f))
@@ -127,7 +130,8 @@ class LoginScreen : Screen {
                             .fillMaxWidth()
                             .height(56.dp)
                             .clip(RoundedCornerShape(28.dp))
-                            .border(2.dp, Color.White, RoundedCornerShape(28.dp)),
+                            .border(2.dp, Color.White, RoundedCornerShape(28.dp))
+                            .testTag("sign_up_button"),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFECEFF1),
                             contentColor = TextPrimary
@@ -147,7 +151,8 @@ class LoginScreen : Screen {
                             .fillMaxWidth()
                             .height(56.dp)
                             .clip(RoundedCornerShape(28.dp))
-                            .border(2.dp, Color.White, RoundedCornerShape(28.dp)),
+                            .border(2.dp, Color.White, RoundedCornerShape(28.dp))
+                            .testTag("sign_in_button"),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Surface,
                             contentColor = TextPrimary
@@ -171,7 +176,8 @@ class LoginScreen : Screen {
                             Text(
                                 "Sign in with Google",
                                 style = MaterialTheme.typography.titleMedium,
-                                color = TextPrimary
+                                color = TextPrimary,
+                                modifier = Modifier.testTag("sign_in_button_text")
                             )
                         }
                     }
