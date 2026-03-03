@@ -1,6 +1,5 @@
 package org.allaboard.project.ui.screens.tripHome.swipe
 
-import androidx.compose.foundation.Image
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -40,7 +39,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.IntOffset
@@ -49,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import org.allaboard.project.Category
 import org.allaboard.project.domain.Activity
 import org.allaboard.project.domain.ActivityType
+import org.allaboard.project.ui.components.NetworkImage
 import org.allaboard.project.ui.theme.BluePrimaryDark
 import org.allaboard.project.ui.theme.CoralAccent
 import org.allaboard.project.ui.theme.GreenAccent
@@ -64,7 +63,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun SwipeCard(
     activity: Activity,
-    imagePainter: Painter,
     modifier: Modifier = Modifier,
     onDislike: () -> Unit = {},
     onSuperLike: () -> Unit = {},
@@ -125,9 +123,9 @@ fun SwipeCard(
             colors = CardDefaults.cardColors(containerColor = AppSurface)
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
-                Image(
-                    painter = imagePainter,
-                    contentDescription = null,
+                NetworkImage(
+                    imageUrl = activity.imageUrl,
+                    contentDescription = activity.title,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )

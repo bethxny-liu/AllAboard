@@ -1,6 +1,5 @@
 package org.allaboard.project.ui.screens.activityDetails
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -43,11 +42,9 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import org.allaboard.project.di.AppModule
 import org.allaboard.project.domain.Activity
+import org.allaboard.project.ui.components.NetworkImage
 import org.allaboard.project.ui.theme.BluePrimary
 import org.allaboard.project.ui.theme.Surface
-import org.jetbrains.compose.resources.painterResource
-import team_102_8.composeapp.generated.resources.Res
-import team_102_8.composeapp.generated.resources.prettyplace
 import org.allaboard.project.ui.theme.TextPrimary
 import org.allaboard.project.ui.theme.TextSecondary
 
@@ -117,7 +114,7 @@ private fun ActivityDetailsContent(
                     .verticalScroll(rememberScrollState())
                     .padding(bottom = 24.dp)
             ) {
-                HeroImage()
+                HeroImage(imageUrl = activity.imageUrl)
 
                 // Info section
                 Column(
@@ -261,14 +258,14 @@ private fun ActivityDetailsTopBar(onBack: () -> Unit) {
 }
 
 @Composable
-private fun HeroImage() {
+private fun HeroImage(imageUrl: String?) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(280.dp)
     ) {
-        Image(
-            painter = painterResource(Res.drawable.prettyplace),
+        NetworkImage(
+            imageUrl = imageUrl,
             contentDescription = "Activity photo",
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
