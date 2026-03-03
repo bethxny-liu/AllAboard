@@ -9,13 +9,4 @@ data class TripDashboard(
     val activities: List<Activity>,
     val votingResults: List<ActivityVoteResult>,
     val itinerary: Itinerary?
-) {
-    val confirmedActivities: List<Activity>
-        get() = votingResults.filter { it.isConfirmed }.map { it.activity }
-
-    val pendingActivities: List<Activity>
-        get() = votingResults.filter { !it.isComplete }.map { it.activity }
-
-    val rejectedActivities: List<Activity>
-        get() = votingResults.filter { it.isComplete && !it.isConfirmed }.map { it.activity }
-}
+)
