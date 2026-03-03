@@ -52,6 +52,11 @@ import org.allaboard.project.ui.theme.TextPrimary
 import org.allaboard.project.di.AppModule
 
 class TripHomeScreen(private val tripId: String) : Screen {
+
+    // Unique key per tripId so Voyager treats each trip as a different screen
+    override val key: cafe.adriel.voyager.core.screen.ScreenKey
+        get() = "TripHomeScreen-$tripId"
+
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
