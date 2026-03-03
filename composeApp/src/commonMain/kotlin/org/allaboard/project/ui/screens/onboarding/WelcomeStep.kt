@@ -49,7 +49,6 @@ import team_102_8.composeapp.generated.resources.welcome_crew
 
 @Composable
 fun WelcomeStep(
-    vm: OnboardingViewModel,
     onNext: () -> Unit,
     modifier: Modifier = Modifier
 ) {

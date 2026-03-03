@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.allaboard.project.ui.theme.FieldBackground
+import org.allaboard.project.domain.TravelVibe
 import org.jetbrains.compose.resources.painterResource
 import team_102_8.composeapp.generated.resources.Res
 import team_102_8.composeapp.generated.resources.logo
@@ -40,11 +41,11 @@ import team_102_8.composeapp.generated.resources.vibe_relaxed
 
 @Composable
 fun TravelVibeStep(
+    uiState: OnboardingUiState,
     vm: OnboardingViewModel,
     onNext: () -> Unit,
     onBack: () -> Unit
 ) {
-    val state = vm.uiState
     val inspection = LocalInspectionMode.current
     val visible = remember { mutableStateOf(inspection) }
     LaunchedEffect(Unit) { if (!inspection) visible.value = true }
@@ -113,22 +114,22 @@ fun TravelVibeStep(
                         iconPainter = painterResource(Res.drawable.vibe_relaxed),
                         title = "Relaxed",
                         subtitle = "I like to take it easy",
-                        selected = state.vibe == "relaxed",
-                        onClick = { vm.updateVibe("relaxed") }
+                        selected = uiState.vibe == TravelVibe.RELAXED,
+                        onClick = { vm.updateVibe(TravelVibe.RELAXED) }
                     )
                     VibeCard(
                         iconPainter = painterResource(Res.drawable.vibe_adventurous),
                         title = "Adventurous",
                         subtitle = "I'm up for anything",
-                        selected = state.vibe == "adventurous",
-                        onClick = { vm.updateVibe("adventurous") }
+                        selected = uiState.vibe == TravelVibe.ADVENTUROUS,
+                        onClick = { vm.updateVibe(TravelVibe.ADVENTUROUS) }
                     )
                     VibeCard(
                         iconPainter = painterResource(Res.drawable.vibe_balanced),
                         title = "Balanced",
                         subtitle = "A mix of chill and thrill",
-                        selected = state.vibe == "balanced",
-                        onClick = { vm.updateVibe("balanced") }
+                        selected = uiState.vibe == TravelVibe.BALANCED,
+                        onClick = { vm.updateVibe(TravelVibe.BALANCED) }
                     )
                 }
 
@@ -156,7 +157,6 @@ fun TravelVibeStep(
                         modifier = Modifier
                             .height(48.dp)
                             .weight(1f),
-                        enabled = state.vibe != null,
                     ) {
                         Text("Next", color = Color.Black)
                     }
