@@ -52,7 +52,7 @@ class TripHomeViewModel(
         viewModelScope.launch {
             try {
                 // Use model helper that returns activities with vote counts merged
-                val dashboard = model.getTripDashboardWithMergedActivityVotes(tripId)
+                val dashboard = model.getTripDashboard(tripId)
                 val trip = dashboard.trip // may be null
                 val activities = dashboard.activities
 

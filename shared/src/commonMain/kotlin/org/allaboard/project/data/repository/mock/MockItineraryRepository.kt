@@ -79,29 +79,6 @@ class MockItineraryRepository : ItineraryRepository {
         return store["trip-1"] // Always return the seeded itinerary for demo purposes
     }
 
-    override suspend fun addActivityToDay(tripId: String, date: String, scheduledActivity: ScheduledActivity) {
-        val itinerary = store.getOrPut(tripId) { Itinerary(tripId = tripId, days = emptyList()) }
-        val updatedDays = itinerary.days.toMutableList()
-        val dayIndex = updatedDays.indexOfFirst { it.date == date }
-        if (dayIndex >= 0) {
-            val day = updatedDays[dayIndex]
-            val newDay = day.copy(activities = day.activities + scheduledActivity)
-            updatedDays[dayIndex] = newDay
-        } else {
-            val newDay = ItineraryDay(date = date, dayNumber = updatedDays.size + 1, activities = listOf(scheduledActivity))
-            updatedDays.add(newDay)
-        }
-        store[tripId] = itinerary.copy(days = updatedDays)
-    }
-
-    override suspend fun removeActivityFromDay(tripId: String, date: String, activityId: String) {
-        val itinerary = store[tripId] ?: return
-        val updatedDays = itinerary.days.map { day ->
-            if (day.date == date) day.copy(activities = day.activities.filterNot { it.activity.id == activityId }) else day
-        }
-        store[tripId] = itinerary.copy(days = updatedDays)
-    }
-
     override suspend fun updateScheduledActivity(tripId: String, date: String, scheduledActivity: ScheduledActivity) {
         val itinerary = store[tripId] ?: return
         val updatedDays = itinerary.days.map { day ->

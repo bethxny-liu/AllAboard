@@ -44,15 +44,14 @@ class MockVoteRepository(
         }
     }
 
-    override suspend fun getUnvotedActivityIds(tripId: String, userId: String): List<String> {
+    override suspend fun getVotedActivityIds(tripId: String, userId: String): Set<String> {
         delay(50)
-        val activities = activityRepository.getActivitiesForTrip(tripId)
         val userVotedActivityIds = votes
             .filter { it.userId == userId && it.tripId == tripId }
             .map { it.activityId }
             .toSet()
 
-        return activities.map { it.id }.filter { it !in userVotedActivityIds }
+        return userVotedActivityIds
     }
 
     /**

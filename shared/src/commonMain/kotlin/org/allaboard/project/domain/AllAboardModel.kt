@@ -97,25 +97,12 @@ class AllAboardModel(
         return "AllAboard.ca/join/$tripId"
     }
 
-    suspend fun addUserToTrip(tripId: String, userId: String) {
-        val user = userRepository.getUser(userId) ?: return
-        tripRepository.addMemberToTrip(tripId, user)
-    }
-
     // ========================================
     // ACTIVITY OPERATIONS
     // ========================================
 
     suspend fun getActivity(activityId: String): Activity? {
         return activityRepository.getActivity(activityId)
-    }
-
-    suspend fun getActivitiesForTrip(tripId: String): List<Activity> {
-        return activityRepository.getActivitiesForTrip(tripId)
-    }
-
-    suspend fun addActivityToTrip(tripId: String, activity: Activity) {
-        activityRepository.addActivity(tripId, activity)
     }
 
     suspend fun createActivityForTrip(
@@ -191,17 +178,11 @@ class AllAboardModel(
      * Get activities user hasn't voted on - backend filters
      */
     suspend fun getUnvotedActivities(tripId: String, userId: String): List<Activity> {
-        val unvotedIds = voteRepository.getUnvotedActivityIds(tripId, userId)
+        val votedIds = voteRepository.getVotedActivityIds(tripId, userId)
         val allActivities = activityRepository.getActivitiesForTrip(tripId)
-        return allActivities.filter { it.id in unvotedIds }
+        return allActivities.filter { it.id !in votedIds }
     }
 
-    /**
-     * Get recommended activities - backend computes based on user preferences
-     */
-    suspend fun getRecommendedActivities(tripId: String, userId: String): List<Activity> {
-        return activityRepository.getRecommendedActivities(tripId, userId)
-    }
 
     // ========================================
     // USER OPERATIONS
@@ -242,24 +223,6 @@ class AllAboardModel(
      * This is where the Model adds value - coordinating multiple fetches.
      */
     suspend fun getTripDashboard(tripId: String): TripDashboard {
-        val trip = tripRepository.getTrip(tripId)
-        val activities = activityRepository.getActivitiesForTrip(tripId)
-        val votingResults = voteRepository.getVotingResultsForTrip(tripId)
-        val itinerary = itineraryRepository.getItinerary(tripId)
-
-        return TripDashboard(
-            trip = trip,
-            activities = activities,
-            votingResults = votingResults,
-            itinerary = itinerary
-        )
-    }
-
-    /**
-     * Helper returning a TripDashboard where activity.voteCount is populated using
-     * the voting results. This keeps UI merging logic inside the Model
-     */
-    suspend fun getTripDashboardWithMergedActivityVotes(tripId: String): TripDashboard {
         val trip = tripRepository.getTrip(tripId)
         val activities = activityRepository.getActivitiesForTrip(tripId)
         val votingResults = voteRepository.getVotingResultsForTrip(tripId)
