@@ -137,6 +137,10 @@ class AllAboardModel(
             type = type ?: ActivityType.EXPERIENCES
         )
         activityRepository.addActivity(tripId, activity)
+
+        // Notify listeners that activities changed for this trip so UI can refresh
+        _events.emit(tripId)
+
         return activity
     }
 
