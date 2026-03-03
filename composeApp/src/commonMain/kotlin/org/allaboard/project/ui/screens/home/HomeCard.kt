@@ -1,6 +1,5 @@
 package org.allaboard.project.ui.screens.home
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,12 +24,10 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.allaboard.project.ui.components.NetworkImage
 import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextPrimary
 import org.allaboard.project.ui.theme.TextSecondary
-import org.jetbrains.compose.resources.painterResource
-import team_102_8.composeapp.generated.resources.Res
-import team_102_8.composeapp.generated.resources.prettyplace
 
 @Composable
 fun HomeCard(
@@ -46,8 +43,8 @@ fun HomeCard(
             .clickable { onClick() }
     ) {
         // Trip image
-        Image(
-            painter = painterResource(Res.drawable.prettyplace),
+        NetworkImage(
+            imageUrl = trip.imageUrl,
             contentDescription = trip.title,
             modifier = Modifier
                 .fillMaxWidth()

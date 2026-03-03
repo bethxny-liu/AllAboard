@@ -22,6 +22,7 @@ class MockTripRepository : TripRepository {
             region = "Tokyo",
             startDate = "Dec 15",
             endDate = "Jan 22",
+            imageUrl = null,
             status = TripStatus.UPCOMING,
             members = mockUsers.take(4) // Daniel, Rachael, Sarah, Bethany
         ),
@@ -32,6 +33,7 @@ class MockTripRepository : TripRepository {
             region = "Paris",
             startDate = "Mar 10",
             endDate = "Mar 20",
+            imageUrl = "https://res.klook.com/image/upload/fl_lossy.progressive,q_60/Mobile/City/swox6wjsl5ndvkv5jvum.jpg",
             status = TripStatus.COMPLETED,
             members = listOf(mockUsers[0], mockUsers[4]) // Daniel, Alex
         )
