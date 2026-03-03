@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.allaboard.project.domain.AllAboardModel
+import org.allaboard.project.domain.displayDateRange
 
 /**
  * Data class representing a trip summary for the home screen
@@ -57,7 +58,7 @@ class HomeViewModel(private val model: AllAboardModel) : ViewModel() {
     private fun mapTrip(t: org.allaboard.project.domain.Trip): TripSummary = TripSummary(
         id = t.id,
         title = t.destination.ifBlank { t.title },
-        dateRange = "${t.startDate} - ${t.endDate}",
+        dateRange = t.displayDateRange,
         memberCount = t.memberCount,
         imageUrl = t.imageUrl
     )
