@@ -27,14 +27,7 @@ import org.junit.Test
 
 /**
  * UI tests for Login screen (08-02-Testing slides 25–29).
- *
- * Slides: "Testing interaction & output (View)" — use createComposeRule(),
- * setContent { … }, Modifier.testTag("id"), then rule.onNodeWithTag(…).performClick()
- * and assertTextEquals(…) / assertHasClickAction() (slide 29).
- *
- * This test uses a minimal composable that mirrors the real Login UI (title, subtitle,
- * Sign in with Google button) so we can test interaction without Voyager/navigator.
- * The real LoginScreen has the same testTags for consistency.
+ * In jvmTest so we run tests on Android only (Compose UI test lib has no iOS variant).
  */
 internal class LoginTest {
 

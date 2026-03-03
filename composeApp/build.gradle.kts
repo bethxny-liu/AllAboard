@@ -13,13 +13,28 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
+    jvm()
+    listOf(
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "ComposeApp"
+            isStatic = true
+            freeCompilerArgs += listOf(
+                "-Xbinary=bundleId=org.allaboard.project"
+            )
+        }
+    }
 
     sourceSets {
-        commonTest.get().kotlin.srcDirs("src/test/kotlin")
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation("io.ktor:ktor-client-okhttp:3.0.3")
+        }
+        iosMain.dependencies {
+            implementation("io.ktor:ktor-client-darwin:3.0.3")
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -40,6 +55,10 @@ kotlin {
             implementation(projects.shared)
         }
         commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
+        // Android/JVM-only: Compose UI tests (ui-test-junit4 has no iOS artifact; we only run tests on Android)
+        jvmTest.dependencies {
             implementation(libs.kotlin.test)
             implementation("org.jetbrains.compose.ui:ui-test-junit4:${libs.versions.composeMultiplatform.get()}")
         }
@@ -79,3 +98,7 @@ dependencies {
 tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
     useJUnitPlatform()
 }
+tasks.matching { it.name.contains("ios") && it.name.contains("Test") }
+    .configureEach {
+        enabled = false
+    }

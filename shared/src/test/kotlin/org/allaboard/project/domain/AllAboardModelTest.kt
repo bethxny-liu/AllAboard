@@ -43,10 +43,10 @@ internal class AllAboardModelTest {
         // Act
         val result = model.getTrip(tripId)
         // Assert (slide 12: assertEquals – provided value matches actual)
-        assertTrue(result != null)
-        assertEquals("trip-1", result?.id)
-        assertEquals("Japan", result?.destination)
-        assertEquals(TripStatus.UPCOMING, result?.status)
+        val trip = requireNotNull(result)
+        assertEquals("trip-1", trip.id)
+        assertEquals("Japan", trip.destination)
+        assertEquals(TripStatus.UPCOMING, trip.status)
     }
 
     @Test
@@ -67,9 +67,9 @@ internal class AllAboardModelTest {
         model.setCurrentUser("user-1")
         val user = model.getCurrentUser()
         // Assert
-        assertTrue(user != null)
-        assertEquals("user-1", user?.id)
-        assertEquals("Daniel", user?.displayName)
+        val u = requireNotNull(user)
+        assertEquals("user-1", u.id)
+        assertEquals("Daniel", u.displayName)
     }
 
     @Test
@@ -88,7 +88,8 @@ internal class AllAboardModelTest {
         // Act
         val upcoming = model.getUpcomingTrips("user-1")
         // Assert
-        assertTrue(upcoming.size == 1)
+        assertTrue(upcoming.isNotEmpty())
+        assertEquals(1, upcoming.size)
         assertEquals(TripStatus.UPCOMING, upcoming.first().status)
         assertEquals("trip-1", upcoming.first().id)
     }
@@ -98,7 +99,8 @@ internal class AllAboardModelTest {
         val model = createModel()
         model.setCurrentUser("user-1")
         val past = model.getPastTrips("user-1")
-        assertTrue(past.size == 1)
+        assertTrue(past.isNotEmpty())
+        assertEquals(1, past.size)
         assertEquals(TripStatus.COMPLETED, past.first().status)
         assertEquals("trip-2", past.first().id)
     }
@@ -107,8 +109,8 @@ internal class AllAboardModelTest {
     fun getTripDashboard_returnsMergedData() = runBlocking {
         val model = createModel()
         val dashboard = model.getTripDashboard("trip-1")
-        assertTrue(dashboard.trip != null)
-        assertEquals("trip-1", dashboard.trip?.id)
+        val dashTrip = requireNotNull(dashboard.trip)
+        assertEquals("trip-1", dashTrip.id)
         assertTrue(dashboard.activities.isNotEmpty())
         assertTrue(dashboard.votingResults.isNotEmpty() || dashboard.activities.isNotEmpty())
     }
@@ -117,7 +119,7 @@ internal class AllAboardModelTest {
     fun getAllTripsForUser_returnsTripsForUser() = runBlocking {
         val model = createModel()
         val trips = model.getAllTripsForUser("user-1")
-        assertTrue(trips.size >= 1)
+        assertTrue(trips.isNotEmpty())
         assertTrue(trips.any { it.id == "trip-1" })
     }
 
@@ -131,11 +133,11 @@ internal class AllAboardModelTest {
             endDate = "Jun 10",
             creatorId = "user-1"
         )
-        assertTrue(trip.id.isNotEmpty())
+        assertEquals(true, trip.id.isNotEmpty())
         assertEquals("Italy", trip.destination)
         assertEquals("Rome", trip.region)
         assertEquals("All Aboard to Italy!", trip.title)
-        assertTrue(trip.members.isNotEmpty())
+        assertEquals(true, trip.members.isNotEmpty())
     }
 
     @Test
@@ -148,9 +150,9 @@ internal class AllAboardModelTest {
             startDate = "Jan 1",
             endDate = "Jan 10"
         )
-        assertTrue(result != null)
-        assertEquals("Osaka", result?.destination)
-        assertEquals("Kansai", result?.region)
+        val updated = requireNotNull(result)
+        assertEquals("Osaka", updated.destination)
+        assertEquals("Kansai", updated.region)
     }
 
     @Test
@@ -169,10 +171,9 @@ internal class AllAboardModelTest {
     @Test
     fun getActivity_validId_returnsActivity() = runBlocking {
         val model = createModel()
-        val activity = model.getActivity("act-1")
-        assertTrue(activity != null)
-        assertEquals("act-1", activity?.id)
-        assertEquals("Senso-ji Temple", activity?.title)
+        val activity = requireNotNull(model.getActivity("act-1"))
+        assertEquals("act-1", activity.id)
+        assertEquals("Senso-ji Temple", activity.title) // Senso-ji is a real temple name
     }
 
     @Test
@@ -191,7 +192,7 @@ internal class AllAboardModelTest {
             description = "Test desc",
             type = ActivityType.LANDMARK
         )
-        assertTrue(activity.id.isNotEmpty())
+        assertEquals(true, activity.id.isNotEmpty())
         assertEquals("Test Activity", activity.title)
         assertEquals("Test City", activity.location)
         assertEquals(ActivityType.LANDMARK, activity.type)
@@ -202,7 +203,7 @@ internal class AllAboardModelTest {
         val model = createModel()
         model.voteOnActivity("trip-1", "act-1", "user-1", VoteType.YES)
         val results = model.getVotingResults("trip-1")
-        assertTrue(results.any { it.activity.id == "act-1" })
+        assertEquals(true, results.any { it.activity.id == "act-1" })
     }
 
     @Test
@@ -217,7 +218,7 @@ internal class AllAboardModelTest {
         val model = createModel()
         val unvoted = model.getUnvotedActivities("trip-1", "user-1")
         // Before voting, act-1, act-2, act-3 etc. may be unvoted
-        assertTrue(unvoted.all { it.id.isNotEmpty() })
+        assertEquals(true, unvoted.all { it.id.isNotEmpty() })
     }
 
     @Test
@@ -225,19 +226,17 @@ internal class AllAboardModelTest {
         val model = createModel()
         model.setCurrentUser("user-1")
         model.updateUserPreferences("user-1", BudgetLevel.HIGH, TravelVibe.ADVENTUROUS, setOf("Hiking"))
-        val user = model.getCurrentUser()
-        assertTrue(user != null)
-        assertEquals(BudgetLevel.HIGH, user?.budget)
-        assertEquals(TravelVibe.ADVENTUROUS, user?.travelVibe)
-        assertTrue(user?.interests?.contains("Hiking") == true)
+        val user = requireNotNull(model.getCurrentUser())
+        assertEquals(BudgetLevel.HIGH, user.budget)
+        assertEquals(TravelVibe.ADVENTUROUS, user.travelVibe)
+        assertEquals(true, user.interests.contains("Hiking"))
     }
 
     @Test
     fun getItinerary_validTripId_returnsItinerary() = runBlocking {
         val model = createModel()
-        val itinerary = model.getItinerary("trip-1")
-        assertTrue(itinerary != null)
-        assertEquals("trip-1", itinerary?.tripId)
-        assertTrue(itinerary?.days?.isNotEmpty() == true)
+        val itinerary = requireNotNull(model.getItinerary("trip-1"))
+        assertEquals("trip-1", itinerary.tripId)
+        assertEquals(true, itinerary.days.isNotEmpty())
     }
 }
