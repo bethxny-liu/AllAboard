@@ -26,8 +26,9 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * UI tests for Login screen (08-02-Testing slides 25–29).
- * In jvmTest so we run tests on Android only (Compose UI test lib has no iOS variant).
+ * UI tests for the Login screen. Verifies the initial screen shows app title "All Aboard", subtitle,
+ * and "Sign in with Google" button with click action; and that clicking the sign-in button updates
+ * displayed state (e.g. status text).
  */
 internal class LoginTest {
 
