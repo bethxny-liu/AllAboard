@@ -96,7 +96,7 @@ dependencies {
     debugImplementation("org.jetbrains.compose.ui:ui-tooling:${libs.versions.composeMultiplatform.get()}")
 }
 tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
-    useJUnitPlatform()
+    useJUnit()
 }
 tasks.matching { it.name.contains("ios") && it.name.contains("Test") }
     .configureEach {
