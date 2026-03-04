@@ -19,7 +19,6 @@ kotlin {
     jvm()
     
     sourceSets {
-        commonTest.get().kotlin.srcDirs("src/test/kotlin")
         commonMain.dependencies {
             // put your Multiplatform dependencies here
             implementation(libs.kotlinx.datetime)

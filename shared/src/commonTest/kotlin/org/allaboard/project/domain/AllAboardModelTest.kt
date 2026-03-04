@@ -13,10 +13,7 @@ import kotlin.test.assertTrue
 
 /**
  * Unit tests for AllAboardModel (domain layer).
- *
- * - Unit tests under src/test/kotlin; one test class per class (Main / MainTest).
- * - Each test: Arrange (setup), Act (execute), Assert (assertEquals / assertTrue / assertNull).
- * - Test valid input conditions and invalid input conditions (slides 16–17).
+ * One test class per class; Arrange/Act/Assert; test valid and invalid inputs (slides 16–17).
  */
 internal class AllAboardModelTest {
 
@@ -37,12 +34,8 @@ internal class AllAboardModelTest {
 
     @Test
     fun getTrip_validId_returnsTrip() = runBlocking {
-        // Arrange (slide 16: setup conditions)
         val model = createModel()
-        val tripId = "trip-1"
-        // Act
-        val result = model.getTrip(tripId)
-        // Assert (slide 12: assertEquals – provided value matches actual)
+        val result = model.getTrip("trip-1")
         val trip = requireNotNull(result)
         assertEquals("trip-1", trip.id)
         assertEquals("Japan", trip.destination)
@@ -51,43 +44,30 @@ internal class AllAboardModelTest {
 
     @Test
     fun getTrip_invalidId_returnsNull() = runBlocking {
-        // Arrange
         val model = createModel()
-        // Act – invalid input (slide 17: test invalid input conditions)
-        val result = model.getTrip("nonexistent-id")
-        // Assert
-        assertNull(result)
+        assertNull(model.getTrip("nonexistent-id"))
     }
 
     @Test
     fun setCurrentUser_thenGetCurrentUser_returnsUser() = runBlocking {
-        // Arrange
         val model = createModel()
-        // Act
         model.setCurrentUser("user-1")
-        val user = model.getCurrentUser()
-        // Assert
-        val u = requireNotNull(user)
-        assertEquals("user-1", u.id)
-        assertEquals("Daniel", u.displayName)
+        val user = requireNotNull(model.getCurrentUser())
+        assertEquals("user-1", user.id)
+        assertEquals("Daniel", user.displayName)
     }
 
     @Test
     fun getTripInviteLink_returnsExpectedFormat() {
-        // Pure function – no suspend, no repos
         val model = createModel()
-        val link = model.getTripInviteLink("trip-1")
-        assertEquals("AllAboard.ca/join/trip-1", link)
+        assertEquals("AllAboard.ca/join/trip-1", model.getTripInviteLink("trip-1"))
     }
 
     @Test
     fun getUpcomingTrips_returnsOnlyUpcoming() = runBlocking {
-        // Arrange – user-1 is member of trip-1 (UPCOMING) and trip-2 (COMPLETED)
         val model = createModel()
         model.setCurrentUser("user-1")
-        // Act
         val upcoming = model.getUpcomingTrips("user-1")
-        // Assert
         assertTrue(upcoming.isNotEmpty())
         assertEquals(1, upcoming.size)
         assertEquals(TripStatus.UPCOMING, upcoming.first().status)
@@ -158,14 +138,15 @@ internal class AllAboardModelTest {
     @Test
     fun updateTripDetails_invalidId_returnsNull() = runBlocking {
         val model = createModel()
-        val result = model.updateTripDetails(
-            tripId = "bad-id",
-            destination = "X",
-            region = "Y",
-            startDate = "A",
-            endDate = "B"
+        assertNull(
+            model.updateTripDetails(
+                tripId = "bad-id",
+                destination = "X",
+                region = "Y",
+                startDate = "A",
+                endDate = "B"
+            )
         )
-        assertNull(result)
     }
 
     @Test
@@ -173,7 +154,7 @@ internal class AllAboardModelTest {
         val model = createModel()
         val activity = requireNotNull(model.getActivity("act-1"))
         assertEquals("act-1", activity.id)
-        assertEquals("Senso-ji Temple", activity.title) // Senso-ji is a real temple name
+        assertEquals("Senso-ji Temple", activity.title)
     }
 
     @Test
@@ -217,7 +198,6 @@ internal class AllAboardModelTest {
     fun getUnvotedActivities_returnsActivitiesUserHasNotVotedOn() = runBlocking {
         val model = createModel()
         val unvoted = model.getUnvotedActivities("trip-1", "user-1")
-        // Before voting, act-1, act-2, act-3 etc. may be unvoted
         assertEquals(true, unvoted.all { it.id.isNotEmpty() })
     }
 
