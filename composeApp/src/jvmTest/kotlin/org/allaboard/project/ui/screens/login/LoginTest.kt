@@ -26,8 +26,7 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * UI tests for Login screen (08-02-Testing slides 25–29).
- * In jvmTest so we run tests on Android only (Compose UI test lib has no iOS variant).
+ * UI tests for Login: initial title/subtitle/button content and sign-in button click updating state.
  */
 internal class LoginTest {
 

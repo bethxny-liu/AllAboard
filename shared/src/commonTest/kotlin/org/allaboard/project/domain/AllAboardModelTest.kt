@@ -1,5 +1,7 @@
 package org.allaboard.project.domain
 
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.allaboard.project.data.repository.mock.MockActivityRepository
 import org.allaboard.project.data.repository.mock.MockItineraryRepository
@@ -12,8 +14,8 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
- * Unit tests for AllAboardModel (domain layer).
- * One test class per class; Arrange/Act/Assert; test valid and invalid inputs (slides 16–17).
+ * Unit tests for AllAboardModel. Covers trip, activity, voting, user, and itinerary operations;
+ * valid and invalid inputs; and event flow emissions.
  */
 internal class AllAboardModelTest {
 
@@ -104,7 +106,7 @@ internal class AllAboardModelTest {
     }
 
     @Test
-    fun createTrip_returnsCreatedTripAndEmitsEvent() = runBlocking {
+    fun createTrip_returnsCreatedTripWithCorrectFields() = runBlocking {
         val model = createModel()
         val trip = model.createTrip(
             destination = "Italy",
@@ -218,5 +220,40 @@ internal class AllAboardModelTest {
         val itinerary = requireNotNull(model.getItinerary("trip-1"))
         assertEquals("trip-1", itinerary.tripId)
         assertEquals(true, itinerary.days.isNotEmpty())
+    }
+
+    @Test
+    fun createTrip_emitsEventOnEventsFlow() = runBlocking {
+        val model = createModel()
+        var emitted: String? = null
+        val job = launch { emitted = model.events.first() }
+        val trip = model.createTrip(
+            destination = "Paris",
+            region = "Île-de-France",
+            startDate = "2025-07-01",
+            endDate = "2025-07-10",
+            creatorId = "user-1"
+        )
+        job.join()
+        assertEquals(trip.id, emitted)
+    }
+
+    @Test
+    fun createActivityForTrip_withOptionalParams_usesDefaults() = runBlocking {
+        val model = createModel()
+        val activity = model.createActivityForTrip(
+            tripId = "trip-1",
+            title = "Custom",
+            location = "City",
+            description = "Desc",
+            type = null,
+            imageUrl = null,
+            link = null
+        )
+        assertEquals(ActivityType.EXPERIENCES, activity.type)
+        assertEquals("$$", activity.priceLevel)
+        assertEquals(0f, activity.rating)
+        assertEquals(0, activity.voteCount)
+        assertEquals("Custom", activity.mapPinLabel)
     }
 }
