@@ -14,8 +14,9 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
- * Unit tests for AllAboardModel. Covers trip, activity, voting, user, and itinerary operations;
- * valid and invalid inputs; and event flow emissions.
+ * Unit tests for AllAboardModel (domain coordinator). Verifies: get/create/update trip and invite link;
+ * get/create activity; vote and voting results and unvoted activities; current user and preferences;
+ * itinerary and trip dashboard; and that createTrip/events flow emits. Includes valid and invalid IDs.
  */
 internal class AllAboardModelTest {
 

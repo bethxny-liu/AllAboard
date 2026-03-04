@@ -26,7 +26,9 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * UI tests for Login: initial title/subtitle/button content and sign-in button click updating state.
+ * UI tests for the Login screen. Verifies the initial screen shows app title "All Aboard", subtitle,
+ * and "Sign in with Google" button with click action; and that clicking the sign-in button updates
+ * displayed state (e.g. status text).
  */
 internal class LoginTest {
 

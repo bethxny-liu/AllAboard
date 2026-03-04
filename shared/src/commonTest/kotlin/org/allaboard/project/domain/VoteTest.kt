@@ -4,7 +4,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 /**
- * Unit tests for Vote, VoteType, and ActivityVoteResult: creation and property storage.
+ * Unit tests for Vote, VoteType, and ActivityVoteResult. Verifies Vote creation and all fields;
+ * VoteType enum values (YES, NO, SKIP); ActivityVoteResult creation with activity, counts,
+ * percentage, completion/confirmation flags, and voter names.
  */
 internal class VoteTest {
 

@@ -23,7 +23,9 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * UI tests for Home: greeting, Upcoming/Past trip headers, FAB visibility and click.
+ * UI tests for the Home screen. Verifies the greeting text (with or without display name), "Upcoming Trips"
+ * and "Past Trips" section headers, and that the create-trip FAB is present and clickable; click count
+ * is asserted when tracking clicks.
  */
 internal class HomeTest {
 

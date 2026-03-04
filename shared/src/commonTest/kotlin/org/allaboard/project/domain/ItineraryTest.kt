@@ -4,7 +4,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 /**
- * Unit tests for Itinerary, ItineraryDay, and ScheduledActivity: creation, properties, and default notes.
+ * Unit tests for Itinerary, ItineraryDay, and ScheduledActivity. Verifies ScheduledActivity creation
+ * with times and notes and default empty notes; ItineraryDay with date, day number, and activities list;
+ * Itinerary with tripId and days list.
  */
 internal class ItineraryTest {
 

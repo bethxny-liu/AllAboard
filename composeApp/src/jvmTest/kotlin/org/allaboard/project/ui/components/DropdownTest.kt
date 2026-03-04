@@ -21,7 +21,8 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * UI tests for dropdown-style UI: selected value display and expand/options on click.
+ * UI tests for dropdown-style UI (e.g. category selector). Verifies the currently selected value is
+ * displayed and that clicking the trigger expands the menu and shows options (e.g. Landmarks, Food).
  */
 internal class DropdownTest {
 

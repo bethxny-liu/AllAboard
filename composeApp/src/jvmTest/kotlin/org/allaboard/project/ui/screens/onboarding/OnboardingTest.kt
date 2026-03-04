@@ -24,7 +24,8 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * UI tests for Onboarding: welcome title and Next button visibility, and step update on Next click.
+ * UI tests for the Onboarding flow. Verifies the welcome step shows title and Next button, and that
+ * clicking Next advances the step (e.g. from welcome to vibe).
  */
 internal class OnboardingTest {
 

@@ -23,7 +23,8 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * UI tests for Activity Details: title and description display, vote buttons, and Yes click updating state.
+ * UI tests for the Activity Details screen. Verifies the activity title and description are shown;
+ * Yes and No vote buttons are present and clickable; and clicking Yes updates the vote state.
  */
 internal class ActivityDetailsTest {
 

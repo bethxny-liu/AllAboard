@@ -23,7 +23,8 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * UI tests for Create Activity: title field and submit button, and text input updating field.
+ * UI tests for the Create Activity screen. Verifies the activity title field and Add Activity submit
+ * button are present; and that entering text in the title field updates the displayed value.
  */
 internal class CreateActivityTest {
 

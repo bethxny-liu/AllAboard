@@ -5,7 +5,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 /**
- * Unit tests for TripDashboard: creation with trip/activities/results/itinerary, and null trip/itinerary.
+ * Unit tests for TripDashboard. Verifies creation with trip, activities, voting results, and itinerary;
+ * and that trip and itinerary may be null with empty activities list.
  */
 internal class TripDashboardTest {
 

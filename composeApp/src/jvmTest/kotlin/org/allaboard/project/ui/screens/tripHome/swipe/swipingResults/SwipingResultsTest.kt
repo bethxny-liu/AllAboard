@@ -16,7 +16,8 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * UI tests for Swiping Results: header and confirmed count display.
+ * UI tests for the Swiping Results screen. Verifies the "Voting Results" header and the confirmed
+ * activities count are displayed.
  */
 internal class SwipingResultsTest {
 

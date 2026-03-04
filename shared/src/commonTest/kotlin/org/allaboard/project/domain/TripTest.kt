@@ -4,7 +4,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 /**
- * Unit tests for Trip and TripStatus: creation, memberCount, dateRange, displayDateRange, toTripDisplayDate.
+ * Unit tests for Trip and TripStatus. Verifies Trip creation and all properties; memberCount for
+ * empty and non-empty members; dateRange and displayDateRange (range and single-day); toTripDisplayDate
+ * for valid ISO dates and invalid format returning original string; TripStatus enum values.
  */
 internal class TripTest {
 

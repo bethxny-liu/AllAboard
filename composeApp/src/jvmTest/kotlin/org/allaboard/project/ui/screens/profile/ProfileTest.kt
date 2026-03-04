@@ -23,7 +23,8 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * UI tests for Profile: title, display name, preferences button visibility and click callback.
+ * UI tests for the Profile screen. Verifies the Profile title, user display name, and the change-preferences
+ * button are shown and that the preferences button is clickable and triggers the callback (state update).
  */
 internal class ProfileTest {
 

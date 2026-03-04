@@ -23,7 +23,8 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * UI tests for Create Trip: destination field and submit button, and text input updating field.
+ * UI tests for the Create Trip screen. Verifies the destination field and Create Trip submit button
+ * are present; and that entering text in the destination field updates the displayed value.
  */
 internal class CreateTripTest {
 

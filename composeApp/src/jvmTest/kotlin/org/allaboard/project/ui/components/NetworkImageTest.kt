@@ -15,7 +15,8 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * UI tests for NetworkImage: composable renders with URL and with null URL (placeholder).
+ * UI tests for the NetworkImage component. Verifies the composable renders when given a URL and when
+ * given null (placeholder/fallback); does not assert actual image loading behavior.
  */
 internal class NetworkImageTest {
 

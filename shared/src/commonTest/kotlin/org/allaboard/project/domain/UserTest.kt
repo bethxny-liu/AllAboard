@@ -5,7 +5,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 /**
- * Unit tests for User, BudgetLevel, and TravelVibe: creation, defaults, symbol/fromString behavior.
+ * Unit tests for User, BudgetLevel, and TravelVibe. Verifies User creation with all properties and
+ * default budget/vibe/interests/imageUrl; BudgetLevel.symbol for LOW/MEDIUM/HIGH; TravelVibe.fromString
+ * for valid strings and null for invalid or null input.
  */
 internal class UserTest {
 

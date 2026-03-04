@@ -16,7 +16,8 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * UI tests for Itinerary: title and day label display.
+ * UI tests for the Itinerary screen. Verifies the Itinerary title and the day label (e.g. "Day 1 - Jan 15")
+ * are displayed.
  */
 internal class ItineraryTest {
 

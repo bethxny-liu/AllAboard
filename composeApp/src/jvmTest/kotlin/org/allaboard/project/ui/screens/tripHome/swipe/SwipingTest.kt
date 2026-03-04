@@ -23,7 +23,8 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * UI tests for Swiping: card title and Yes/No buttons, and vote state update on Yes click.
+ * UI tests for the Swiping screen. Verifies the current card shows the activity title and that Yes and No
+ * vote buttons are present and clickable; clicking Yes updates the vote state (e.g. displayed result).
  */
 internal class SwipingTest {
 

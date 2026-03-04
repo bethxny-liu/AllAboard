@@ -16,7 +16,8 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * UI tests for Trip Home: trip title and Activities section display.
+ * UI tests for the Trip Home screen. Verifies the trip title is displayed and the Activities section
+ * label is shown.
  */
 internal class TripHomeTest {
 

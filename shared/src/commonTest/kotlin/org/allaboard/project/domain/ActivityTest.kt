@@ -4,7 +4,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 /**
- * Unit tests for Activity and ActivityType: creation, defaults, and enum values.
+ * Unit tests for Activity and ActivityType. Verifies Activity creation with all properties and with
+ * optional defaults (rating, priceLevel, voteCount, imageUrl, link); ActivityType enum values.
  */
 internal class ActivityTest {
 
