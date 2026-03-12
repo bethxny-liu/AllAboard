@@ -17,11 +17,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,12 +28,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import org.allaboard.project.di.AppModule
+import org.allaboard.project.ui.components.ScreenTopBar
+import org.allaboard.project.ui.components.ScreenTopBarDefaults
 import org.allaboard.project.ui.screens.login.LoginScreen
 import org.allaboard.project.ui.screens.onboarding.OnboardingScreen
 import org.allaboard.project.ui.theme.Surface
@@ -69,34 +68,14 @@ fun ProfileScreenContent(
         modifier = Modifier
             .fillMaxSize()
             .background(Surface)
-            .padding(top = 40.dp)
     ) {
-        // Top bar
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Surface)
-                .padding(horizontal = 8.dp, vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-            }
-            Spacer(Modifier.width(8.dp))
-            Text(
-                text = "My Profile",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary
-            )
-        }
+        ScreenTopBar(title = "My Profile", onBack = onBack)
 
-        // Content
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = ScreenTopBarDefaults.ContentPaddingHorizontal)
                 .padding(top = 24.dp, bottom = 100.dp)
         ) {
             // Avatar + name

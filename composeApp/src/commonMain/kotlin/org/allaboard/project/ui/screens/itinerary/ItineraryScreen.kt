@@ -26,6 +26,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.allaboard.project.di.AppModule
 import org.allaboard.project.domain.Activity
+import org.allaboard.project.ui.components.ScreenTopBar
 import org.allaboard.project.ui.screens.activityDetails.ActivityDetailsScreen
 
 class ItineraryScreen(private val tripId: String) : Screen {
@@ -56,29 +57,7 @@ fun ItineraryContent(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Top row matches CreateCustomActivityScreen: back button + title with spacing
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 40.dp, start = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                )
-            }
-
-            Spacer(Modifier.width(8.dp))
-
-            Text(
-                text = "Itinerary",
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.weight(1f)
-            )
-        }
-
+        ScreenTopBar(title = "Itinerary", onBack = onBack)
 
         Column(
             modifier = Modifier

@@ -2,26 +2,19 @@ package org.allaboard.project.ui.screens.tripHome.swipe.swipingResults
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
@@ -29,8 +22,10 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import org.allaboard.project.di.AppModule
 import org.allaboard.project.domain.ActivityVoteResult
 import org.allaboard.project.ui.components.CategoryDropdown
+import org.allaboard.project.ui.components.ScreenTopBar
+import org.allaboard.project.ui.components.ScreenTopBarDefaults
+import org.allaboard.project.ui.components.TitleAlignment
 import org.allaboard.project.ui.screens.activityDetails.ActivityDetailsScreen
-import org.allaboard.project.ui.screens.tripHome.TripHomeScreen
 import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextPrimary
 
@@ -52,9 +47,7 @@ class SwipingResultsScreen(
 
         SwipingResultsContent(
             uiState = uiState,
-            onBack = {
-                navigator?.replace(TripHomeScreen(tripId))
-            },
+            onBack = { navigator?.pop() },
             onCategorySelected = viewModel::onCategorySelected,
             onActivityClick = { result ->
                 navigator?.push(ActivityDetailsScreen(activity = result.activity, fallbackActivityId = result.activity.id))
@@ -75,36 +68,17 @@ private fun SwipingResultsContent(
             .fillMaxSize()
             .background(Surface)
     ) {
-        // Header: title centered on screen, back button on left
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 56.dp, start = 8.dp, end = 8.dp, bottom = 16.dp)
-        ) {
-            Text(
-                text = "Swiping Results",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-            IconButton(
-                onClick = onBack,
-                modifier = Modifier.align(Alignment.CenterStart)
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back to trip dashboard"
-                )
-            }
-        }
+        ScreenTopBar(
+            title = "Swiping Results",
+            onBack = onBack,
+            titleAlignment = TitleAlignment.Center
+        )
 
         Column(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = ScreenTopBarDefaults.ContentPaddingHorizontal)
         ) {
             // Category dropdown (Landmarks, etc.)
             CategoryDropdown(

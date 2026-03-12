@@ -12,12 +12,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.animation.AnimatedContent
@@ -55,6 +53,8 @@ import org.allaboard.project.ui.theme.SwipeDislike
 import org.allaboard.project.ui.theme.SwipeLike
 import org.allaboard.project.ui.theme.SwipeSuperLike
 import org.allaboard.project.ui.theme.TextPrimary
+import org.allaboard.project.ui.components.ScreenTopBar
+import org.allaboard.project.ui.components.TitleAlignment
 import org.allaboard.project.ui.theme.TextSecondary
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -130,37 +130,19 @@ fun SwipingScreenContent(
             .background(Background)
     ) {
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 20.dp)
-        ) {
-            Box(
+        Column(modifier = Modifier.fillMaxSize()) {
+            ScreenTopBar(
+                title = "Swipe!",
+                onBack = onBack,
+                titleAlignment = TitleAlignment.Center
+            )
+
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                contentAlignment = Alignment.Center
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp)
+                    .padding(top = 12.dp, bottom = 20.dp)
             ) {
-                IconButton(
-                    onClick = onBack,
-                    modifier = Modifier.align(Alignment.CenterStart)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = TextPrimary
-                    )
-                }
-                Text(
-                    text = "Swipe!",
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = TextPrimary,
-                    textAlign = TextAlign.Center
-                )
-            }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
         Box(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
@@ -228,6 +210,7 @@ fun SwipingScreenContent(
                 }
             }
         }
+            }
         }
 
         if (flashColor != null && flashAlpha.value > 0f) {

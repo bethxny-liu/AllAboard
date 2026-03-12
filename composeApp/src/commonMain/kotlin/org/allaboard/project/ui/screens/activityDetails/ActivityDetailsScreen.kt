@@ -18,11 +18,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,6 +41,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import org.allaboard.project.di.AppModule
 import org.allaboard.project.domain.Activity
 import org.allaboard.project.ui.components.NetworkImage
+import org.allaboard.project.ui.components.ScreenTopBar
 import org.allaboard.project.ui.theme.BluePrimary
 import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextPrimary
@@ -91,169 +90,143 @@ private fun ActivityDetailsContent(
         modifier = Modifier
             .fillMaxSize()
             .background(Surface)
-            .padding(top = 40.dp)
     ) {
-        ActivityDetailsTopBar(onBack = onBack)
+        ScreenTopBar(title = "Activity Details", onBack = onBack)
 
-        if (activity == null && !uiState.isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Unable to load details", color = TextSecondary)
-            }
-            return
-        }
-
-        if (activity != null) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState())
-                    .padding(bottom = 24.dp)
-            ) {
-                HeroImage(imageUrl = activity.imageUrl)
-
-                // Info section
-                Column(
+        when {
+            activity == null && !uiState.isLoading -> {
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
-                        .padding(top = 32.dp, bottom = 32.dp)
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
                 ) {
-                    // Title row (title + stars)
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    Text("Unable to load details", color = TextSecondary)
+                }
+            }
+            activity != null -> {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                        .padding(bottom = 24.dp)
+                ) {
+                    HeroImage(imageUrl = activity.imageUrl)
+
+                    // Info section
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp)
+                            .padding(top = 32.dp, bottom = 32.dp)
                     ) {
-                        Text(
-                            text = activity.title,
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Spacer(Modifier.width(12.dp))
+                        // Title row (title + stars)
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(2.dp),
-                            modifier = Modifier.sizeIn(minWidth = 80.dp)
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            repeat(5) {
-                                Icon(
-                                    imageVector = Icons.Outlined.StarBorder,
-                                    contentDescription = "Rating",
-                                    modifier = Modifier.size(20.dp),
-                                    tint = TextSecondary
-                                )
+                            Text(
+                                text = activity.title,
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = TextPrimary,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                                modifier = Modifier.sizeIn(minWidth = 80.dp)
+                            ) {
+                                repeat(5) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.StarBorder,
+                                        contentDescription = "Rating",
+                                        modifier = Modifier.size(20.dp),
+                                        tint = TextSecondary
+                                    )
+                                }
                             }
                         }
-                    }
 
-                    Spacer(Modifier.height(12.dp))
+                        Spacer(Modifier.height(12.dp))
 
-                    // Location row (location + price)
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                        // Location row (location + price)
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                imageVector = Icons.Outlined.LocationOn,
-                                contentDescription = "Location",
-                                modifier = Modifier.size(18.dp),
-                                tint = TextSecondary
-                            )
-                            Spacer(Modifier.width(6.dp))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.LocationOn,
+                                    contentDescription = "Location",
+                                    modifier = Modifier.size(18.dp),
+                                    tint = TextSecondary
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    text = activity.location,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = TextSecondary,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            Spacer(Modifier.width(12.dp))
                             Text(
-                                text = activity.location,
+                                text = activity.priceLevel,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = TextSecondary,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                color = TextSecondary
                             )
                         }
-                        Spacer(Modifier.width(12.dp))
+
+                        Spacer(Modifier.height(20.dp))
+
+                        // Description with "see more"
+                        val descLines = if (uiState.descriptionExpanded) Int.MAX_VALUE else 4
                         Text(
-                            text = activity.priceLevel,
+                            text = activity.description,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = TextSecondary
+                            color = TextPrimary,
+                            lineHeight = 22.sp,
+                            maxLines = descLines,
+                            overflow = TextOverflow.Ellipsis
                         )
+                        if (!uiState.descriptionExpanded && activity.description.length > DESCRIPTION_SEE_MORE_THRESHOLD) {
+                            Text(
+                                text = "see more",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = BluePrimary,
+                                modifier = Modifier
+                                    .padding(top = 4.dp)
+                                    .clickable(onClick = onSeeMoreClick)
+                            )
+                        } else if (uiState.descriptionExpanded) {
+                            Text(
+                                text = "see less",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = BluePrimary,
+                                modifier = Modifier
+                                    .padding(top = 4.dp)
+                                    .clickable(onClick = onSeeMoreClick)
+                            )
+                        }
+
+                        Spacer(Modifier.height(32.dp))
+
+                        // Map section
+                        MapPlaceholder(pinLabel = activity.mapPinLabel)
                     }
-
-                    Spacer(Modifier.height(20.dp))
-
-                    // Description with "see more"
-                    val descLines = if (uiState.descriptionExpanded) Int.MAX_VALUE else 4
-                    Text(
-                        text = activity.description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = TextPrimary,
-                        lineHeight = 22.sp,
-                        maxLines = descLines,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    if (!uiState.descriptionExpanded && activity.description.length > DESCRIPTION_SEE_MORE_THRESHOLD) {
-                        Text(
-                            text = "see more",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = BluePrimary,
-                            modifier = Modifier
-                                .padding(top = 4.dp)
-                                .clickable(onClick = onSeeMoreClick)
-                        )
-                    } else if (uiState.descriptionExpanded) {
-                        Text(
-                            text = "see less",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = BluePrimary,
-                            modifier = Modifier
-                                .padding(top = 4.dp)
-                                .clickable(onClick = onSeeMoreClick)
-                        )
-                    }
-
-                    Spacer(Modifier.height(32.dp))
-
-                    // Map section
-                    MapPlaceholder(pinLabel = activity.mapPinLabel)
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun ActivityDetailsTopBar(onBack: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Surface)
-            .padding(horizontal = 8.dp, vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = onBack) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back"
-            )
-        }
-        Spacer(Modifier.width(8.dp))
-        Text(
-            text = "Activity Details",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = TextPrimary
-        )
     }
 }
 
