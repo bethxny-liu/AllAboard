@@ -59,7 +59,11 @@ class LoginScreen : Screen {
         // Navigate to HomeScreen when authentication succeeds (runs on main thread)
         LaunchedEffect(uiState.user) {
             if (uiState.user != null) {
-                navigator?.replace(HomeScreen())
+                if (uiState.user!!.interests.isEmpty()) {
+                    navigator?.replace(OnboardingScreen())
+                } else {
+                    navigator?.replace(HomeScreen())
+                }
             }
         }
 
