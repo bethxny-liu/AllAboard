@@ -42,7 +42,7 @@ internal class VoteTest {
     fun voteType_enumValues_exist() {
         assertEquals(VoteType.YES, VoteType.YES)
         assertEquals(VoteType.NO, VoteType.NO)
-        assertEquals(VoteType.SKIP, VoteType.SKIP)
+        assertEquals(VoteType.SUPER, VoteType.SUPER)
     }
 
     @Test

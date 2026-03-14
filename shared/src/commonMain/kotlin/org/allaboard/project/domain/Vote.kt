@@ -12,7 +12,7 @@ data class Vote(
 enum class VoteType {
     YES,
     NO,
-    SKIP
+    SUPER
 }
 
 /**

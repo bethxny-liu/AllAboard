@@ -3,6 +3,7 @@ package org.allaboard.project.domain
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.allaboard.project.data.repository.DatabaseRepository
 import org.allaboard.project.data.repository.mock.MockActivityRepository
 import org.allaboard.project.data.repository.mock.MockItineraryRepository
 import org.allaboard.project.data.repository.mock.MockTripRepository
@@ -26,12 +27,16 @@ internal class AllAboardModelTest {
         val voteRepo = MockVoteRepository(activityRepo, tripRepo)
         val userRepo = MockUserRepository()
         val itineraryRepo = MockItineraryRepository()
+        val databaseRepo = object : DatabaseRepository {
+            override suspend fun signInWithGoogle(): Result<Unit> = Result.success(Unit)
+        }
         return AllAboardModel(
             tripRepository = tripRepo,
             activityRepository = activityRepo,
             voteRepository = voteRepo,
             userRepository = userRepo,
-            itineraryRepository = itineraryRepo
+            itineraryRepository = itineraryRepo,
+            databaseRepository = databaseRepo
         )
     }
 

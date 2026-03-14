@@ -19,6 +19,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -54,6 +55,13 @@ class LoginScreen : Screen {
             LoginViewModel(model = AppModule.allAboardModel)
         }
         val uiState by viewModel.uiState.collectAsState()
+
+        // Navigate to HomeScreen when authentication succeeds (runs on main thread)
+        LaunchedEffect(uiState.user) {
+            if (uiState.user != null) {
+                navigator?.replace(HomeScreen())
+            }
+        }
 
         Box(
             modifier = Modifier.fillMaxSize()
@@ -145,7 +153,7 @@ class LoginScreen : Screen {
 
                     Button(
                         onClick = {
-                            viewModel.signIn { navigator?.replace(HomeScreen()) }
+                            viewModel.signIn()
                         },
                         modifier = Modifier
                             .fillMaxWidth()
