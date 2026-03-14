@@ -32,6 +32,10 @@ kotlin {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation("io.ktor:ktor-client-okhttp:3.0.3")
+            // Supabase BOM + compose-auth for Android OAuth deep-link handling
+            implementation(project.dependencies.platform(libs.supabase.bom))
+            implementation(libs.supabase.composeAuth)
+            implementation(libs.supabase.auth)
         }
         iosMain.dependencies {
             implementation("io.ktor:ktor-client-darwin:3.0.3")
