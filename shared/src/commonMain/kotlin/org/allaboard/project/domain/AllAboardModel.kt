@@ -1,7 +1,11 @@
 package org.allaboard.project.domain
 
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.status.SessionStatus
 import org.allaboard.project.data.repository.ActivityRepository
+import org.allaboard.project.data.repository.DatabaseRepository
 import org.allaboard.project.data.repository.ItineraryRepository
+import org.allaboard.project.data.repository.SupabaseClientProvider
 import org.allaboard.project.data.repository.TripRepository
 import org.allaboard.project.data.repository.UserRepository
 import org.allaboard.project.data.repository.VoteRepository
@@ -9,6 +13,7 @@ import kotlin.random.Random
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.first
 
 /**
  * Thin coordinator layer for the frontend.
@@ -29,11 +34,24 @@ class AllAboardModel(
     private val activityRepository: ActivityRepository,
     private val voteRepository: VoteRepository,
     private val userRepository: UserRepository,
-    private val itineraryRepository: ItineraryRepository
+    private val itineraryRepository: ItineraryRepository,
+    private val databaseRepository: DatabaseRepository
 ) {
     // Events to notify viewmodels about backend changes (e.g., votes submitted)
     private val _events = MutableSharedFlow<String>(extraBufferCapacity = 64)
     val events: SharedFlow<String> = _events.asSharedFlow()
+
+    // ========================================
+    // AUTH / LOGIN OPERATIONS
+    // ========================================
+
+    /**
+     * Initiates Google OAuth sign-in via Supabase.
+     * Opens the system browser for the Google consent screen.
+     */
+    suspend fun signInWithGoogle() {
+        databaseRepository.signInWithGoogle()
+    }
 
     // ========================================
     // TRIP OPERATIONS (Simple delegation)
