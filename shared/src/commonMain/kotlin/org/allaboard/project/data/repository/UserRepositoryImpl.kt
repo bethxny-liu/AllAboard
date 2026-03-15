@@ -19,10 +19,10 @@ class UserRepositoryImpl : UserRepository {
         // Backend validates the JWT and returns the user row from your custom users table.
         // Returns null when there is no valid session or the call fails.
         return try {
-            val user: User = ApiClient.get("/me")
+            val user: User = ApiClient.get("/user/me")
             cachedUser = user
             currentUserId = user.id
-            user
+            return user
         } catch (e: Throwable) {
             println(e.message)
             throw e
@@ -30,7 +30,7 @@ class UserRepositoryImpl : UserRepository {
     }
 
     override suspend fun setCurrentUserId(userId: String) {
-        TODO("Not yet implemented")
+        // NOT NEEDED IN REAL IMPL. Only used in mock
     }
 
     override suspend fun getUser(userId: String): User? {
@@ -43,7 +43,6 @@ class UserRepositoryImpl : UserRepository {
         vibe: TravelVibe,
         interests: Set<String>
     ) {
-        TODO("Not yet implemented")
     }
 
     override suspend fun updateUserProfile(user: User) {

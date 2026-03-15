@@ -48,7 +48,7 @@ fun Application.module() {
 
         // ── Protected routes (JWT required) ─────────────────────────────
         authenticate("supabase-jwt") {
-            get("/me") {
+            get("/user/me") {
                 val userId = call.userId
 
                 val rows = SupabaseConfig.client.from("users")

@@ -80,7 +80,7 @@ class AllAboardModel(
         endDate: String,
         creatorId: String
     ): Trip {
-        val creator = userRepository.getUser(creatorId)
+        val creator = userRepository.getCurrentUser()
         val trip = Trip(
             id = "",
             title = "All Aboard to $destination!",
