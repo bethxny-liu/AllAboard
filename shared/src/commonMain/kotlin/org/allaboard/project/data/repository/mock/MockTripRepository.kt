@@ -72,15 +72,10 @@ class MockTripRepository : TripRepository {
         trips.removeAll { it.id == tripId }
     }
 
-    override suspend fun addMemberToTrip(tripId: String, user: User) {
-        delay(100)
-        val trip = trips.find { it.id == tripId } ?: return
-        if (trip.members.none { it.id == user.id }) {
-            val updatedTrip = trip.copy(members = trip.members + user)
-            updateTrip(updatedTrip)
-        }
+    override suspend fun joinTrip(tripId: String) {
+        // do nothing in mock
+        return
     }
-
     override suspend fun removeMemberFromTrip(tripId: String, userId: String) {
         delay(100)
         val trip = trips.find { it.id == tripId } ?: return

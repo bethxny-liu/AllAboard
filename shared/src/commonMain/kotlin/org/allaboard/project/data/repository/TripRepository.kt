@@ -9,6 +9,6 @@ interface TripRepository {
     suspend fun createTrip(trip: Trip): Trip
     suspend fun updateTrip(trip: Trip): Trip
     suspend fun deleteTrip(tripId: String)
-    suspend fun addMemberToTrip(tripId: String, user: User)
+    suspend fun joinTrip(tripId: String)
     suspend fun removeMemberFromTrip(tripId: String, userId: String)
 }

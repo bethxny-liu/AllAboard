@@ -42,7 +42,8 @@ object AppModule {
     val tripRepository: TripRepository get() = mockTripRepository
     val activityRepository: ActivityRepository get() = mockActivityRepository
     val voteRepository: VoteRepository get() = mockVoteRepository
-    val userRepository: UserRepository get() = realUserRepository
+    // val userRepository: UserRepository get() = realUserRepository // Use real repo for auth-related calls
+    val userRepository: UserRepository get() = mockUserRepository
     val itineraryRepository: ItineraryRepository get() = mockItineraryRepository
 
     // Model (Thin coordinator) - Shared across all ViewModels
