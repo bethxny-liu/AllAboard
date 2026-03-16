@@ -138,7 +138,7 @@ fun Application.module() {
                     id = created.id,
                     title = created.title,
                     destination = created.destination,
-                    region = created.region,
+                    region = created.region ?: "",
                     startDate = created.startDate,
                     endDate = created.endDate,
                     imageUrl = created.imageUrl,
