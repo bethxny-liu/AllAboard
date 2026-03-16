@@ -2,6 +2,7 @@ package org.allaboard.project
 
 import io.github.jan.supabase.postgrest.from
 import io.ktor.http.*
+import io.ktor.server.request.receive
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -13,6 +14,7 @@ import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
 import org.allaboard.project.auth.configureAuth
 import org.allaboard.project.auth.userId
+import org.allaboard.project.domain.UpdateUserPreferencesRequest
 import org.allaboard.project.domain.User
 
 fun main() {
@@ -61,6 +63,18 @@ fun Application.module() {
                     return@get
                 }
                 call.respond(user)
+            }
+            patch("/user/me/preferences") {
+                val userId = call.userId
+                val body = call.receive<UpdateUserPreferencesRequest>()
+                SupabaseConfig.client.from("users").update({
+                    set("budget_level", body.budgetLevel)
+                    set("travel_vibe", body.travelVibe)
+                    set("interests", body.interests)
+                }) {
+                    filter { eq("id", userId) }
+                }
+                call.respond(HttpStatusCode.OK)
             }
         }
     }

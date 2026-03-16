@@ -2,6 +2,7 @@ package org.allaboard.project.data.repository
 
 import org.allaboard.project.data.network.ApiClient
 import org.allaboard.project.domain.BudgetLevel
+import org.allaboard.project.domain.UpdateUserPreferencesRequest
 import org.allaboard.project.domain.TravelVibe
 import org.allaboard.project.domain.User
 
@@ -33,19 +34,17 @@ class UserRepositoryImpl : UserRepository {
         // NOT NEEDED IN REAL IMPL. Only used in mock
     }
 
-    override suspend fun getUser(userId: String): User? {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun updateUserPreferences(
         userId: String,
         budget: BudgetLevel,
         vibe: TravelVibe,
         interests: Set<String>
     ) {
-    }
-
-    override suspend fun updateUserProfile(user: User) {
-        TODO("Not yet implemented")
+        val body = UpdateUserPreferencesRequest(
+            budgetLevel = budget.name,
+            travelVibe = vibe.name,
+            interests = interests.toList()
+        )
+        ApiClient.patch<UpdateUserPreferencesRequest, Unit>("/user/me/preferences", body)
     }
 }
