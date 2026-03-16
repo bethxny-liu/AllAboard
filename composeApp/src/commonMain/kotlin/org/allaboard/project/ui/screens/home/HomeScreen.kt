@@ -13,13 +13,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -36,11 +33,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import org.allaboard.project.di.AppModule
-import org.allaboard.project.ui.screens.createTrip.CreateTripScreen
 import org.allaboard.project.ui.screens.tripHome.TripHomeScreen
 import org.allaboard.project.ui.theme.Background
 import org.allaboard.project.ui.theme.FieldBackground
-import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextHint
 import org.allaboard.project.ui.theme.TextPrimary
 import org.allaboard.project.ui.theme.TextSecondary
@@ -58,8 +53,7 @@ class HomeScreen : Screen {
         HomeScreenContent(
             uiState = uiState,
             onSearchQueryChange = viewModel::onSearchQueryChange,
-            onTripClick = { tripId -> navigator?.push(TripHomeScreen(tripId)) },
-            onCreateTripClick = { navigator?.push(CreateTripScreen()) }
+            onTripClick = { tripId -> navigator?.push(TripHomeScreen(tripId)) }
         )
     }
 }
@@ -68,8 +62,7 @@ class HomeScreen : Screen {
 fun HomeScreenContent(
     uiState: HomeUiState,
     onSearchQueryChange: (String) -> Unit,
-    onTripClick: (String) -> Unit,
-    onCreateTripClick: () -> Unit
+    onTripClick: (String) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -153,22 +146,5 @@ fun HomeScreenContent(
             }
         }
 
-        // Floating action button
-        FloatingActionButton(
-            onClick = onCreateTripClick,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 24.dp, bottom = 24.dp),
-            shape = CircleShape,
-            containerColor = Surface
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Add,
-                contentDescription = "Create Trip",
-                tint = TextPrimary,
-                modifier = Modifier.size(28.dp)
-            )
-        }
     }
 }
-
