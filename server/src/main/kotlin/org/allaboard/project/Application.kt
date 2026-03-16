@@ -14,7 +14,6 @@ import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
 import org.allaboard.project.auth.configureAuth
 import org.allaboard.project.auth.userId
-import org.allaboard.project.domain.UpdateUserPreferencesRequest
 import org.allaboard.project.domain.User
 
 fun main() {
@@ -66,15 +65,23 @@ fun Application.module() {
             }
             patch("/user/me/preferences") {
                 val userId = call.userId
-                val body = call.receive<UpdateUserPreferencesRequest>()
+                val body = call.receive<User>()
                 SupabaseConfig.client.from("users").update({
-                    set("budget_level", body.budgetLevel)
-                    set("travel_vibe", body.travelVibe)
-                    set("interests", body.interests)
+                    set("budget_level", body.budget.name)
+                    set("travel_vibe", body.travelVibe.name)
+                    set("interests", body.interests.toList())
                 }) {
                     filter { eq("id", userId) }
                 }
-                call.respond(HttpStatusCode.OK)
+                val rows = SupabaseConfig.client.from("users")
+                    .select { filter { eq("id", userId) } }
+                    .decodeList<User>()
+                val updatedUser = rows.firstOrNull()
+                if (updatedUser != null) {
+                    call.respond(updatedUser)
+                } else {
+                    call.respond(HttpStatusCode.InternalServerError, "User not found after update")
+                }
             }
         }
     }

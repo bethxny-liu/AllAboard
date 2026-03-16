@@ -2,7 +2,6 @@ package org.allaboard.project.data.repository
 
 import org.allaboard.project.data.network.ApiClient
 import org.allaboard.project.domain.BudgetLevel
-import org.allaboard.project.domain.UpdateUserPreferencesRequest
 import org.allaboard.project.domain.TravelVibe
 import org.allaboard.project.domain.User
 
@@ -40,11 +39,10 @@ class UserRepositoryImpl : UserRepository {
         vibe: TravelVibe,
         interests: Set<String>
     ) {
-        val body = UpdateUserPreferencesRequest(
-            budgetLevel = budget.name,
-            travelVibe = vibe.name,
-            interests = interests.toList()
-        )
-        ApiClient.patch<UpdateUserPreferencesRequest, Unit>("/user/me/preferences", body)
+        val current = cachedUser ?: getCurrentUser() ?: return
+        val userBody = current.copy(budget = budget, travelVibe = vibe, interests = interests)
+        val updatedUser = ApiClient.patch<User, User>("/user/me/preferences", userBody)
+        cachedUser = updatedUser
+        currentUserId = updatedUser.id
     }
 }

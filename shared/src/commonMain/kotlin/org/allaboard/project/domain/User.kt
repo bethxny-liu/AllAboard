@@ -53,13 +53,3 @@ enum class TravelVibe {
     }
 }
 
-@Serializable
-data class UpdateUserPreferencesRequest(
-    @SerialName("budget_level")
-    val budgetLevel: String,
-
-    @SerialName("travel_vibe")
-    val travelVibe: String,
-
-    val interests: List<String>
-)
