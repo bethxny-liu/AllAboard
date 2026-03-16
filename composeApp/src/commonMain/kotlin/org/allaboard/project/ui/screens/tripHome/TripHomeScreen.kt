@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.AlertDialog
@@ -280,14 +281,6 @@ private fun TripHeroSection(
                 modifier = Modifier.align(Alignment.TopEnd),
                 horizontalArrangement = Arrangement.End
             ) {
-                Button(
-                    onClick = onEditClick,
-                    shape = RoundedCornerShape(20.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Surface)
-                ) {
-                    Text("Edit", color = TextPrimary)
-                }
-                Spacer(modifier = Modifier.width(8.dp))
                 IconButton(
                     onClick = { menuExpanded = true },
                     modifier = Modifier
@@ -307,11 +300,18 @@ private fun TripHeroSection(
                         onClick = {
                             menuExpanded = false
                             onEditClick()
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Edit,
+                                contentDescription = null,
+                                tint = TextPrimary
+                            )
                         }
                     )
                     DropdownMenuItem(
                         text = {
-                            Text("Delete trip", color = Color.Red)
+                            Text("Delete", color = Color.Red)
                         },
                         onClick = {
                             menuExpanded = false

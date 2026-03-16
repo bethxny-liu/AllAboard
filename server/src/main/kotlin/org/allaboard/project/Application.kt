@@ -176,9 +176,37 @@ fun Application.module() {
                     call.respond(HttpStatusCode.BadRequest, "Missing trip id")
                     return@delete
                 }
+
+                val userId = call.userId
+                val existing = SupabaseConfig.client.from("trips")
+                    .select { filter { eq("id", id) } }
+                    .decodeList<org.allaboard.project.TripRow>()
+                    .firstOrNull()
+
+                if (existing == null) {
+                    call.respond(HttpStatusCode.NotFound, "Trip not found")
+                    return@delete
+                }
+
+                if (existing.createdBy != userId) {
+                    call.respond(HttpStatusCode.Forbidden, "Only the trip owner can delete this trip")
+                    return@delete
+                }
+
                 SupabaseConfig.client.from("trips").delete {
                     filter { eq("id", id) }
                 }
+
+                val remaining = SupabaseConfig.client.from("trips")
+                    .select { filter { eq("id", id) } }
+                    .decodeList<org.allaboard.project.TripRow>()
+                    .firstOrNull()
+
+                if (remaining != null) {
+                    call.respond(HttpStatusCode.InternalServerError, "Trip deletion failed")
+                    return@delete
+                }
+
                 call.respond(HttpStatusCode.NoContent)
             }
             post("/trips/{id}/join") {
