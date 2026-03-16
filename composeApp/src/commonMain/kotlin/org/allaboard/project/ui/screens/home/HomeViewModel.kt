@@ -66,11 +66,9 @@ class HomeViewModel(private val model: AllAboardModel) : ViewModel() {
     private fun loadTrips() {
         viewModelScope.launch {
             try {
-                // Try to use current user to fetch personalized trips; fallback to empty
                 val currentUser = model.getCurrentUser()
-                val userId = currentUser?.id ?: "user-1"
-                val upcoming = model.getUpcomingTrips(userId).map { mapTrip(it) }
-                val past = model.getPastTrips(userId).map { mapTrip(it) }
+                val upcoming = model.getUpcomingTrips().map { mapTrip(it) }
+                val past = model.getPastTrips().map { mapTrip(it) }
                 _uiState.value = _uiState.value.copy(upcomingTrips = upcoming, pastTrips = past, isLoading = false, displayName = currentUser?.displayName ?: "")
             } catch (t: Throwable) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = t.message)

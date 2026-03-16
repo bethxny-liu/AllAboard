@@ -17,7 +17,9 @@ data class TripHomeUiState(
     val trip: Trip? = null,
     val activities: List<Activity> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    /** When true, the screen should navigate back (trip was deleted). */
+    val tripDeleted: Boolean = false
 )
 
 /**
@@ -59,6 +61,17 @@ class TripHomeViewModel(
                 _uiState.value = _uiState.value.copy(trip = trip, activities = activities, isLoading = false)
             } catch (t: Throwable) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = t.message)
+            }
+        }
+    }
+
+    fun deleteTrip() {
+        viewModelScope.launch {
+            try {
+                model.deleteTrip(tripId)
+                _uiState.value = _uiState.value.copy(tripDeleted = true)
+            } catch (t: Throwable) {
+                _uiState.value = _uiState.value.copy(error = t.message)
             }
         }
     }

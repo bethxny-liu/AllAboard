@@ -18,14 +18,26 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.People
+import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -35,6 +47,7 @@ import org.allaboard.project.domain.ActivityType
 import org.allaboard.project.domain.Trip
 import org.allaboard.project.domain.displayDateRange
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.Alignment
@@ -68,6 +81,11 @@ class TripHomeScreen(private val tripId: String) : Screen {
             )
         }
         val uiState by viewModel.uiState.collectAsState()
+        var showDeleteDialog by remember { mutableStateOf(false) }
+
+        LaunchedEffect(uiState.tripDeleted) {
+            if (uiState.tripDeleted) navigator?.pop()
+        }
 
         // If trip is null (should not happen), render the UI with a lightweight placeholder and the trip details will be filled in when the model returns.
         val tripNonNull: Trip = uiState.trip ?: Trip(
@@ -92,10 +110,34 @@ class TripHomeScreen(private val tripId: String) : Screen {
                     )
                 )
             },
+            onDeleteTrip = { showDeleteDialog = true },
             onCreateCustomActivity = { navigator?.push(CreateCustomActivityScreen(tripNonNull.id)) },
             onActivitySelected = { activity -> navigator?.push(ActivityDetailsScreen(activity, activity.id)) },
             onViewItinerary = { navigator?.push(ItineraryScreen(tripNonNull.id)) }
         )
+
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text("Delete trip?") },
+                text = { Text("This cannot be undone. The trip and all its activities will be permanently deleted.") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            viewModel.deleteTrip()
+                            showDeleteDialog = false
+                        }
+                    ) {
+                        Text("Delete", color = Color.Red)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text("Cancel", color = TextPrimary)
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -105,6 +147,7 @@ fun TripHomeScreenContent(
     activities: List<Activity>,
     onCreateCustomActivity: () -> Unit,
     onEditTrip: () -> Unit,
+    onDeleteTrip: () -> Unit,
     onActivitySelected: (Activity) -> Unit,
     onStartSwipingClick: () -> Unit,
     onViewItinerary: () -> Unit = {},
@@ -119,6 +162,7 @@ fun TripHomeScreenContent(
         TripHeroSection(
             trip = trip,
             onEditClick = onEditTrip,
+            onDeleteClick = onDeleteTrip,
             onStartSwipingClick = onStartSwipingClick,
             onCreateCustomActivity = onCreateCustomActivity,
             onViewItineraryClick = onViewItinerary
@@ -207,10 +251,12 @@ fun TripHomeScreenContent(
 private fun TripHeroSection(
     trip: Trip,
     onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit,
     onStartSwipingClick: () -> Unit,
     onViewItineraryClick: () -> Unit,
     onCreateCustomActivity: () -> Unit
 ) {
+    var menuExpanded by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -230,13 +276,56 @@ private fun TripHeroSection(
                 .fillMaxSize()
                 .padding(24.dp)
         ) {
-            Button(
-                onClick = onEditClick,
+            Row(
                 modifier = Modifier.align(Alignment.TopEnd),
-                shape = RoundedCornerShape(20.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Surface)
+                horizontalArrangement = Arrangement.End
             ) {
-                Text("Edit", color = TextPrimary)
+                Button(
+                    onClick = onEditClick,
+                    shape = RoundedCornerShape(20.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Surface)
+                ) {
+                    Text("Edit", color = TextPrimary)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                IconButton(
+                    onClick = { menuExpanded = true },
+                    modifier = Modifier
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.MoreVert,
+                        contentDescription = "More options",
+                        tint = Surface
+                    )
+                }
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Edit", color = TextPrimary) },
+                        onClick = {
+                            menuExpanded = false
+                            onEditClick()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = {
+                            Text("Delete trip", color = Color.Red)
+                        },
+                        onClick = {
+                            menuExpanded = false
+                            onDeleteClick()
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Delete,
+                                contentDescription = null,
+                                tint = Color.Red
+                            )
+                        }
+                    )
+                }
             }
 
             Column(

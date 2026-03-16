@@ -61,16 +61,16 @@ class AllAboardModel(
         return tripRepository.getTrip(tripId)
     }
 
-    suspend fun getAllTripsForUser(userId: String): List<Trip> {
-        return tripRepository.getTripsForUser(userId)
+    suspend fun getAllTripsForUser(): List<Trip> {
+        return tripRepository.getTripsForUser()
     }
 
-    suspend fun getUpcomingTrips(userId: String): List<Trip> {
-        return getAllTripsForUser(userId).filter { it.status == TripStatus.UPCOMING }
+    suspend fun getUpcomingTrips(): List<Trip> {
+        return getAllTripsForUser().filter { it.status == TripStatus.UPCOMING }
     }
 
-    suspend fun getPastTrips(userId: String): List<Trip> {
-        return getAllTripsForUser(userId).filter { it.status == TripStatus.COMPLETED }
+    suspend fun getPastTrips(): List<Trip> {
+        return getAllTripsForUser().filter { it.status == TripStatus.COMPLETED }
     }
 
     suspend fun createTrip(
@@ -123,6 +123,11 @@ class AllAboardModel(
 
     fun getTripInviteLink(tripId: String): String {
         return "AllAboard.ca/join/$tripId"
+    }
+
+    suspend fun deleteTrip(tripId: String) {
+        tripRepository.deleteTrip(tripId)
+        _events.emit(tripId)
     }
 
     // ========================================
