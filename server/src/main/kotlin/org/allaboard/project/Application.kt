@@ -2,6 +2,7 @@ package org.allaboard.project
 
 import io.github.jan.supabase.postgrest.from
 import io.ktor.http.*
+import io.ktor.server.request.receive
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -61,6 +62,26 @@ fun Application.module() {
                     return@get
                 }
                 call.respond(user)
+            }
+            patch("/user/me/preferences") {
+                val userId = call.userId
+                val body = call.receive<User>()
+                SupabaseConfig.client.from("users").update({
+                    set("budget_level", body.budget.name)
+                    set("travel_vibe", body.travelVibe.name)
+                    set("interests", body.interests.toList())
+                }) {
+                    filter { eq("id", userId) }
+                }
+                val rows = SupabaseConfig.client.from("users")
+                    .select { filter { eq("id", userId) } }
+                    .decodeList<User>()
+                val updatedUser = rows.firstOrNull()
+                if (updatedUser != null) {
+                    call.respond(updatedUser)
+                } else {
+                    call.respond(HttpStatusCode.InternalServerError, "User not found after update")
+                }
             }
         }
     }

@@ -54,11 +54,6 @@ class MockUserRepository : UserRepository {
         }
     }
 
-    override suspend fun getUser(userId: String): User? {
-        delay(50)
-        return users[userId]
-    }
-
     override suspend fun updateUserPreferences(
         userId: String,
         budget: BudgetLevel,
@@ -73,10 +68,5 @@ class MockUserRepository : UserRepository {
                 interests = interests
             )
         }
-    }
-
-    override suspend fun updateUserProfile(user: User) {
-        delay(100)
-        users[user.id] = user
     }
 }

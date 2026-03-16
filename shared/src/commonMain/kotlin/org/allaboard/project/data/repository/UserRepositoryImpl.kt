@@ -33,19 +33,16 @@ class UserRepositoryImpl : UserRepository {
         // NOT NEEDED IN REAL IMPL. Only used in mock
     }
 
-    override suspend fun getUser(userId: String): User? {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun updateUserPreferences(
         userId: String,
         budget: BudgetLevel,
         vibe: TravelVibe,
         interests: Set<String>
     ) {
-    }
-
-    override suspend fun updateUserProfile(user: User) {
-        TODO("Not yet implemented")
+        val current = cachedUser ?: getCurrentUser() ?: return
+        val userBody = current.copy(budget = budget, travelVibe = vibe, interests = interests)
+        val updatedUser = ApiClient.patch<User, User>("/user/me/preferences", userBody)
+        cachedUser = updatedUser
+        currentUserId = updatedUser.id
     }
 }
