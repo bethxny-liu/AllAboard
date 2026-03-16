@@ -2,6 +2,8 @@ package org.allaboard.project.ui.screens.createActivity
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,8 +18,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.allaboard.project.ui.theme.FieldBackground
+import org.allaboard.project.ui.theme.Surface
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Link
@@ -27,6 +29,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import org.allaboard.project.ui.components.CategoryDropdown
+import org.allaboard.project.ui.components.ScreenTopBar
+import org.allaboard.project.ui.components.ScreenTopBarDefaults
 import org.allaboard.project.di.AppModule
 import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.delay
@@ -91,36 +95,23 @@ private fun CreateCustomActivityContent(
     // Local UI state to show the link entry dialog
     var showLinkDialog by remember { mutableStateOf(false) }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 40.dp, start = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = onBack) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back"
-            )
-        }
-
-        Spacer(Modifier.width(8.dp))
-
-        Text(
-            text = "Create Custom Activity",
-            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-            modifier = Modifier.weight(1f)
-        )
-    }
     Column(
         modifier = Modifier
             .fillMaxSize()
-            // match ActivityDetailsScreen top spacing
-            .padding(start = 24.dp, end = 24.dp, top = 80.dp, bottom = 96.dp)
+            .background(Surface)
     ) {
-        // Back arrow and Title on same row
-
-
+        ScreenTopBar(title = "Create Custom Activity", onBack = onBack)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(
+                    start = ScreenTopBarDefaults.ContentPaddingHorizontal,
+                    end = ScreenTopBarDefaults.ContentPaddingHorizontal,
+                    top = 16.dp,
+                    bottom = 80.dp
+                )
+        ) {
         Spacer(Modifier.height(20.dp))
 
         // Category
@@ -307,10 +298,9 @@ private fun CreateCustomActivityContent(
             )
         }
 
-        // push remaining content (including the button) to the bottom
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(Modifier.height(24.dp))
 
-        // Create Button pinned near the bottom (above footer)
+        // Create Button
         Button(
             onClick = onCreate,
             modifier = Modifier
@@ -324,6 +314,7 @@ private fun CreateCustomActivityContent(
 
         // small bottom padding
         Spacer(Modifier.height(12.dp))
+        }
     }
 }
 
