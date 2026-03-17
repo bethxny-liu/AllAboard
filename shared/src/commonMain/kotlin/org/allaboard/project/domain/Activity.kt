@@ -1,11 +1,15 @@
 package org.allaboard.project.domain
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 enum class ActivityType {
     LANDMARK,
     RESTAURANT,
     EXPERIENCES
 }
 
+@Serializable
 data class Activity(
     val id: String,
     val title: String,
