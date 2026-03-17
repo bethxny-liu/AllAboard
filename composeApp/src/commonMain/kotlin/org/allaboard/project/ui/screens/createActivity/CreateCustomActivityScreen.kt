@@ -28,6 +28,7 @@ import androidx.compose.material3.IconButton
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
+import org.allaboard.project.domain.Activity
 import org.allaboard.project.ui.components.CategoryDropdown
 import org.allaboard.project.ui.components.ScreenTopBar
 import org.allaboard.project.ui.components.ScreenTopBarDefaults
@@ -36,40 +37,40 @@ import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.delay
 
 /**
- * Create Custom Activity screen: allows users to create a new activity that others can swipe on.
- * Modeled after Create Trip screens with similar design and user flow.
+ * Create Custom Activity screen. When [existingActivity] is non-null, the screen is in edit mode.
  */
 class CreateCustomActivityScreen(
-    private val tripId: String
+    private val tripId: String,
+    private val existingActivity: Activity? = null
 ) : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
-        // Create the ViewModel using the lambda form and pass tripId into the constructor
         val viewModel: CreateCustomActivityViewModel = viewModel {
             CreateCustomActivityViewModel(
                 model = AppModule.allAboardModel,
-                tripId = tripId
+                tripId = tripId,
+                existingActivity = existingActivity
             )
         }
         val uiState by viewModel.uiState.collectAsState()
+        val isEditMode = existingActivity != null
 
-        // When success, wait a moment and then navigate back
         LaunchedEffect(uiState.isSuccess) {
             if (uiState.isSuccess) {
-                delay(1000) // Show success for 1.5 seconds
+                delay(1000)
                 navigator?.pop()
             }
         }
 
         if (uiState.isSuccess) {
-            // Success screen
-            SuccessScreen()
+            SuccessScreen(isEditMode = isEditMode)
         } else {
             CreateCustomActivityContent(
                 uiState = uiState,
+                isEditMode = isEditMode,
                 onBack = { navigator?.pop() },
-                onCreate = { viewModel.onCreateActivity() },
+                onCreate = viewModel::onCreateOrUpdateActivity,
                 onCategoryChange = viewModel::updateCategory,
                 onNameChange = viewModel::updateName,
                 onLocationChange = viewModel::updateLocation,
@@ -84,6 +85,7 @@ class CreateCustomActivityScreen(
 @Composable
 private fun CreateCustomActivityContent(
     uiState: CreateCustomActivityUiState,
+    isEditMode: Boolean = false,
     onBack: () -> Unit = {},
     onCategoryChange: (Int) -> Unit = {},
     onNameChange: (String) -> Unit = {},
@@ -92,7 +94,6 @@ private fun CreateCustomActivityContent(
     onLinkChange: (String) -> Unit = {},
     onCreate: () -> Unit = {}
 ) {
-    // Local UI state to show the link entry dialog
     var showLinkDialog by remember { mutableStateOf(false) }
 
     Column(
@@ -100,7 +101,10 @@ private fun CreateCustomActivityContent(
             .fillMaxSize()
             .background(Surface)
     ) {
-        ScreenTopBar(title = "Create Custom Activity", onBack = onBack)
+        ScreenTopBar(
+            title = if (isEditMode) "Edit Activity" else "Create Custom Activity",
+            onBack = onBack
+        )
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -300,7 +304,7 @@ private fun CreateCustomActivityContent(
 
         Spacer(Modifier.height(24.dp))
 
-        // Create Button
+        // Create / Save Button
         Button(
             onClick = onCreate,
             modifier = Modifier
@@ -309,7 +313,16 @@ private fun CreateCustomActivityContent(
             shape = RoundedCornerShape(26.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
         ) {
-            Text(text = if (uiState.isCreating) "Creating..." else "Create Activity", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
+            Text(
+                text = when {
+                    uiState.isCreating && isEditMode -> "Saving..."
+                    uiState.isCreating -> "Creating..."
+                    isEditMode -> "Save changes"
+                    else -> "Create Activity"
+                },
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
         }
 
         // small bottom padding
@@ -319,7 +332,7 @@ private fun CreateCustomActivityContent(
 }
 
 @Composable
-private fun SuccessScreen() {
+private fun SuccessScreen(isEditMode: Boolean = false) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -336,7 +349,7 @@ private fun SuccessScreen() {
             )
             Spacer(Modifier.height(16.dp))
             Text(
-                text = "Activity Created!",
+                text = if (isEditMode) "Activity updated!" else "Activity Created!",
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onBackground
             )

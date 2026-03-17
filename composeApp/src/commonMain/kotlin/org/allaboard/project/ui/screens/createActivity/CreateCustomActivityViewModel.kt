@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.allaboard.project.Category
+import org.allaboard.project.domain.Activity
 import org.allaboard.project.domain.AllAboardModel
 import org.allaboard.project.domain.ActivityType
 
@@ -30,14 +31,31 @@ data class CreateCustomActivityUiState(
 
 /**
  * ViewModel to manage Create Custom Activity state.
- * Accepts an AllAboardModel and the tripId so the view modely is scoped to a particular trip.
+ * When [existingActivity] is non-null, the screen is in edit mode.
  */
 class CreateCustomActivityViewModel(
     private val model: AllAboardModel,
-    private val tripId: String
+    private val tripId: String,
+    private val existingActivity: Activity? = null
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(CreateCustomActivityUiState())
+    private val categories = Category.allCategories.filter { it != Category.ALL }
+
+    private val _uiState = MutableStateFlow(
+        if (existingActivity != null) {
+            val index = categories.indexOfFirst { it.type == existingActivity.type }.takeIf { it >= 0 } ?: 0
+            CreateCustomActivityUiState(
+                categories = categories,
+                selectedCategoryIndex = index,
+                name = existingActivity.title,
+                location = existingActivity.location,
+                description = existingActivity.description,
+                link = existingActivity.link ?: ""
+            )
+        } else {
+            CreateCustomActivityUiState(categories = categories)
+        }
+    )
     val uiState: StateFlow<CreateCustomActivityUiState> = _uiState.asStateFlow()
 
     fun updateCategory(index: Int) {
@@ -60,7 +78,7 @@ class CreateCustomActivityViewModel(
         _uiState.value = _uiState.value.copy(link = link)
     }
 
-    fun onCreateActivity() {
+    fun onCreateOrUpdateActivity() {
         val state = _uiState.value
         if (state.name.isBlank()) {
             _uiState.value = _uiState.value.copy(error = "Name required")
@@ -72,15 +90,27 @@ class CreateCustomActivityViewModel(
         viewModelScope.launch {
             try {
                 val activityType = state.selectedCategory.type ?: ActivityType.EXPERIENCES
-                model.createActivityForTrip(
-                    tripId = tripId,
-                    title = state.name,
-                    location = state.location,
-                    description = state.description,
-                    type = activityType,
-                    imageUrl = null, // need to implement image upload separately
-                    link = state.link.ifBlank { null }
-                )
+                if (existingActivity != null) {
+                    val updated = existingActivity.copy(
+                        title = state.name,
+                        location = state.location,
+                        description = state.description,
+                        type = activityType,
+                        link = state.link.ifBlank { null },
+                        mapPinLabel = state.name.ifEmpty { state.location }
+                    )
+                    model.updateActivity(updated, tripId)
+                } else {
+                    model.createActivityForTrip(
+                        tripId = tripId,
+                        title = state.name,
+                        location = state.location,
+                        description = state.description,
+                        type = activityType,
+                        imageUrl = null,
+                        link = state.link.ifBlank { null }
+                    )
+                }
                 _uiState.value = _uiState.value.copy(isCreating = false, isSuccess = true)
             } catch (t: Throwable) {
                 _uiState.value = _uiState.value.copy(isCreating = false, error = t.message)

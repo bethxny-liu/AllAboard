@@ -29,7 +29,8 @@ fun ScreenTopBar(
     title: String,
     onBack: (() -> Unit)? = null,
     titleAlignment: TitleAlignment = TitleAlignment.Center,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    trailingContent: @Composable (() -> Unit)? = null
 ) {
     val barModifier = modifier
         .fillMaxWidth()
@@ -65,6 +66,9 @@ fun ScreenTopBar(
                     color = TextPrimary,
                     modifier = Modifier.weight(1f)
                 )
+                if (trailingContent != null) {
+                    trailingContent()
+                }
             }
         }
         TitleAlignment.Center -> {
@@ -90,6 +94,11 @@ fun ScreenTopBar(
                             contentDescription = "Back",
                             tint = TextPrimary
                         )
+                    }
+                }
+                if (trailingContent != null) {
+                    Box(modifier = Modifier.align(Alignment.CenterEnd)) {
+                        trailingContent()
                     }
                 }
             }
