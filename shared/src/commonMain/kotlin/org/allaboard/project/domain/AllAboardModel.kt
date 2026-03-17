@@ -65,12 +65,16 @@ class AllAboardModel(
         return tripRepository.getTripsForUser()
     }
 
+    /** Upcoming = trip has not ended yet (endDate >= today). Ignores TripStatus since it doesn't auto-update. */
     suspend fun getUpcomingTrips(): List<Trip> {
-        return getAllTripsForUser().filter { it.status == TripStatus.UPCOMING }
+        val today = kotlinx.datetime.Clock.System.todayIn(kotlinx.datetime.TimeZone.UTC).toString()
+        return getAllTripsForUser().filter { it.endDate >= today }
     }
 
+    /** Past = trip has ended (endDate < today). Ignores TripStatus since it doesn't auto-update. */
     suspend fun getPastTrips(): List<Trip> {
-        return getAllTripsForUser().filter { it.status == TripStatus.COMPLETED }
+        val today = kotlinx.datetime.Clock.System.todayIn(kotlinx.datetime.TimeZone.UTC).toString()
+        return getAllTripsForUser().filter { it.endDate < today }
     }
 
     suspend fun createTrip(

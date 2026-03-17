@@ -25,14 +25,7 @@ data class TripRow(
     @SerialName("created_by") val createdBy: String? = null
 )
 
-/** DB row shape for trip_members table. */
-@Serializable
-data class TripMemberRow(
-    @SerialName("trip_id") val tripId: String,
-    @SerialName("user_id") val userId: String
-)
-
-/** Payload for inserting a new trip (snake_case for DB). */
+/** Payload for inserting a new trip (no id — DB generates it). */
 @Serializable
 data class TripInsert(
     val title: String,
@@ -45,9 +38,9 @@ data class TripInsert(
     @SerialName("created_by") val createdBy: String? = null
 )
 
-/** Payload for inserting a trip_member. */
+/** DB row shape for trip_members table. */
 @Serializable
-data class TripMemberInsert(
+data class TripMemberRow(
     @SerialName("trip_id") val tripId: String,
     @SerialName("user_id") val userId: String,
     val role: String = "MEMBER"

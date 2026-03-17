@@ -121,17 +121,16 @@ fun Application.module() {
                     status = trip.status,
                     createdBy = userId
                 )
-                SupabaseConfig.client.from("trips").insert(insert)
-                val created = SupabaseConfig.client.from("trips")
-                    .select { filter { eq("created_by", userId); eq("title", trip.title); eq("start_date", trip.startDate); eq("end_date", trip.endDate) } }
-                    .decodeList<org.allaboard.project.TripRow>()
-                    .firstOrNull()
+                val created = SupabaseConfig.client.from("trips").insert(insert) {
+                    select()
+                    single()
+                }.decodeSingleOrNull<org.allaboard.project.TripRow>()
                 if (created == null) {
                     call.respond(HttpStatusCode.InternalServerError, "Trip created but not found")
                     return@post
                 }
                 SupabaseConfig.client.from("trip_members").insert(
-                    org.allaboard.project.TripMemberInsert(tripId = created.id, userId = userId, role = "OWNER")
+                    org.allaboard.project.TripMemberRow(tripId = created.id, userId = userId, role = "OWNER")
                 )
                 val withMembers = fetchTripWithMembers(created.id)
                 call.respond(withMembers ?: Trip(
@@ -156,7 +155,7 @@ fun Application.module() {
                     call.respond(HttpStatusCode.BadRequest, "Trip id mismatch")
                     return@patch
                 }
-                SupabaseConfig.client.from("trips").update({
+                val updatedRow = SupabaseConfig.client.from("trips").update({
                     set("title", body.title)
                     set("destination", body.destination)
                     set("region", body.region)
@@ -166,8 +165,10 @@ fun Application.module() {
                     set("status", body.status.name)
                 }) {
                     filter { eq("id", id) }
-                }
-                val updated = fetchTripWithMembers(id)
+                    select()
+                    single()
+                }.decodeSingleOrNull<org.allaboard.project.TripRow>()
+                val updated = if (updatedRow != null) fetchTripWithMembers(id) else null
                 if (updated != null) call.respond(updated)
                 else call.respond(HttpStatusCode.NotFound, "Trip not found")
             }
@@ -215,9 +216,18 @@ fun Application.module() {
                     return@post
                 }
                 val userId = call.userId
-                SupabaseConfig.client.from("trip_members").insert(
-                    org.allaboard.project.TripMemberInsert(tripId = tripId, userId = userId, role = "MEMBER")
-                )
+                val inserted = runCatching {
+                    SupabaseConfig.client.from("trip_members").insert(
+                        org.allaboard.project.TripMemberRow(tripId = tripId, userId = userId, role = "MEMBER")
+                    ) {
+                        select()
+                        single()
+                    }.decodeSingleOrNull<org.allaboard.project.TripMemberRow>()
+                }.getOrNull()
+                if (inserted == null) {
+                    call.respond(HttpStatusCode.Conflict, "Already a member or trip not found")
+                    return@post
+                }
                 call.respond(HttpStatusCode.OK)
             }
             delete("/trips/{id}/members/{userId}") {
@@ -229,8 +239,13 @@ fun Application.module() {
                     call.respond(HttpStatusCode.BadRequest, "Missing user id")
                     return@delete
                 }
-                SupabaseConfig.client.from("trip_members").delete {
+                val deleted = SupabaseConfig.client.from("trip_members").delete {
                     filter { eq("trip_id", tripId); eq("user_id", userId) }
+                    select()
+                }.decodeList<org.allaboard.project.TripMemberRow>()
+                if (deleted.isEmpty()) {
+                    call.respond(HttpStatusCode.NotFound, "Membership not found")
+                    return@delete
                 }
                 call.respond(HttpStatusCode.NoContent)
             }
