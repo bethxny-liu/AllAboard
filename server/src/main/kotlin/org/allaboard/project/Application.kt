@@ -123,8 +123,7 @@ fun Application.module() {
                 )
                 val created = SupabaseConfig.client.from("trips").insert(insert) {
                     select()
-                    single()
-                }.decodeSingleOrNull<org.allaboard.project.TripRow>()
+                }.decodeList<org.allaboard.project.TripRow>().firstOrNull()
                 if (created == null) {
                     call.respond(HttpStatusCode.InternalServerError, "Trip created but not found")
                     return@post
@@ -166,8 +165,7 @@ fun Application.module() {
                 }) {
                     filter { eq("id", id) }
                     select()
-                    single()
-                }.decodeSingleOrNull<org.allaboard.project.TripRow>()
+                }.decodeList<org.allaboard.project.TripRow>().firstOrNull()
                 val updated = if (updatedRow != null) fetchTripWithMembers(id) else null
                 if (updated != null) call.respond(updated)
                 else call.respond(HttpStatusCode.NotFound, "Trip not found")
