@@ -1,5 +1,8 @@
 package org.allaboard.project.domain
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Trip(
     val id: String,
     val title: String,
@@ -14,6 +17,7 @@ data class Trip(
     val memberCount: Int get() = members.size
 }
 
+@Serializable
 enum class TripStatus {
     UPCOMING,
     ONGOING,

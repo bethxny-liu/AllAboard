@@ -74,8 +74,7 @@ internal class AllAboardModelTest {
     @Test
     fun getUpcomingTrips_returnsOnlyUpcoming() = runBlocking {
         val model = createModel()
-        model.setCurrentUser("user-1")
-        val upcoming = model.getUpcomingTrips("user-1")
+        val upcoming = model.getUpcomingTrips()
         assertTrue(upcoming.isNotEmpty())
         assertEquals(1, upcoming.size)
         assertEquals(TripStatus.UPCOMING, upcoming.first().status)
@@ -85,8 +84,7 @@ internal class AllAboardModelTest {
     @Test
     fun getPastTrips_returnsOnlyCompleted() = runBlocking {
         val model = createModel()
-        model.setCurrentUser("user-1")
-        val past = model.getPastTrips("user-1")
+        val past = model.getPastTrips()
         assertTrue(past.isNotEmpty())
         assertEquals(1, past.size)
         assertEquals(TripStatus.COMPLETED, past.first().status)
@@ -106,7 +104,7 @@ internal class AllAboardModelTest {
     @Test
     fun getAllTripsForUser_returnsTripsForUser() = runBlocking {
         val model = createModel()
-        val trips = model.getAllTripsForUser("user-1")
+        val trips = model.getAllTripsForUser()
         assertTrue(trips.isNotEmpty())
         assertTrue(trips.any { it.id == "trip-1" })
     }

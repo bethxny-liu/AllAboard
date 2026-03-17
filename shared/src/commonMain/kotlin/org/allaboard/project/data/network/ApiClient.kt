@@ -73,6 +73,14 @@ object ApiClient {
         }.body()
     }
 
+    /** Use for POST requests with no body (e.g. join trip). Server may return 200/204 or empty body. */
+    suspend fun postNoBody(path: String) {
+        client.post {
+            url(path)
+            authHeaderOrNull()?.let { header(HttpHeaders.Authorization, it) }
+        }.body<String>()
+    }
+
     suspend inline fun <reified Req : Any, reified Res> put(path: String, body: Req): Res {
         return client.put {
             url(path)
@@ -94,5 +102,13 @@ object ApiClient {
             url(path)
             authHeaderOrNull()?.let { header(HttpHeaders.Authorization, it) }
         }.body()
+    }
+
+    suspend fun deleteNoBody(path: String) {
+        val response = client.delete {
+            url(path)
+            authHeaderOrNull()?.let { header(HttpHeaders.Authorization, it) }
+        }
+        if (response.status.value != 204) response.body<String>()
     }
 }

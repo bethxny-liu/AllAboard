@@ -44,11 +44,9 @@ class MockTripRepository : TripRepository {
         return trips.find { it.id == tripId }
     }
 
-    override suspend fun getTripsForUser(userId: String): List<Trip> {
+    override suspend fun getTripsForUser(): List<Trip> {
         delay(100)
-        return trips.filter { trip ->
-            trip.members.any { it.id == userId }
-        }
+        return trips.toList()
     }
 
     override suspend fun createTrip(trip: Trip): Trip {

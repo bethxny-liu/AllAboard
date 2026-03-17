@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.datetime.todayIn
 
 /**
  * Thin coordinator layer for the frontend.
@@ -61,16 +62,20 @@ class AllAboardModel(
         return tripRepository.getTrip(tripId)
     }
 
-    suspend fun getAllTripsForUser(userId: String): List<Trip> {
-        return tripRepository.getTripsForUser(userId)
+    suspend fun getAllTripsForUser(): List<Trip> {
+        return tripRepository.getTripsForUser()
     }
 
-    suspend fun getUpcomingTrips(userId: String): List<Trip> {
-        return getAllTripsForUser(userId).filter { it.status == TripStatus.UPCOMING }
+    /** Upcoming = trip has not ended yet (endDate >= today). Ignores TripStatus since it doesn't auto-update. */
+    suspend fun getUpcomingTrips(): List<Trip> {
+        val today = kotlinx.datetime.Clock.System.todayIn(kotlinx.datetime.TimeZone.UTC).toString()
+        return getAllTripsForUser().filter { it.endDate >= today }
     }
 
-    suspend fun getPastTrips(userId: String): List<Trip> {
-        return getAllTripsForUser(userId).filter { it.status == TripStatus.COMPLETED }
+    /** Past = trip has ended (endDate < today). Ignores TripStatus since it doesn't auto-update. */
+    suspend fun getPastTrips(): List<Trip> {
+        val today = kotlinx.datetime.Clock.System.todayIn(kotlinx.datetime.TimeZone.UTC).toString()
+        return getAllTripsForUser().filter { it.endDate < today }
     }
 
     suspend fun createTrip(
@@ -123,6 +128,11 @@ class AllAboardModel(
 
     fun getTripInviteLink(tripId: String): String {
         return "AllAboard.ca/join/$tripId"
+    }
+
+    suspend fun deleteTrip(tripId: String) {
+        tripRepository.deleteTrip(tripId)
+        _events.emit(tripId)
     }
 
     // ========================================

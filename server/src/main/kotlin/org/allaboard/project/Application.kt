@@ -14,7 +14,9 @@ import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
 import org.allaboard.project.auth.configureAuth
 import org.allaboard.project.auth.userId
+import org.allaboard.project.domain.Trip
 import org.allaboard.project.domain.User
+import org.allaboard.project.fetchTripWithMembers
 
 fun main() {
     // Eagerly initialise the Supabase client so .env errors surface immediately
@@ -82,6 +84,168 @@ fun Application.module() {
                 } else {
                     call.respond(HttpStatusCode.InternalServerError, "User not found after update")
                 }
+            }
+
+            // ── Trip routes (JWT required; current user from token) ─────────
+            get("/trips") {
+                val userId = call.userId
+                val memberRows = SupabaseConfig.client.from("trip_members")
+                    .select { filter { eq("user_id", userId) } }
+                    .decodeList<org.allaboard.project.TripMemberRow>()
+                val tripIds = memberRows.map { it.tripId }.distinct()
+                val trips = tripIds.mapNotNull { fetchTripWithMembers(it) }
+                call.respond(trips)
+            }
+            get("/trips/{id}") {
+                val id = call.parameters["id"] ?: run {
+                    call.respond(HttpStatusCode.BadRequest, "Missing trip id")
+                    return@get
+                }
+                val trip = fetchTripWithMembers(id)
+                if (trip == null) {
+                    call.respond(HttpStatusCode.NotFound, "Trip not found")
+                    return@get
+                }
+                call.respond(trip)
+            }
+            post("/trips") {
+                val userId = call.userId
+                val trip = call.receive<Trip>()
+                val insert = org.allaboard.project.TripInsert(
+                    title = trip.title,
+                    destination = trip.destination,
+                    region = trip.region,
+                    startDate = trip.startDate,
+                    endDate = trip.endDate,
+                    imageUrl = trip.imageUrl,
+                    status = trip.status,
+                    createdBy = userId
+                )
+                val created = SupabaseConfig.client.from("trips").insert(insert) {
+                    select()
+                }.decodeList<org.allaboard.project.TripRow>().firstOrNull()
+                if (created == null) {
+                    call.respond(HttpStatusCode.InternalServerError, "Trip created but not found")
+                    return@post
+                }
+                SupabaseConfig.client.from("trip_members").insert(
+                    org.allaboard.project.TripMemberRow(tripId = created.id, userId = userId, role = "OWNER")
+                )
+                val withMembers = fetchTripWithMembers(created.id)
+                call.respond(withMembers ?: Trip(
+                    id = created.id,
+                    title = created.title,
+                    destination = created.destination,
+                    region = created.region ?: "",
+                    startDate = created.startDate,
+                    endDate = created.endDate,
+                    imageUrl = created.imageUrl,
+                    status = created.status,
+                    members = emptyList()
+                ))
+            }
+            patch("/trips/{id}") {
+                val id = call.parameters["id"] ?: run {
+                    call.respond(HttpStatusCode.BadRequest, "Missing trip id")
+                    return@patch
+                }
+                val body = call.receive<Trip>()
+                if (body.id != id) {
+                    call.respond(HttpStatusCode.BadRequest, "Trip id mismatch")
+                    return@patch
+                }
+                val updatedRow = SupabaseConfig.client.from("trips").update({
+                    set("title", body.title)
+                    set("destination", body.destination)
+                    set("region", body.region)
+                    set("start_date", body.startDate)
+                    set("end_date", body.endDate)
+                    set("image_url", body.imageUrl)
+                    set("status", body.status.name)
+                }) {
+                    filter { eq("id", id) }
+                    select()
+                }.decodeList<org.allaboard.project.TripRow>().firstOrNull()
+                val updated = if (updatedRow != null) fetchTripWithMembers(id) else null
+                if (updated != null) call.respond(updated)
+                else call.respond(HttpStatusCode.NotFound, "Trip not found")
+            }
+            delete("/trips/{id}") {
+                val id = call.parameters["id"] ?: run {
+                    call.respond(HttpStatusCode.BadRequest, "Missing trip id")
+                    return@delete
+                }
+
+                val userId = call.userId
+                val existing = SupabaseConfig.client.from("trips")
+                    .select { filter { eq("id", id) } }
+                    .decodeList<org.allaboard.project.TripRow>()
+                    .firstOrNull()
+
+                if (existing == null) {
+                    call.respond(HttpStatusCode.NotFound, "Trip not found")
+                    return@delete
+                }
+
+                if (existing.createdBy != userId) {
+                    call.respond(HttpStatusCode.Forbidden, "Only the trip owner can delete this trip")
+                    return@delete
+                }
+
+                SupabaseConfig.client.from("trips").delete {
+                    filter { eq("id", id) }
+                }
+
+                val remaining = SupabaseConfig.client.from("trips")
+                    .select { filter { eq("id", id) } }
+                    .decodeList<org.allaboard.project.TripRow>()
+                    .firstOrNull()
+
+                if (remaining != null) {
+                    call.respond(HttpStatusCode.InternalServerError, "Trip deletion failed")
+                    return@delete
+                }
+
+                call.respond(HttpStatusCode.NoContent)
+            }
+            post("/trips/{id}/join") {
+                val tripId = call.parameters["id"] ?: run {
+                    call.respond(HttpStatusCode.BadRequest, "Missing trip id")
+                    return@post
+                }
+                val userId = call.userId
+                val inserted = runCatching {
+                    SupabaseConfig.client.from("trip_members").insert(
+                        org.allaboard.project.TripMemberRow(tripId = tripId, userId = userId, role = "MEMBER")
+                    ) {
+                        select()
+                        single()
+                    }.decodeSingleOrNull<org.allaboard.project.TripMemberRow>()
+                }.getOrNull()
+                if (inserted == null) {
+                    call.respond(HttpStatusCode.Conflict, "Already a member or trip not found")
+                    return@post
+                }
+                call.respond(HttpStatusCode.OK)
+            }
+            delete("/trips/{id}/members/{userId}") {
+                val tripId = call.parameters["id"] ?: run {
+                    call.respond(HttpStatusCode.BadRequest, "Missing trip id")
+                    return@delete
+                }
+                val userId = call.parameters["userId"] ?: run {
+                    call.respond(HttpStatusCode.BadRequest, "Missing user id")
+                    return@delete
+                }
+                val deleted = SupabaseConfig.client.from("trip_members").delete {
+                    filter { eq("trip_id", tripId); eq("user_id", userId) }
+                    select()
+                }.decodeList<org.allaboard.project.TripMemberRow>()
+                if (deleted.isEmpty()) {
+                    call.respond(HttpStatusCode.NotFound, "Membership not found")
+                    return@delete
+                }
+                call.respond(HttpStatusCode.NoContent)
             }
         }
     }
