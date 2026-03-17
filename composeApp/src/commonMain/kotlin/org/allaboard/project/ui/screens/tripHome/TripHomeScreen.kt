@@ -113,7 +113,7 @@ class TripHomeScreen(private val tripId: String) : Screen {
             },
             onDeleteTrip = { showDeleteDialog = true },
             onCreateCustomActivity = { navigator?.push(CreateCustomActivityScreen(tripNonNull.id)) },
-            onActivitySelected = { activity -> navigator?.push(ActivityDetailsScreen(activity, activity.id)) },
+            onActivitySelected = { activity -> navigator?.push(ActivityDetailsScreen(tripId = tripNonNull.id, activity = activity, fallbackActivityId = activity.id)) },
             onViewItinerary = { navigator?.push(ItineraryScreen(tripNonNull.id)) }
         )
 

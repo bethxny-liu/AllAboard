@@ -18,14 +18,26 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,6 +54,8 @@ import org.allaboard.project.di.AppModule
 import org.allaboard.project.domain.Activity
 import org.allaboard.project.ui.components.NetworkImage
 import org.allaboard.project.ui.components.ScreenTopBar
+import org.allaboard.project.ui.components.TitleAlignment
+import org.allaboard.project.ui.screens.createActivity.CreateCustomActivityScreen
 import org.allaboard.project.ui.theme.BluePrimary
 import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextPrimary
@@ -52,6 +66,7 @@ import org.allaboard.project.ui.theme.TextSecondary
  * description (with see more/less), and map section. Opened from trip home activity cards.
  */
 class ActivityDetailsScreen(
+    private val tripId: String,
     private val activity: Activity? = null,
     private val fallbackActivityId: String,
 ) : Screen {
@@ -62,18 +77,49 @@ class ActivityDetailsScreen(
         val viewModel: ActivityDetailsViewModel = viewModel {
             ActivityDetailsViewModel(
                 model = AppModule.allAboardModel,
+                tripId = tripId,
                 initialActivity = activity,
                 activityId = fallbackActivityId
             )
         }
         val uiState by viewModel.uiState.collectAsState()
+        var showDeleteDialog by remember { mutableStateOf(false) }
 
+        LaunchedEffect(uiState.activityDeleted) {
+            if (uiState.activityDeleted) navigator?.pop()
+        }
 
         ActivityDetailsContent(
             uiState = uiState,
             onBack = { navigator?.pop() },
-            onSeeMoreClick = viewModel::toggleDescriptionExpanded
+            onSeeMoreClick = viewModel::toggleDescriptionExpanded,
+            onEditClick = {
+                val a = uiState.activity ?: return@ActivityDetailsContent
+                navigator?.push(CreateCustomActivityScreen(tripId = tripId, existingActivity = a))
+            },
+            onDeleteClick = { showDeleteDialog = true }
         )
+
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text("Delete activity?") },
+                text = { Text("This activity will be permanently removed from the trip.") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewModel.deleteActivity()
+                        showDeleteDialog = false
+                    }) {
+                        Text("Delete", color = Color.Red)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text("Cancel", color = TextPrimary)
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -83,15 +129,60 @@ private const val DESCRIPTION_SEE_MORE_THRESHOLD = 120
 private fun ActivityDetailsContent(
     uiState: ActivityDetailsUiState,
     onBack: () -> Unit,
-    onSeeMoreClick: () -> Unit
+    onSeeMoreClick: () -> Unit,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit
 ) {
     val activity = uiState.activity
+    var menuExpanded by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Surface)
     ) {
-        ScreenTopBar(title = "Activity Details", onBack = onBack)
+        ScreenTopBar(
+            title = "Activity Details",
+            onBack = onBack,
+            titleAlignment = TitleAlignment.Left,
+            trailingContent = if (activity != null) {
+                {
+                    Box {
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(
+                                imageVector = Icons.Outlined.MoreVert,
+                                contentDescription = "More options",
+                                tint = TextPrimary
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Edit", color = TextPrimary) },
+                                onClick = {
+                                    menuExpanded = false
+                                    onEditClick()
+                                },
+                                leadingIcon = {
+                                    Icon(Icons.Outlined.Edit, contentDescription = null, tint = TextPrimary)
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Delete", color = Color.Red) },
+                                onClick = {
+                                    menuExpanded = false
+                                    onDeleteClick()
+                                },
+                                leadingIcon = {
+                                    Icon(Icons.Outlined.Delete, contentDescription = null, tint = Color.Red)
+                                }
+                            )
+                        }
+                    }
+                }
+            } else null
+        )
 
         when {
             activity == null && !uiState.isLoading -> {

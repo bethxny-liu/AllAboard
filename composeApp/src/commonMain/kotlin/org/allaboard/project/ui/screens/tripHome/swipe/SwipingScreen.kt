@@ -81,7 +81,7 @@ class SwipingScreen(private val tripId: String) : Screen {
             vote = viewModel::vote,
             onCategorySelected = viewModel::onCategorySelected,
             onLearnMore = { activity ->
-                navigator?.push(ActivityDetailsScreen(activity, activity.id))
+                navigator?.push(ActivityDetailsScreen(tripId = tripId, activity = activity, fallbackActivityId = activity.id))
             },
             onAllDone = {
                 // Replace the screen so it gets destroyed - fresh data will load next time

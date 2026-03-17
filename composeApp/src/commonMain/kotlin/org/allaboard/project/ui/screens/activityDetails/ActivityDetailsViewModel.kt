@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import org.allaboard.project.domain.Activity
 import org.allaboard.project.domain.AllAboardModel
@@ -16,11 +17,14 @@ data class ActivityDetailsUiState(
     val activity: Activity? = null,
     val descriptionExpanded: Boolean = false,
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    /** When true, the screen should navigate back (activity was deleted). */
+    val activityDeleted: Boolean = false
 )
 
 class ActivityDetailsViewModel(
     private val model: AllAboardModel,
+    private val tripId: String,
     private val initialActivity: Activity? = null,
     private val activityId: String
 ) : ViewModel() {
@@ -30,10 +34,12 @@ class ActivityDetailsViewModel(
 
     init {
         loadDetails()
+        viewModelScope.launch {
+            model.events.filter { it == tripId }.collect { refresh() }
+        }
     }
 
     private fun loadDetails() {
-        // If an Activity is provided, use it directly
         if (initialActivity != null) {
             _uiState.value = _uiState.value.copy(
                 activity = initialActivity,
@@ -41,28 +47,31 @@ class ActivityDetailsViewModel(
                 error = null
             )
         } else {
-            // Otherwise, fetch from the model using the activityId
-            viewModelScope.launch {
-                try {
-                    val activity = model.getActivity(activityId)
-                    if (activity != null) {
-                        _uiState.value = _uiState.value.copy(
-                            activity = activity,
-                            isLoading = false,
-                            error = null
-                        )
-                    } else {
-                        _uiState.value = _uiState.value.copy(
-                            isLoading = false,
-                            error = "Activity not found"
-                        )
-                    }
-                } catch (e: Exception) {
+            fetchActivity()
+        }
+    }
+
+    private fun fetchActivity() {
+        viewModelScope.launch {
+            try {
+                val activity = model.getActivity(activityId)
+                if (activity != null) {
+                    _uiState.value = _uiState.value.copy(
+                        activity = activity,
+                        isLoading = false,
+                        error = null
+                    )
+                } else {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = e.message ?: "Failed to load activity"
+                        error = "Activity not found"
                     )
                 }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "Failed to load activity"
+                )
             }
         }
     }
@@ -75,6 +84,19 @@ class ActivityDetailsViewModel(
 
     fun refresh() {
         _uiState.value = _uiState.value.copy(isLoading = true)
-        loadDetails()
+        fetchActivity()
+    }
+
+    fun deleteActivity() {
+        viewModelScope.launch {
+            try {
+                model.deleteActivity(activityId, tripId)
+                _uiState.value = _uiState.value.copy(activityDeleted = true)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = e.message ?: "Failed to delete activity"
+                )
+            }
+        }
     }
 }

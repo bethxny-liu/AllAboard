@@ -173,6 +173,16 @@ class AllAboardModel(
         return activity
     }
 
+    suspend fun updateActivity(activity: Activity, tripId: String) {
+        activityRepository.updateActivity(activity)
+        _events.emit(tripId)
+    }
+
+    suspend fun deleteActivity(activityId: String, tripId: String) {
+        activityRepository.deleteActivity(activityId)
+        _events.emit(tripId)
+    }
+
     // ========================================
     // VOTING OPERATIONS
     // Backend computes all vote logic - we just delegate

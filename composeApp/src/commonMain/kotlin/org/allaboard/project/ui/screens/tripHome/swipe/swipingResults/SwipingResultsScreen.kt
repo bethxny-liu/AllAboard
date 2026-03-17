@@ -50,7 +50,7 @@ class SwipingResultsScreen(
             onBack = { navigator?.pop() },
             onCategorySelected = viewModel::onCategorySelected,
             onActivityClick = { result ->
-                navigator?.push(ActivityDetailsScreen(activity = result.activity, fallbackActivityId = result.activity.id))
+                navigator?.push(ActivityDetailsScreen(tripId = tripId, activity = result.activity, fallbackActivityId = result.activity.id))
             }
         )
     }
