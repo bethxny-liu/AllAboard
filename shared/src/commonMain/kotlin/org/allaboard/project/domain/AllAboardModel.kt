@@ -10,8 +10,6 @@ import org.allaboard.project.data.repository.TripRepository
 import org.allaboard.project.data.repository.UserRepository
 import org.allaboard.project.data.repository.VoteRepository
 import kotlin.random.Random
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -290,21 +288,5 @@ class AllAboardModel(
             votingResults = votingResults,
             itinerary = itinerary
         )
-    }
-
-    // ========================================
-    // HELPERS
-    // ========================================
-
-    private fun generateId(): String {
-        val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-        return (1..20).map { chars[Random.nextInt(chars.length)] }.joinToString("")
-    }
-    
-    @OptIn(ExperimentalUuidApi::class)
-    private fun generateUuidV4(): String = Uuid.random().toString()
-
-    private fun currentTimeMillis(): Long {
-        return kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
     }
 }

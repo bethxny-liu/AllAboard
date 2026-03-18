@@ -22,9 +22,7 @@ data class TripRow(
     @SerialName("end_date") val endDate: String,
     @SerialName("image_url") val imageUrl: String? = null,
     val status: TripStatus = TripStatus.UPCOMING,
-    @SerialName("created_by") val createdBy: String? = null,
-    @SerialName("created_at") val createdAt: String? = null,
-    @SerialName("updated_at") val updatedAt: String? = null
+    @SerialName("created_by") val createdBy: String? = null
 )
 
 /** Payload for inserting a new trip (no id — DB generates it). */
@@ -46,8 +44,7 @@ data class TripMemberRow(
     val id: String? = null,
     @SerialName("trip_id") val tripId: String,
     @SerialName("user_id") val userId: String,
-    val role: String = "MEMBER",
-    @SerialName("joined_at") val joinedAt: String? = null
+    val role: String = "MEMBER"
 )
 
 /** Fetches a single trip by id with members, or null if not found. */

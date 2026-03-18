@@ -26,9 +26,7 @@ data class Activity(
     @SerialName("image_url") val imageUrl: String? = null,
     val link: String? = null,
     @SerialName("activity_type") val type: ActivityType,
-    @SerialName("added_by") val addedBy: String? = null,
-    @SerialName("created_at") val createdAt: String? = null,
-    @SerialName("updated_at") val updatedAt: String? = null,
+    @SerialName("added_by") val addedBy: String? = null
 ) {
     val mapPinDisplay: String get() = mapPinLabel?.takeIf { it.isNotBlank() } ?: title
 }
