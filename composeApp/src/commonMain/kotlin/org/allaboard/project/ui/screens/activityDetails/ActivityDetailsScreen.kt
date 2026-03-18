@@ -282,15 +282,16 @@ private fun ActivityDetailsContent(
 
                         // Description with "see more"
                         val descLines = if (uiState.descriptionExpanded) Int.MAX_VALUE else 4
+                        val desc = activity.description ?: ""
                         Text(
-                            text = activity.description,
+                            text = desc,
                             style = MaterialTheme.typography.bodyMedium,
                             color = TextPrimary,
                             lineHeight = 22.sp,
                             maxLines = descLines,
                             overflow = TextOverflow.Ellipsis
                         )
-                        if (!uiState.descriptionExpanded && activity.description.length > DESCRIPTION_SEE_MORE_THRESHOLD) {
+                        if (!uiState.descriptionExpanded && desc.length > DESCRIPTION_SEE_MORE_THRESHOLD) {
                             Text(
                                 text = "see more",
                                 style = MaterialTheme.typography.bodyMedium,
@@ -313,7 +314,7 @@ private fun ActivityDetailsContent(
                         Spacer(Modifier.height(32.dp))
 
                         // Map section
-                        MapPlaceholder(pinLabel = activity.mapPinLabel)
+                        MapPlaceholder(pinLabel = activity.mapPinDisplay)
                     }
                 }
             }

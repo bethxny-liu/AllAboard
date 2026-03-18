@@ -18,7 +18,6 @@ import org.allaboard.project.domain.Activity
 import org.allaboard.project.domain.Trip
 import org.allaboard.project.domain.User
 import org.allaboard.project.fetchTripWithMembers
-import org.allaboard.project.toActivity
 
 fun main() {
     // Eagerly initialise the Supabase client so .env errors surface immediately
@@ -258,13 +257,13 @@ fun Application.module() {
                 }
                 val rows = SupabaseConfig.client.from("activities")
                     .select { filter { eq("id", id) } }
-                    .decodeList<org.allaboard.project.ActivityRow>()
-                val row = rows.firstOrNull()
-                if (row == null) {
+                    .decodeList<Activity>()
+                val activity = rows.firstOrNull()
+                if (activity == null) {
                     call.respond(HttpStatusCode.NotFound, "Activity not found")
                     return@get
                 }
-                call.respond(row.toActivity())
+                call.respond(activity)
             }
             get("/trips/{id}/activities") {
                 val tripId = call.parameters["id"] ?: run {
@@ -273,17 +272,12 @@ fun Application.module() {
                 }
                 val rows = SupabaseConfig.client.from("activities")
                     .select { filter { eq("trip_id", tripId) } }
-                    .decodeList<org.allaboard.project.ActivityRow>()
-                call.respond(rows.map { it.toActivity() })
+                    .decodeList<Activity>()
+                call.respond(rows)
             }
             post("/trips/{id}/activities") {
                 val tripId = call.parameters["id"] ?: run {
                     call.respond(HttpStatusCode.BadRequest, "Missing trip id")
-                    return@post
-                }
-                val trip = fetchTripWithMembers(tripId)
-                if (trip == null) {
-                    call.respond(HttpStatusCode.NotFound, "Trip not found")
                     return@post
                 }
                 val userId = call.userId
@@ -293,20 +287,23 @@ fun Application.module() {
                     tripId = tripId,
                     title = body.title,
                     location = body.location,
-                    description = body.description,
+                    description = body.description ?: "",
                     rating = body.rating,
                     priceLevel = body.priceLevel,
+                    mapPinLabel = body.mapPinLabel?.takeIf { it.isNotBlank() },
+                    imageUrl = body.imageUrl,
+                    link = body.link,
                     type = body.type,
                     addedBy = userId
                 )
                 val created = SupabaseConfig.client.from("activities").insert(insert) {
                     select()
-                }.decodeList<org.allaboard.project.ActivityRow>().firstOrNull()
+                }.decodeList<Activity>().firstOrNull()
                 if (created == null) {
                     call.respond(HttpStatusCode.InternalServerError, "Activity created but not found")
                     return@post
                 }
-                call.respond(created.toActivity())
+                call.respond(created.copy(voteCount = body.voteCount))
             }
             patch("/activities/{id}") {
                 val id = call.parameters["id"] ?: run {
@@ -321,16 +318,19 @@ fun Application.module() {
                 val updated = SupabaseConfig.client.from("activities").update({
                     set("title", body.title)
                     set("location", body.location)
-                    set("description", body.description)
+                    set("description", body.description ?: "")
                     set("rating", body.rating)
                     set("price_level", body.priceLevel)
+                    set("map_pin_label", body.mapPinLabel?.takeIf { it.isNotBlank() })
+                    set("image_url", body.imageUrl)
+                    set("link", body.link)
                     set("activity_type", body.type.name)
                 }) {
                     filter { eq("id", id) }
                     select()
-                }.decodeList<org.allaboard.project.ActivityRow>().firstOrNull()
+                }.decodeList<Activity>().firstOrNull()
                 if (updated != null) {
-                    call.respond(updated.toActivity())
+                    call.respond(updated.copy(voteCount = body.voteCount))
                 } else {
                     call.respond(HttpStatusCode.NotFound, "Activity not found")
                 }
@@ -343,7 +343,7 @@ fun Application.module() {
                 val deleted = SupabaseConfig.client.from("activities").delete {
                     filter { eq("id", id) }
                     select()
-                }.decodeList<org.allaboard.project.ActivityRow>()
+                }.decodeList<Activity>()
                 if (deleted.isEmpty()) {
                     call.respond(HttpStatusCode.NotFound, "Activity not found")
                     return@delete
