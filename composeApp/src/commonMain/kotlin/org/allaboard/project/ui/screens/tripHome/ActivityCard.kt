@@ -88,7 +88,7 @@ fun ActivityCard(
 
                 // Vote count
                 Text(
-                    text = "$voteCount Votes",
+                    text = "Total Votes: $voteCount",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Normal,
                     color = TextSecondary

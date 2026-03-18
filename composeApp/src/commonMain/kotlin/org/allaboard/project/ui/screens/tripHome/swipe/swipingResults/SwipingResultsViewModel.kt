@@ -56,6 +56,11 @@ class SwipingResultsViewModel(
         loadVotingResults()
     }
 
+    /** Call this when the screen re-appears to ensure results are up-to-date. */
+    fun refresh() {
+        loadVotingResults()
+    }
+
     private fun loadVotingResults() {
         _uiState.value = _uiState.value.copy(isLoading = true)
         viewModelScope.launch {

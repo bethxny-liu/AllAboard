@@ -84,7 +84,7 @@ class MockActivityRepository() : ActivityRepository {
     override suspend fun addActivity(tripId: String, activity: Activity) {
         delay(100)
         activities.add(activity)
-        tripActivities.getOrPut(tripId) { mutableListOf() }.add(activity.id)
+        activity.id?.let { tripActivities.getOrPut(tripId) { mutableListOf() }.add(it) }
     }
 
     override suspend fun updateActivity(activity: Activity) {

@@ -1,6 +1,7 @@
 package org.allaboard.project.di
 
 import org.allaboard.project.data.repository.ActivityRepository
+import org.allaboard.project.data.repository.ActivityRepositoryImpl
 import org.allaboard.project.data.repository.DatabaseRepositoryImpl
 import org.allaboard.project.data.repository.ItineraryRepository
 import org.allaboard.project.data.repository.SupabaseClientProvider
@@ -8,6 +9,7 @@ import org.allaboard.project.data.repository.TripRepository
 import org.allaboard.project.data.repository.UserRepository
 import org.allaboard.project.data.repository.UserRepositoryImpl
 import org.allaboard.project.data.repository.VoteRepository
+import org.allaboard.project.data.repository.VoteRepositoryImpl
 import org.allaboard.project.data.repository.mock.MockActivityRepository
 import org.allaboard.project.data.repository.mock.MockItineraryRepository
 import org.allaboard.project.data.repository.TripRepositoryImpl
@@ -33,19 +35,19 @@ object AppModule {
     private val mockTripRepository by lazy { MockTripRepository() }
     private val realTripRepository by lazy { TripRepositoryImpl() }
 
-    // Repositories with dependencies (simulate backend data access)
+    private val realActivityRepository by lazy { ActivityRepositoryImpl() }
     private val mockActivityRepository by lazy { MockActivityRepository() }
     private val mockVoteRepository by lazy {
         MockVoteRepository(mockActivityRepository, mockTripRepository)
     }
+    private val realVoteRepository by lazy { VoteRepositoryImpl() }
     private val mockItineraryRepository by lazy { MockItineraryRepository() }
 
     // Public interfaces
     val tripRepository: TripRepository get() = realTripRepository
-    val activityRepository: ActivityRepository get() = mockActivityRepository
-    val voteRepository: VoteRepository get() = mockVoteRepository
+    val activityRepository: ActivityRepository get() = realActivityRepository
+    val voteRepository: VoteRepository get() = realVoteRepository
     val userRepository: UserRepository get() = realUserRepository // Use real repo for auth-related calls
-    // val userRepository: UserRepository get() = mockUserRepository
     val itineraryRepository: ItineraryRepository get() = mockItineraryRepository
 
     // Model (Thin coordinator) - Shared across all ViewModels

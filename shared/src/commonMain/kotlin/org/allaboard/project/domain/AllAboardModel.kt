@@ -168,7 +168,6 @@ class AllAboardModel(
         link: String? = null
     ): Activity {
         val activity = Activity(
-            id = generateId(),
             title = title,
             location = location,
             description = description,
@@ -217,12 +216,10 @@ class AllAboardModel(
         voteType: VoteType
     ) {
         val vote = Vote(
-            id = generateId(),
             activityId = activityId,
             userId = userId,
             tripId = tripId,
-            voteType = voteType,
-            timestamp = currentTimeMillis()
+            voteType = voteType
         )
         voteRepository.submitVote(vote)
 
@@ -305,16 +302,4 @@ class AllAboardModel(
         )
     }
 
-    // ========================================
-    // HELPERS
-    // ========================================
-
-    private fun generateId(): String {
-        val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-        return (1..20).map { chars[Random.nextInt(chars.length)] }.joinToString("")
-    }
-
-    private fun currentTimeMillis(): Long {
-        return kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
-    }
 }

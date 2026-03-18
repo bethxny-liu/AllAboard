@@ -49,7 +49,7 @@ class CreateCustomActivityViewModel(
                 selectedCategoryIndex = index,
                 name = existingActivity.title,
                 location = existingActivity.location,
-                description = existingActivity.description,
+                description = existingActivity.description ?: "",
                 link = existingActivity.link ?: ""
             )
         } else {

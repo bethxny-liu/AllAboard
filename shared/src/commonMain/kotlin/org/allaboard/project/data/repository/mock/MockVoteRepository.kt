@@ -32,17 +32,6 @@ class MockVoteRepository(
         }.sortedByDescending { it.yesVotes }
     }
 
-    override suspend fun getVotingResultForActivity(tripId: String, activityId: String): ActivityVoteResult {
-        delay(50)
-        val trip = tripRepository.getTrip(tripId)
-        val activity = activityRepository.getActivity(activityId)
-
-        return if (trip != null && activity != null) {
-            computeVotingResult(trip, activity)
-        } else {
-            createEmptyResult(activityId)
-        }
-    }
 
     override suspend fun getVotedActivityIds(tripId: String, userId: String): Set<String> {
         delay(50)
