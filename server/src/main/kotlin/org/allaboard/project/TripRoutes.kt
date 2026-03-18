@@ -38,9 +38,10 @@ data class TripInsert(
     @SerialName("created_by") val createdBy: String? = null
 )
 
-/** DB row shape for trip_members table. */
+/** DB row shape for `public.trip_members` (`id` / `joined_at` from DB defaults on insert). */
 @Serializable
 data class TripMemberRow(
+    val id: String? = null,
     @SerialName("trip_id") val tripId: String,
     @SerialName("user_id") val userId: String,
     val role: String = "MEMBER"
