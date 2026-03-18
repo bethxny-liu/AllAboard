@@ -112,6 +112,7 @@ fun Application.module() {
                 val userId = call.userId
                 val trip = call.receive<Trip>()
                 val insert = org.allaboard.project.TripInsert(
+                    id = trip.id.takeIf { it.isNotBlank() },
                     title = trip.title,
                     destination = trip.destination,
                     region = trip.region,

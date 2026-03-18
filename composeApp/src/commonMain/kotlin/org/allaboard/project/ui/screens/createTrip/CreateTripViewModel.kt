@@ -6,16 +6,14 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 import org.allaboard.project.domain.AllAboardModel
 import org.allaboard.project.domain.Trip
 import org.allaboard.project.domain.User
 
-enum class InviteStatus { Joined, Invited }
-
 data class CrewMemberUi(
     val id: String,
-    val name: String,
-    val status: InviteStatus
+    val name: String
 )
 
 data class CreateTripUiState(
@@ -25,10 +23,11 @@ data class CreateTripUiState(
     val startDate: String = "",
     val endDate: String = "",
     val dateRange: String = "",
-    val peopleCount: Int = 1,
+    val tripBackgroundUrl: String = "",
     val tripId: String? = null,
     val isEditMode: Boolean = false,
     val isLoading: Boolean = false,
+    val currentUserId: String? = null,
 
     // Group info (Step 1)
     val crew: List<CrewMemberUi> = emptyList(),
@@ -81,30 +80,40 @@ class CreateTripViewModel(
         )
     }
 
-    fun incPeople() {
-        uiState = uiState.copy(peopleCount = uiState.peopleCount + 1)
-    }
-
-    fun decPeople() {
-        val newCount = (uiState.peopleCount - 1).coerceAtLeast(1)
-        uiState = uiState.copy(peopleCount = newCount)
+    fun updateTripBackgroundUrl(v: String) {
+        uiState = uiState.copy(tripBackgroundUrl = v)
     }
 
     // Group actions (Step 1)
-    fun onAddFriend() {
-        // TODO: open add-friend flow
-        // For now: example behavior: add a fake invited member
-        val nextId = (uiState.crew.size + 1).toString()
-        val newMember = CrewMemberUi(
-            id = nextId,
-            name = "Friend $nextId",
-            status = InviteStatus.Invited
-        )
-        uiState = uiState.copy(crew = uiState.crew + newMember)
+    fun onCopyLink(copyToClipboard: (String) -> Unit) {
+        val tripId = uiState.tripId
+            ?.trim()
+            ?.takeIf { it.isNotBlank() }
+            ?: uiState.inviteLink
+                .substringAfterLast("/")
+                .substringBefore("?")
+                .trim()
+                .takeIf { it.isNotBlank() }
+
+        if (tripId != null) {
+            copyToClipboard(tripId)
+        }
     }
 
-    fun onCopyLink() {
-        // TODO: copy to clipboard
+    fun onKickMember(memberId: String) {
+        val tripId = uiState.tripId ?: return
+        viewModelScope.launch {
+            try {
+                allAboardModel.removeMemberFromTrip(tripId, memberId)
+                val updatedTrip = allAboardModel.getTrip(tripId)
+                if (updatedTrip != null) {
+                    uiState = uiState.copy(
+                        crew = updatedTrip.members.map { it.toCrewMemberUi() }
+                    )
+                }
+            } catch (_: Throwable) {
+            }
+        }
     }
 
     fun onCreateTrip() {
@@ -137,7 +146,9 @@ class CreateTripViewModel(
                             region = region,
                             startDate = startDate,
                             endDate = endDate,
-                            creatorId = currentUser.id
+                            imageUrl = state.tripBackgroundUrl.trim().ifBlank { null },
+                            creatorId = currentUser.id,
+                            tripId = state.tripId
                         )
 
                         uiState = uiState.copy(
@@ -154,7 +165,8 @@ class CreateTripViewModel(
                             destination = destination,
                             region = region,
                             startDate = startDate,
-                            endDate = endDate
+                            endDate = endDate,
+                            imageUrl = state.tripBackgroundUrl.trim().ifBlank { null }
                         ) ?: error("Trip not found")
 
                         uiState = uiState.copy(
@@ -163,6 +175,7 @@ class CreateTripViewModel(
                             startDate = updatedTrip.startDate,
                             endDate = updatedTrip.endDate,
                             dateRange = formatDateRange(updatedTrip.startDate, updatedTrip.endDate),
+                            tripBackgroundUrl = updatedTrip.imageUrl.orEmpty(),
                             inviteLink = allAboardModel.getTripInviteLink(updatedTrip.id),
                             isCreatingTrip = false
                         )
@@ -183,17 +196,18 @@ class CreateTripViewModel(
         uiState = uiState.copy(isLoading = true, error = null, isEditMode = false)
         viewModelScope.launch {
             val currentUser = allAboardModel.getCurrentUser()
-            val crew = currentUser?.let { listOf(it.toCrewMemberUi(InviteStatus.Joined)) } ?: emptyList()
+            val crew = currentUser?.let { listOf(it.toCrewMemberUi()) } ?: emptyList()
             uiState = CreateTripUiState(
                 country = "",
                 region = "",
                 startDate = "",
                 endDate = "",
                 dateRange = "",
-                peopleCount = crew.size.coerceAtLeast(1),
-                tripId = null,
+                tripBackgroundUrl = "",
+                tripId = generateUuidV4(),
                 isEditMode = false,
                 isLoading = false,
+                currentUserId = currentUser?.id,
                 crew = crew,
                 inviteLink = "",
                 isCreatingTrip = false,
@@ -214,9 +228,11 @@ class CreateTripViewModel(
         uiState = uiState.copy(isLoading = true, error = null, isEditMode = true)
         viewModelScope.launch {
             try {
+                val currentUser = allAboardModel.getCurrentUser()
                 val trip = allAboardModel.getTrip(tripId) ?: error("Trip not found")
                 uiState = trip.toUiStateForEdit(
-                    inviteLink = allAboardModel.getTripInviteLink(trip.id)
+                    inviteLink = allAboardModel.getTripInviteLink(trip.id),
+                    currentUserId = currentUser?.id
                 )
             } catch (t: Throwable) {
                 uiState = CreateTripUiState(
@@ -237,34 +253,53 @@ class CreateTripViewModel(
         return start to (end.ifBlank { start })
     }
 
-    private fun Trip.toUiStateForEdit(inviteLink: String): CreateTripUiState {
+    private fun Trip.toUiStateForEdit(inviteLink: String, currentUserId: String?): CreateTripUiState {
         return CreateTripUiState(
             country = destination,
             region = region,
             startDate = startDate,
             endDate = endDate,
             dateRange = formatDateRange(startDate, endDate),
-            peopleCount = memberCount.coerceAtLeast(1),
+            tripBackgroundUrl = imageUrl.orEmpty(),
             tripId = id,
             isEditMode = true,
             isLoading = false,
-            crew = members.map { it.toCrewMemberUi(InviteStatus.Joined) },
+            currentUserId = currentUserId,
+            crew = members.map { it.toCrewMemberUi() },
             inviteLink = inviteLink,
             isCreatingTrip = false,
             error = null
         )
     }
 
-    private fun User.toCrewMemberUi(status: InviteStatus): CrewMemberUi {
+    private fun User.toCrewMemberUi(): CrewMemberUi {
         return CrewMemberUi(
             id = id,
-            name = displayName,
-            status = status
+            name = displayName
         )
     }
 
     private fun formatDateRange(startDate: String, endDate: String): String {
         if (startDate.isBlank()) return ""
         return if (endDate.isBlank() || endDate == startDate) startDate else "$startDate - $endDate"
+    }
+
+    private fun generateUuidV4(): String {
+        val bytes = Random.Default.nextBytes(16)
+        bytes[6] = ((bytes[6].toInt() and 0x0F) or 0x40).toByte()
+        bytes[8] = ((bytes[8].toInt() and 0x3F) or 0x80).toByte()
+
+        val hex = bytes.joinToString("") { b -> (b.toInt() and 0xFF).toString(16).padStart(2, '0') }
+        return buildString(36) {
+            append(hex.substring(0, 8))
+            append('-')
+            append(hex.substring(8, 12))
+            append('-')
+            append(hex.substring(12, 16))
+            append('-')
+            append(hex.substring(16, 20))
+            append('-')
+            append(hex.substring(20, 32))
+        }
     }
 }
