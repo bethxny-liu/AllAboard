@@ -8,6 +8,7 @@ import org.allaboard.project.data.repository.TripRepository
 import org.allaboard.project.data.repository.UserRepository
 import org.allaboard.project.data.repository.UserRepositoryImpl
 import org.allaboard.project.data.repository.VoteRepository
+import org.allaboard.project.data.repository.VoteRepositoryImpl
 import org.allaboard.project.data.repository.mock.MockActivityRepository
 import org.allaboard.project.data.repository.mock.MockItineraryRepository
 import org.allaboard.project.data.repository.TripRepositoryImpl
@@ -38,12 +39,13 @@ object AppModule {
     private val mockVoteRepository by lazy {
         MockVoteRepository(mockActivityRepository, mockTripRepository)
     }
+    private val realVoteRepository by lazy { VoteRepositoryImpl() }
     private val mockItineraryRepository by lazy { MockItineraryRepository() }
 
     // Public interfaces
     val tripRepository: TripRepository get() = realTripRepository
     val activityRepository: ActivityRepository get() = mockActivityRepository
-    val voteRepository: VoteRepository get() = mockVoteRepository
+    val voteRepository: VoteRepository get() = realVoteRepository
     val userRepository: UserRepository get() = realUserRepository // Use real repo for auth-related calls
     // val userRepository: UserRepository get() = mockUserRepository
     val itineraryRepository: ItineraryRepository get() = mockItineraryRepository

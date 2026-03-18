@@ -27,15 +27,13 @@ internal class VoteTest {
             activityId = "a1",
             userId = "u1",
             tripId = "t1",
-            voteType = VoteType.YES,
-            timestamp = 1704067200000L
+            voteType = VoteType.YES
         )
         assertEquals("v1", vote.id)
         assertEquals("a1", vote.activityId)
         assertEquals("u1", vote.userId)
         assertEquals("t1", vote.tripId)
         assertEquals(VoteType.YES, vote.voteType)
-        assertEquals(1704067200000L, vote.timestamp)
     }
 
     @Test

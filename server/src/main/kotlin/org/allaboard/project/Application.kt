@@ -16,7 +16,7 @@ import org.allaboard.project.auth.configureAuth
 import org.allaboard.project.auth.userId
 import org.allaboard.project.domain.Trip
 import org.allaboard.project.domain.User
-import org.allaboard.project.fetchTripWithMembers
+import org.allaboard.project.vote.voteRoutes
 
 fun main() {
     // Eagerly initialise the Supabase client so .env errors surface immediately
@@ -248,5 +248,8 @@ fun Application.module() {
                 call.respond(HttpStatusCode.NoContent)
             }
         }
+
+        // Vote routes live in VoteRoutes.kt
+        voteRoutes()
     }
 }

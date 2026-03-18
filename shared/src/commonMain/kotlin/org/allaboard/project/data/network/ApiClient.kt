@@ -81,6 +81,18 @@ object ApiClient {
         }.body<String>()
     }
 
+    /**
+     * Use for POST requests that have a JSON body but no response body.
+     * (Ktor still expects some payload when calling .body(), so we avoid decoding.)
+     */
+    suspend inline fun <reified Req : Any> postNoResponse(path: String, body: Req) {
+        client.post {
+            url(path)
+            authHeaderOrNull()?.let { header(HttpHeaders.Authorization, it) }
+            setBody(body)
+        }
+    }
+
     suspend inline fun <reified Req : Any, reified Res> put(path: String, body: Req): Res {
         return client.put {
             url(path)
