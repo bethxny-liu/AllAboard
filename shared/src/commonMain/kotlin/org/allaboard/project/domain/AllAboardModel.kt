@@ -276,7 +276,7 @@ class AllAboardModel(
         val votesByActivity = votingResults.associateBy { it.activity.id }
         val mergedActivities = activities.map { activity ->
             val vr = votesByActivity[activity.id]
-            if (vr != null) activity.copy(voteCount = vr.yesVotes) else activity
+            if (vr != null) activity.copy(voteCount = vr.totalVotes) else activity
         }
 
         return TripDashboard(
