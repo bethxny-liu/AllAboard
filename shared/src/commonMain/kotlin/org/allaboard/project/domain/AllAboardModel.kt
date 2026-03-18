@@ -83,16 +83,19 @@ class AllAboardModel(
         region: String,
         startDate: String,
         endDate: String,
-        creatorId: String
+        imageUrl: String? = null,
+        creatorId: String,
+        tripId: String? = null
     ): Trip {
         val creator = userRepository.getCurrentUser()
         val trip = Trip(
-            id = "",
+            id = tripId ?: "",
             title = "All Aboard to $destination!",
             destination = destination,
             region = region,
             startDate = startDate,
             endDate = endDate,
+            imageUrl = imageUrl,
             members = creator?.let { listOf(it) } ?: emptyList()
         )
         val createdTrip = tripRepository.createTrip(trip)
@@ -108,7 +111,8 @@ class AllAboardModel(
         destination: String,
         region: String,
         startDate: String,
-        endDate: String
+        endDate: String,
+        imageUrl: String? = null
     ): Trip? {
         val existingTrip = tripRepository.getTrip(tripId) ?: return null
         val updatedTrip = existingTrip.copy(
@@ -116,7 +120,8 @@ class AllAboardModel(
             destination = destination,
             region = region,
             startDate = startDate,
-            endDate = endDate
+            endDate = endDate,
+            imageUrl = imageUrl
         )
         val result = tripRepository.updateTrip(updatedTrip)
 
@@ -124,6 +129,16 @@ class AllAboardModel(
         _events.emit(tripId)
 
         return result
+    }
+
+    suspend fun joinTrip(tripId: String) {
+        tripRepository.joinTrip(tripId)
+        _events.emit(tripId)
+    }
+
+    suspend fun removeMemberFromTrip(tripId: String, userId: String) {
+        tripRepository.removeMemberFromTrip(tripId, userId)
+        _events.emit(tripId)
     }
 
     fun getTripInviteLink(tripId: String): String {

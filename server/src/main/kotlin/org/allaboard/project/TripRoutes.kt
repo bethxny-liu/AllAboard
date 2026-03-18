@@ -25,9 +25,10 @@ data class TripRow(
     @SerialName("created_by") val createdBy: String? = null
 )
 
-/** Payload for inserting a new trip (no id — DB generates it). */
+/** Payload for inserting a new trip. If id is provided, DB uses it. */
 @Serializable
 data class TripInsert(
+    val id: String? = null,
     val title: String,
     val destination: String,
     val region: String = "",
