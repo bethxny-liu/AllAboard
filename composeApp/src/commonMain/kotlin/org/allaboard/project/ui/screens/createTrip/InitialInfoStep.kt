@@ -1,8 +1,8 @@
 package org.allaboard.project.ui.screens.createTrip
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.*
@@ -14,13 +14,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.DateRangePicker
-import androidx.compose.material3.DateRangePickerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Surface
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
@@ -29,7 +29,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import org.allaboard.project.ui.theme.FieldBackground
 import kotlinx.datetime.Instant
@@ -45,6 +44,7 @@ fun InitialInfoStep(
 ) {
     val state = vm.uiState
     var showDatePicker by remember { mutableStateOf(false) }
+    var showBackgroundLinkDialog by remember { mutableStateOf(false) }
     val dateRangePickerState = rememberDateRangePickerState()
     val dateTextStyle = TextStyle(
         color = MaterialTheme.colorScheme.onBackground,
@@ -241,51 +241,90 @@ fun InitialInfoStep(
 
         Spacer(Modifier.height(30.dp))
 
-        // People
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .background(FieldBackground, RoundedCornerShape(25.dp))
-                .padding(start = 20.dp, end = 12.dp),
-            contentAlignment = Alignment.Center
+        // Trip background
+        Text(
+            "Add Trip Background",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+        
+        Spacer(Modifier.height(15.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+            Box(
+                modifier = Modifier
+                    .size(60.dp)
+                    .background(FieldBackground, RoundedCornerShape(16.dp)),
+                contentAlignment = Alignment.Center
             ) {
-                Text("People",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onBackground,)
+                Icon(
+                    imageVector = Icons.Filled.CloudUpload,
+                    contentDescription = "Upload photo",
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(60.dp)
+                    .background(FieldBackground, RoundedCornerShape(16.dp))
+                    .clickable { showBackgroundLinkDialog = true },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Link,
+                    contentDescription = "Add background link",
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
 
-                    IconButton(
-                        onClick = { vm.decPeople() },
-                        modifier = Modifier.size(28.dp),
-                        shape = CircleShape,
-                    ) {
-                        Text("−", fontSize = 20.sp)
+        if (showBackgroundLinkDialog) {
+            AlertDialog(
+                onDismissRequest = { showBackgroundLinkDialog = false },
+                title = { Text("Add trip background link") },
+                text = {
+                    Column {
+                        Text("Paste an image URL for your trip background:")
+                        Spacer(Modifier.height(8.dp))
+                        TextField(
+                            value = state.tripBackgroundUrl,
+                            onValueChange = { vm.updateTripBackgroundUrl(it) },
+                            singleLine = true,
+                            placeholder = { Text("https://example.com/bg.jpg") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
-
-                    Text(
-                        text = vm.uiState.peopleCount.toString(),
-                        modifier = Modifier.width(32.dp),
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-
-                    IconButton(
-                        onClick = { vm.incPeople() },
-                        modifier = Modifier.size(28.dp),
-                        shape = CircleShape,
-                    ) {
-                        Text("+", fontSize = 20.sp)
+                },
+                confirmButton = {
+                    TextButton(onClick = { showBackgroundLinkDialog = false }) {
+                        Text("Done")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        vm.updateTripBackgroundUrl("")
+                        showBackgroundLinkDialog = false
+                    }) {
+                        Text("Clear")
                     }
                 }
-            }
+            )
+        }
+
+        if (state.tripBackgroundUrl.isNotBlank()) {
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = state.tripBackgroundUrl,
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
 
         Spacer(Modifier.weight(1f))

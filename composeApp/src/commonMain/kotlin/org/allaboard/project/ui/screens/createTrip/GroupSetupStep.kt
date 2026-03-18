@@ -5,23 +5,27 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.clickable
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
-import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.Notifications
 import org.allaboard.project.ui.theme.FieldBackground
 
 @Composable
@@ -31,6 +35,7 @@ fun GroupSetupStep(
     onCreateTrip: () -> Unit
 ) {
     val state = vm.uiState
+    val clipboardManager = LocalClipboardManager.current
 
     val borderColor = Color.Black
     val cardShape = RoundedCornerShape(18.dp)
@@ -91,43 +96,19 @@ fun GroupSetupStep(
                     ) {
                         Text("No members yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    Divider(color = borderColor, thickness = 1.dp)
-
                 } else {
                     state.crew.forEachIndexed { i, member ->
-                        CrewRow(member = member)
+                        CrewRow(
+                            member = member,
+                            canKick = state.tripId != null && member.id != state.currentUserId,
+                            onKick = { vm.onKickMember(member.id) }
+                        )
                         if (i != state.crew.lastIndex) {
                             Divider(color = borderColor, thickness = 1.dp)
                         }
                     }
-                    Divider(color = borderColor, thickness = 1.dp)
                 }
 
-                // Add Friend row
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { vm.onAddFriend() }
-                        .padding(vertical = 10.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Add Friend",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(Modifier.width(12.dp))
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .background(Color(0xFFEDEDED), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("+", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                    }
-                }
             }
 
             Spacer(Modifier.height(30.dp))
@@ -147,8 +128,17 @@ fun GroupSetupStep(
                     Column(
                         modifier = Modifier.weight(1f),
                         horizontalAlignment = Alignment.CenterHorizontally) {
+                        val tripIdText = state.tripId
+                            ?.trim()
+                            ?.takeIf { it.isNotBlank() }
+                            ?: state.inviteLink
+                                .substringAfterLast("/")
+                                .substringBefore("?")
+                                .trim()
+                                .ifBlank { "" }
+                        val hasTripCode = tripIdText.isNotBlank()
                         Text(
-                            text = state.inviteLink.ifBlank { "AllAboard.ca/123.." },
+                            text = if (hasTripCode) tripIdText else "Create trip to generate code",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Normal,
                             color = MaterialTheme.colorScheme.onBackground
@@ -163,7 +153,12 @@ fun GroupSetupStep(
                             contentAlignment = Alignment.Center
                         ) {
                             TextButton(
-                                onClick = { vm.onCopyLink() },
+                                onClick = {
+                                    vm.onCopyLink { link ->
+                                        clipboardManager.setText(AnnotatedString(link))
+                                    }
+                                },
+                                enabled = hasTripCode,
                                 contentPadding = PaddingValues(horizontal = 50.dp)
                             ) {
                                 Text(
@@ -258,14 +253,12 @@ private fun CardContainer(
 }
 
 @Composable
-private fun CrewRow(member: CrewMemberUi) {
-    val (statusText, statusBg, statusIcon) = when (member.status) {
-        InviteStatus.Joined ->
-            Triple("Joined", Color(0xFFD9FBE2), Icons.Outlined.Check)
-        InviteStatus.Invited ->
-            Triple("Invited", Color(0xFFF7F0C9), Icons.Outlined.Notifications)
-    }
-
+private fun CrewRow(
+    member: CrewMemberUi,
+    canKick: Boolean,
+    onKick: () -> Unit
+) {
+    var menuExpanded by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -297,28 +290,27 @@ private fun CrewRow(member: CrewMemberUi) {
 
         Spacer(Modifier.weight(1f))
 
-        Box(
-            modifier = Modifier
-                .background(statusBg, RoundedCornerShape(18.dp))
-                .padding(horizontal = 12.dp, vertical = 6.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = statusText,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = Color.Black
-                )
-
-                Spacer(Modifier.width(4.dp))
-
-                Icon(
-                    imageVector = statusIcon,
-                    contentDescription = null,
-                    modifier = Modifier.size(14.dp),
-                    tint = Color.Black
-                )
+        if (canKick) {
+            Box {
+                IconButton(onClick = { menuExpanded = true }) {
+                    Icon(
+                        imageVector = Icons.Outlined.MoreVert,
+                        contentDescription = "Member options",
+                        tint = Color.Black
+                    )
+                }
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Kick out", color = Color.Red) },
+                        onClick = {
+                            menuExpanded = false
+                            onKick()
+                        }
+                    )
+                }
             }
         }
     }
