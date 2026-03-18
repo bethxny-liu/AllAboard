@@ -1,27 +1,30 @@
 package org.allaboard.project.navigator
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import org.allaboard.project.ui.theme.Surface
-import org.allaboard.project.ui.theme.TextPrimary
 import org.allaboard.project.ui.theme.BluePrimary
+import org.allaboard.project.ui.theme.Surface as AppSurface
+import org.allaboard.project.ui.theme.TextPrimary
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.automirrored.outlined.Send
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Person
 
 enum class FooterItem { HOME, TRIPS, PROFILE }
 
@@ -30,68 +33,87 @@ fun FooterNavBar(
     onHome: () -> Unit,
     onTrips: () -> Unit,
     onProfile: () -> Unit,
-    activeItem: FooterItem
+    activeItem: FooterItem,
+    isTripActionExpanded: Boolean = false
 ) {
-    val inactiveColor = TextPrimary
-    val homeColor = if (activeItem == FooterItem.HOME) BluePrimary else inactiveColor
-    val tripsColor = if (activeItem == FooterItem.TRIPS) BluePrimary else inactiveColor
-    val profileColor = if (activeItem == FooterItem.PROFILE) BluePrimary else inactiveColor
+    val iconColor = TextPrimary
+    val activePillColor = BluePrimary.copy(alpha = 0.4f)
 
-    Row(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Surface)
-            .padding(horizontal = 24.dp, vertical = 16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+            .offset(y = (-20).dp)
+            .padding(horizontal = 12.dp, vertical = 15.dp),
+        contentAlignment = Alignment.BottomCenter
     ) {
-        // Home
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.clickable { onHome() }
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.95f)
+                .height(65.dp),
+            shape = RoundedCornerShape(32.dp),
+            color = AppSurface,
+            shadowElevation = 8.dp
         ) {
-            Icon(
-                imageVector = Icons.Filled.Home,
-                contentDescription = "Home",
-                tint = homeColor
-            )
-            Text(
-                text = "Home",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium,
-                color = homeColor
-            )
+            Box(modifier = Modifier.fillMaxSize()) {
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .offset(x = (-108).dp),
+                    shape = RoundedCornerShape(20.dp),
+                    color = if (activeItem == FooterItem.HOME) activePillColor else Color.Transparent
+                ) {
+                    IconButton(
+                        onClick = onHome,
+                        modifier = Modifier.size(width = 116.dp, height = 44.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Home,
+                            contentDescription = "Home",
+                            modifier = Modifier.size(30.dp),
+                            tint = iconColor
+                        )
+                    }
+                }
+
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .offset(x = 108.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    color = if (activeItem == FooterItem.PROFILE) activePillColor else Color.Transparent
+                ) {
+                    IconButton(
+                        onClick = onProfile,
+                        modifier = Modifier.size(width = 116.dp, height = 44.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Person,
+                            contentDescription = "Profile",
+                            modifier = Modifier.size(30.dp),
+                            tint = iconColor
+                        )
+                    }
+                }
+            }
         }
 
-        // Trips (dummy)
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.clickable { onTrips() }
+        Surface(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .offset(y = (-5).dp)
+                .size(72.dp),
+            shape = CircleShape,
+            color = BluePrimary,
+            shadowElevation = 3.dp
         ) {
-            Icon(imageVector = Icons.AutoMirrored.Outlined.Send, contentDescription = "Trips", tint = tripsColor)
-            Text(
-                text = "Trips",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium,
-                color = tripsColor
-            )
-        }
-
-        // Profile (dummy)
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.clickable { onProfile() }
-        ) {
-            Icon(imageVector = Icons.Filled.Person, contentDescription = "Profile", tint = profileColor)
-            Text(
-                text = "Profile",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium,
-                color = profileColor
-            )
+            IconButton(onClick = onTrips, modifier = Modifier.fillMaxSize()) {
+                Icon(
+                    imageVector = if (isTripActionExpanded) Icons.Filled.Close else Icons.Filled.Add,
+                    contentDescription = "Add Trip",
+                    modifier = Modifier.size(40.dp),
+                    tint = TextPrimary
+                )
+            }
         }
     }
 }
