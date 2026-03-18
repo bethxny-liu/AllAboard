@@ -9,12 +9,6 @@
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
-
-    <!-- Keep noisy internals quieter -->
     <logger name="org.eclipse.jetty" level="INFO"/>
     <logger name="io.netty" level="INFO"/>
-
-    <!-- Suppress Ktor client TRACE/DEBUG output -->
-    <logger name="io.ktor.client.plugins" level="WARN"/>
-    <logger name="io.ktor.client" level="WARN"/>
 </configuration>
