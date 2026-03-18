@@ -18,6 +18,7 @@ import org.allaboard.project.auth.userId
 import org.allaboard.project.trip.tripRoutes
 import org.allaboard.project.vote.voteRoutes
 import org.allaboard.project.domain.User
+import org.allaboard.project.itinerary.itineraryRoutes
 
 fun main() {
     // Eagerly initialise the Supabase client so .env errors surface immediately
@@ -92,5 +93,6 @@ fun Application.module() {
         tripRoutes()
         activityRoutes()
         voteRoutes()
+        itineraryRoutes()
     }
 }
