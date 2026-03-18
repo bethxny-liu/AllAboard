@@ -12,11 +12,16 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
+import org.allaboard.project.activity.ActivityInsert
 import org.allaboard.project.auth.configureAuth
 import org.allaboard.project.auth.userId
 import org.allaboard.project.domain.Activity
 import org.allaboard.project.domain.Trip
 import org.allaboard.project.domain.User
+import org.allaboard.project.trip.TripInsert
+import org.allaboard.project.trip.TripMemberRow
+import org.allaboard.project.trip.TripRow
+import org.allaboard.project.trip.fetchTripWithMembers
 import org.allaboard.project.vote.voteRoutes
 
 fun main() {
@@ -92,7 +97,7 @@ fun Application.module() {
                 val userId = call.userId
                 val memberRows = SupabaseConfig.client.from("trip_members")
                     .select { filter { eq("user_id", userId) } }
-                    .decodeList<org.allaboard.project.TripMemberRow>()
+                    .decodeList<TripMemberRow>()
                 val tripIds = memberRows.map { it.tripId }.distinct()
                 val trips = tripIds.mapNotNull { fetchTripWithMembers(it) }
                 call.respond(trips)
@@ -112,7 +117,7 @@ fun Application.module() {
             post("/trips") {
                 val userId = call.userId
                 val trip = call.receive<Trip>()
-                val insert = org.allaboard.project.TripInsert(
+                val insert = TripInsert(
                     title = trip.title,
                     destination = trip.destination,
                     region = trip.region,
@@ -124,13 +129,13 @@ fun Application.module() {
                 )
                 val created = SupabaseConfig.client.from("trips").insert(insert) {
                     select()
-                }.decodeList<org.allaboard.project.TripRow>().firstOrNull()
+                }.decodeList<TripRow>().firstOrNull()
                 if (created == null) {
                     call.respond(HttpStatusCode.InternalServerError, "Trip created but not found")
                     return@post
                 }
                 SupabaseConfig.client.from("trip_members").insert(
-                    org.allaboard.project.TripMemberRow(tripId = created.id, userId = userId, role = "OWNER")
+                    TripMemberRow(tripId = created.id, userId = userId, role = "OWNER")
                 )
                 val withMembers = fetchTripWithMembers(created.id)
                 call.respond(withMembers ?: Trip(
@@ -166,7 +171,7 @@ fun Application.module() {
                 }) {
                     filter { eq("id", id) }
                     select()
-                }.decodeList<org.allaboard.project.TripRow>().firstOrNull()
+                }.decodeList<TripRow>().firstOrNull()
                 val updated = if (updatedRow != null) fetchTripWithMembers(id) else null
                 if (updated != null) call.respond(updated)
                 else call.respond(HttpStatusCode.NotFound, "Trip not found")
@@ -180,7 +185,7 @@ fun Application.module() {
                 val userId = call.userId
                 val existing = SupabaseConfig.client.from("trips")
                     .select { filter { eq("id", id) } }
-                    .decodeList<org.allaboard.project.TripRow>()
+                    .decodeList<TripRow>()
                     .firstOrNull()
 
                 if (existing == null) {
@@ -199,7 +204,7 @@ fun Application.module() {
 
                 val remaining = SupabaseConfig.client.from("trips")
                     .select { filter { eq("id", id) } }
-                    .decodeList<org.allaboard.project.TripRow>()
+                    .decodeList<TripRow>()
                     .firstOrNull()
 
                 if (remaining != null) {
@@ -217,11 +222,11 @@ fun Application.module() {
                 val userId = call.userId
                 val inserted = runCatching {
                     SupabaseConfig.client.from("trip_members").insert(
-                        org.allaboard.project.TripMemberRow(tripId = tripId, userId = userId, role = "MEMBER")
+                        TripMemberRow(tripId = tripId, userId = userId, role = "MEMBER")
                     ) {
                         select()
                         single()
-                    }.decodeSingleOrNull<org.allaboard.project.TripMemberRow>()
+                    }.decodeSingleOrNull<TripMemberRow>()
                 }.getOrNull()
                 if (inserted == null) {
                     call.respond(HttpStatusCode.Conflict, "Already a member or trip not found")
@@ -241,7 +246,7 @@ fun Application.module() {
                 val deleted = SupabaseConfig.client.from("trip_members").delete {
                     filter { eq("trip_id", tripId); eq("user_id", userId) }
                     select()
-                }.decodeList<org.allaboard.project.TripMemberRow>()
+                }.decodeList<TripMemberRow>()
                 if (deleted.isEmpty()) {
                     call.respond(HttpStatusCode.NotFound, "Membership not found")
                     return@delete
@@ -282,8 +287,7 @@ fun Application.module() {
                 }
                 val userId = call.userId
                 val body = call.receive<Activity>()
-                val insert = org.allaboard.project.ActivityInsert(
-                    id = body.id,
+                val insert = ActivityInsert(
                     tripId = tripId,
                     title = body.title,
                     location = body.location,

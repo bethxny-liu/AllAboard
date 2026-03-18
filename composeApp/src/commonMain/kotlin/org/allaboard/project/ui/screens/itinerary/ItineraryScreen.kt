@@ -42,7 +42,7 @@ class ItineraryScreen(private val tripId: String) : Screen {
             uiState = uiState,
             onBack = { navigator?.pop() },
             onActivityClick = { activity ->
-                navigator?.push(ActivityDetailsScreen(tripId = tripId, activity = activity, fallbackActivityId = activity.id))
+                navigator?.push(ActivityDetailsScreen(tripId = tripId, activity = activity, fallbackActivityId = activity.id?:""))
             }
         )
     }

@@ -14,6 +14,7 @@ import org.allaboard.project.domain.ActivityVoteResult
 import org.allaboard.project.domain.User
 import org.allaboard.project.domain.Vote
 import org.allaboard.project.domain.VoteType
+import org.allaboard.project.trip.TripMemberRow
 
 /**
  * Vote routes backed by the `votes` table.
@@ -64,7 +65,7 @@ fun Route.voteRoutes() {
             // 1) Fetch activities for this trip
             val activities = SupabaseConfig.client.from("activities")
                 .select { filter { eq("trip_id", tripId) } }
-                .decodeList<ActivityRow>()
+                .decodeList<Activity>()
 
             if (activities.isEmpty()) {
                 call.respond(emptyList<ActivityVoteResult>())
@@ -120,12 +121,11 @@ fun Route.voteRoutes() {
                     description = actRow.description,
                     rating = actRow.rating,
                     priceLevel = actRow.priceLevel,
-                    mapPinLabel = actRow.mapPinLabel ?: actRow.title,
+                    mapPinLabel = actRow.mapPinLabel,
                     voteCount = totalVotes,
                     imageUrl = actRow.imageUrl,
                     link = actRow.link,
-                    type = runCatching { ActivityType.valueOf(actRow.activityType) }
-                        .getOrDefault(ActivityType.EXPERIENCES)
+                    type = actRow.type
                 )
 
                 ActivityVoteResult(

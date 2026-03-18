@@ -1,12 +1,9 @@
-package org.allaboard.project
+package org.allaboard.project.trip
 
 import io.github.jan.supabase.postgrest.from
-import io.ktor.http.*
-import io.ktor.server.request.receive
-import io.ktor.server.response.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.allaboard.project.auth.userId
+import org.allaboard.project.SupabaseConfig
 import org.allaboard.project.domain.Trip
 import org.allaboard.project.domain.TripStatus
 import org.allaboard.project.domain.User

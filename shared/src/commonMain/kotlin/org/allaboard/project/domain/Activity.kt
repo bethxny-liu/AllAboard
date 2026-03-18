@@ -12,7 +12,7 @@ enum class ActivityType {
 
 @Serializable
 data class Activity(
-    val id: String? = null,
+    val id: String = "",
     val title: String,
     val location: String,
     /** Null when Postgrest returns null (same pattern as [User.imageUrl], [Trip.imageUrl]). */

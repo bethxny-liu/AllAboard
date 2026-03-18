@@ -1,4 +1,4 @@
-package org.allaboard.project
+package org.allaboard.project.activity
 
 /**
  * Insert for `public.activities`. `created_at` / `updated_at` use DB defaults.
@@ -9,7 +9,6 @@ import org.allaboard.project.domain.ActivityType
 
 @Serializable
 data class ActivityInsert(
-    val id: String,
     @SerialName("trip_id") val tripId: String,
     val title: String,
     val location: String,
