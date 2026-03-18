@@ -4,6 +4,7 @@ import org.allaboard.project.data.repository.ActivityRepository
 import org.allaboard.project.data.repository.ActivityRepositoryImpl
 import org.allaboard.project.data.repository.DatabaseRepositoryImpl
 import org.allaboard.project.data.repository.ItineraryRepository
+import org.allaboard.project.data.repository.ItineraryRepositoryImpl
 import org.allaboard.project.data.repository.SupabaseClientProvider
 import org.allaboard.project.data.repository.TripRepository
 import org.allaboard.project.data.repository.UserRepository
@@ -42,13 +43,14 @@ object AppModule {
     }
     private val realVoteRepository by lazy { VoteRepositoryImpl() }
     private val mockItineraryRepository by lazy { MockItineraryRepository() }
+    private val realItineraryRepository by lazy { ItineraryRepositoryImpl() }
 
     // Public interfaces
     val tripRepository: TripRepository get() = realTripRepository
     val activityRepository: ActivityRepository get() = realActivityRepository
     val voteRepository: VoteRepository get() = realVoteRepository
     val userRepository: UserRepository get() = realUserRepository // Use real repo for auth-related calls
-    val itineraryRepository: ItineraryRepository get() = mockItineraryRepository
+    val itineraryRepository: ItineraryRepository get() = realItineraryRepository
 
     // Model (Thin coordinator) - Shared across all ViewModels
     val allAboardModel: AllAboardModel by lazy {
