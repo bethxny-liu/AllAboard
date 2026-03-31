@@ -48,7 +48,12 @@ class MockVoteRepository(
      * This logic will live in the backend in Sprint 3.
      */
     private fun computeVotingResult(trip: Trip, activity: Activity): ActivityVoteResult {
-        val activityVotes = votes.filter { it.activityId == activity.id }
+        val activeMemberIds = trip.members.map { it.id }.toSet()
+        val activityVotes = votes.filter {
+            it.tripId == trip.id &&
+                it.activityId == activity.id &&
+                it.userId in activeMemberIds
+        }
 
         val yesVotes = activityVotes.count { it.voteType == VoteType.YES }
         val noVotes = activityVotes.count { it.voteType == VoteType.NO }
