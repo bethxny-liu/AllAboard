@@ -22,5 +22,3 @@ enum class Category(val displayName: String, val type: ActivityType?) {
         val allCategories: List<Category> = entries
     }
 }
-
-

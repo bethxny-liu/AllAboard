@@ -64,6 +64,9 @@ fun Route.activityRoutes() {
                 imageUrl = body.link,
                 link = body.link,
                 type = body.type,
+                preference = body.preference,
+                latitude = body.latitude,
+                longitude = body.longitude,
                 addedBy = userId
             )
 
@@ -102,6 +105,9 @@ fun Route.activityRoutes() {
                 set("image_url", body.link)
                 set("link", body.link)
                 set("activity_type", body.type.name)
+                set("activity_preference", body.preference)
+                set("latitude", body.latitude)
+                set("longitude", body.longitude)
             }) {
                 filter { eq("id", id) }
                 select()
