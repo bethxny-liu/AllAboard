@@ -174,6 +174,15 @@ fun GroupSetupStep(
             }
         }
 
+        if (state.error != null) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = state.error ?: "",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
         Spacer(Modifier.height(16.dp))
 
         // Bottom buttons

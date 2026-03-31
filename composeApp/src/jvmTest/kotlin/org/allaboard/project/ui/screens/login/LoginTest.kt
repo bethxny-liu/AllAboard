@@ -36,14 +36,12 @@ internal class LoginTest {
     val rule = createComposeRule()
 
     @Test
-    fun initialScreen_showsAppTitleSubtitleAndSignInButton() {
+    fun initialScreen_showsSignInButton() {
         rule.setContent {
             AppTheme {
                 LoginTestContent(showStatus = false)
             }
         }
-        rule.onNodeWithTag("app_title").assertTextEquals("All Aboard")
-        rule.onNodeWithTag("subtitle").assertTextEquals("Your next group adventure\nstarts here")
         rule.onNodeWithTag("sign_in_button_text").assertTextEquals("Sign in with Google")
         rule.onNodeWithTag("sign_in_button").assertHasClickAction()
     }
@@ -72,15 +70,6 @@ private fun LoginTestContent(showStatus: Boolean) {
         if (showStatus) {
             Text(text = status, modifier = Modifier.testTag("status_text"))
         }
-        Text(
-            text = "All Aboard",
-            style = MaterialTheme.typography.headlineLarge,
-            modifier = Modifier.testTag("app_title")
-        )
-        Text(
-            text = "Your next group adventure\nstarts here",
-            modifier = Modifier.testTag("subtitle")
-        )
         Button(
             onClick = { status = "Signed in!" },
             modifier = Modifier.testTag("sign_in_button")

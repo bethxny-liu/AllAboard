@@ -38,6 +38,12 @@ class LoginViewModel(
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     init {
+        // Proactively try loading the backend user once on startup.
+        // This ensures /user/me is attempted when the app launches.
+        viewModelScope.launch {
+            bootstrapCurrentUser()
+        }
+
         // Observe Supabase session status for the lifetime of this ViewModel.
         // This covers:
         //  1. Already authenticated on cold start (existing session).
@@ -49,22 +55,7 @@ class LoginViewModel(
                         // Avoid re-fetching if we already have the user
                         if (_uiState.value.user != null) return@collect
 
-                        _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-                        try {
-                            val user = model.getCurrentUser()
-                            println("user = $user")
-                            if (user != null) {
-                                _uiState.value = _uiState.value.copy(isLoading = false, user = user)
-                            } else {
-                                _uiState.value = _uiState.value.copy(isLoading = false,
-                                    error = "Authenticated but backend returned no user")
-                            }
-                        } catch (t: Throwable) {
-                            _uiState.value = _uiState.value.copy(
-                                isLoading = false,
-                                error = t.message ?: "Failed to fetch user"
-                            )
-                        }
+                        fetchCurrentUserForAuthenticatedSession()
                     }
                     is SessionStatus.NotAuthenticated -> {
                         // No session — stay on login screen, make sure loading is off
@@ -73,6 +64,38 @@ class LoginViewModel(
                     else -> { /* Initializing, etc. — no-op */ }
                 }
             }
+        }
+    }
+
+    private suspend fun bootstrapCurrentUser() {
+        if (_uiState.value.user != null) return
+        try {
+            val user = model.getCurrentUser()
+            if (user != null) {
+                _uiState.value = _uiState.value.copy(user = user, error = null, isLoading = false)
+            }
+        } catch (_: Throwable) {
+            // Expected when no valid session is available at startup.
+        }
+    }
+
+    private suspend fun fetchCurrentUserForAuthenticatedSession() {
+        _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+        try {
+            val user = model.getCurrentUser()
+            if (user != null) {
+                _uiState.value = _uiState.value.copy(isLoading = false, user = user)
+            } else {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = "Authenticated but backend returned no user"
+                )
+            }
+        } catch (t: Throwable) {
+            _uiState.value = _uiState.value.copy(
+                isLoading = false,
+                error = t.message ?: "Failed to fetch user"
+            )
         }
     }
 

@@ -14,7 +14,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material3.Icon
@@ -113,7 +112,7 @@ fun InitialInfoStep(
                 ) {
                     if (vm.uiState.country.isEmpty()) {
                         Text(
-                            "Country",
+                            "Country *",
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -141,7 +140,7 @@ fun InitialInfoStep(
                 ) {
                     if (vm.uiState.region.isEmpty()) {
                         Text(
-                            "Region",
+                            "City / Region",
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -180,7 +179,7 @@ fun InitialInfoStep(
                     )
                     if (vm.uiState.dateRange.isEmpty()) {
                         Text(
-                            "Date",
+                            "Date *",
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -243,46 +242,26 @@ fun InitialInfoStep(
 
         // Trip background
         Text(
-            "Add Trip Background",
+            "Add Trip Background Link",
             fontSize = 20.sp,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onBackground,
         )
         
         Spacer(Modifier.height(15.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
+        Box(
+            modifier = Modifier
+                .size(60.dp)
+                .background(FieldBackground, RoundedCornerShape(16.dp))
+                .clickable { showBackgroundLinkDialog = true },
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .background(FieldBackground, RoundedCornerShape(16.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.CloudUpload,
-                    contentDescription = "Upload photo",
-                    tint = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-
-            Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .background(FieldBackground, RoundedCornerShape(16.dp))
-                    .clickable { showBackgroundLinkDialog = true },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Link,
-                    contentDescription = "Add background link",
-                    tint = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+            Icon(
+                imageVector = Icons.Filled.Link,
+                contentDescription = "Add background link",
+                tint = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.size(24.dp)
+            )
         }
 
         if (showBackgroundLinkDialog) {
@@ -327,6 +306,15 @@ fun InitialInfoStep(
             )
         }
 
+        if (state.error != null) {
+            Spacer(Modifier.height(12.dp))
+            Text(
+                text = state.error ?: "",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
         Spacer(Modifier.weight(1f))
 
         // Action buttons
@@ -350,7 +338,11 @@ fun InitialInfoStep(
             Spacer(Modifier.width(12.dp))
 
             Button(
-                onClick = onNext,
+                onClick = {
+                    if (vm.validateRequiredFields()) {
+                        onNext()
+                    }
+                },
                 modifier = Modifier
                     .height(48.dp)
                     .weight(1f),

@@ -64,7 +64,7 @@ class CreateTripViewModel(
 
     // Trip field updates (Step 0)
     fun updateCountry(v: String) {
-        uiState = uiState.copy(country = v)
+        uiState = uiState.copy(country = v, error = null)
     }
 
     fun updateRegion(v: String) {
@@ -76,7 +76,8 @@ class CreateTripViewModel(
         uiState = uiState.copy(
             dateRange = v,
             startDate = startDate,
-            endDate = endDate
+            endDate = endDate,
+            error = null
         )
     }
 
@@ -122,13 +123,12 @@ class CreateTripViewModel(
 
     fun onCreateTrip(onSuccess: () -> Unit) {
         val state = uiState
-        val destination = state.country.trim()
-        if (destination.isBlank()) {
-            uiState = state.copy(error = "Destination is required")
+        if (!validateRequiredFields()) {
             return
         }
 
-        val startDate = state.startDate.ifBlank { state.dateRange.ifBlank { "TBD" } }
+        val destination = state.country.trim()
+        val startDate = state.startDate.ifBlank { state.dateRange }
         val endDate = state.endDate.ifBlank { startDate }
         val region = state.region.trim()
 
@@ -189,6 +189,24 @@ class CreateTripViewModel(
                 )
             }
         }
+    }
+
+    fun validateRequiredFields(): Boolean {
+        val state = uiState
+        val destination = state.country.trim()
+        if (destination.isBlank()) {
+            uiState = state.copy(error = "Country is required")
+            return false
+        }
+
+        val hasDate = state.startDate.isNotBlank() || state.dateRange.isNotBlank()
+        if (!hasDate) {
+            uiState = state.copy(error = "Date is required")
+            return false
+        }
+
+        uiState = state.copy(error = null)
+        return true
     }
 
     // Helpers

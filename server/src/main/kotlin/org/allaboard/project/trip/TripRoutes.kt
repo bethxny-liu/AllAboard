@@ -7,6 +7,7 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.*
 import org.allaboard.project.SupabaseConfig
+import org.allaboard.project.activitySuggestion.suggestActivities
 import org.allaboard.project.auth.userId
 import org.allaboard.project.domain.Trip
 import org.allaboard.project.domain.User
@@ -100,7 +101,7 @@ fun Route.tripRoutes() {
             )
 
             val withMembers = fetchTripWithMembers(created.id)
-            call.respond(withMembers ?: Trip(
+            val ret = withMembers ?: Trip(
                 id = created.id,
                 title = created.title,
                 destination = created.destination,
@@ -109,8 +110,9 @@ fun Route.tripRoutes() {
                 endDate = created.endDate,
                 imageUrl = created.imageUrl,
                 status = created.status,
-                members = emptyList()
-            ))
+                members = emptyList())
+            suggestActivities(ret)
+            call.respond(ret)
         }
 
         patch("/trips/{id}") {
@@ -210,6 +212,15 @@ fun Route.tripRoutes() {
             if (deleted.isEmpty()) {
                 call.respond(HttpStatusCode.NotFound, "Membership not found")
                 return@delete
+            }
+
+            // Remove this user's votes in the same trip so vote totals and voter lists
+            // no longer include kicked members.
+            SupabaseConfig.client.from("votes").delete {
+                filter {
+                    eq("trip_id", tripId)
+                    eq("user_id", userId)
+                }
             }
 
             call.respond(HttpStatusCode.NoContent)

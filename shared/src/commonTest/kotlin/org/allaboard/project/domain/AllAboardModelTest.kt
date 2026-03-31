@@ -199,6 +199,22 @@ internal class AllAboardModelTest {
     }
 
     @Test
+    fun removeMemberFromTrip_removesTheirVotesFromResults() = runBlocking {
+        val model = createModel()
+        model.voteOnActivity("trip-1", "act-1", "user-2", VoteType.YES)
+
+        val beforeKick = model.getVotingResults("trip-1").first { it.activity.id == "act-1" }
+        assertEquals(1, beforeKick.yesVotes)
+        assertEquals(1, beforeKick.totalVotes)
+
+        model.removeMemberFromTrip("trip-1", "user-2")
+
+        val afterKick = model.getVotingResults("trip-1").first { it.activity.id == "act-1" }
+        assertEquals(0, afterKick.yesVotes)
+        assertEquals(0, afterKick.totalVotes)
+    }
+
+    @Test
     fun getUnvotedActivities_returnsActivitiesUserHasNotVotedOn() = runBlocking {
         val model = createModel()
         val unvoted = model.getUnvotedActivities("trip-1", "user-1")
