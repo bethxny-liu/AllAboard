@@ -1,5 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.util.Properties
+import java.io.File
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -8,11 +8,24 @@ plugins {
     alias(libs.plugins.composeCompiler)
 }
 
+/** Reads KEY=value from [server/.env] (# comments ignored). */
+fun loadEnvValue(f: File, key: String): String? {
+    if (!f.exists()) return null
+    for (line in f.readLines()) {
+        val t = line.trim()
+        if (t.isEmpty() || t.startsWith("#")) continue
+        val i = t.indexOf('=')
+        if (i <= 0 || t.substring(0, i).trim() != key) continue
+        return t.substring(i + 1).trim().removeSurrounding("\"").removeSurrounding("'")
+    }
+    return null
+}
+
 val mapsStaticApiKey: String = run {
-    val props = Properties()
-    val f = rootProject.file("local.properties")
-    if (f.exists()) f.inputStream().use { props.load(it) }
-    props.getProperty("MAPS_STATIC_API_KEY") ?: ""
+    val env = rootProject.file("server/.env")
+    loadEnvValue(env, "MAPS_STATIC_API_KEY")
+        ?: loadEnvValue(env, "GOOGLE_PLACES_API_KEY")
+        ?: ""
 }
 
 kotlin {
