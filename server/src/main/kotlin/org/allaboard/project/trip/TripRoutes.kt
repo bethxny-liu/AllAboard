@@ -214,6 +214,15 @@ fun Route.tripRoutes() {
                 return@delete
             }
 
+            // Remove this user's votes in the same trip so vote totals and voter lists
+            // no longer include kicked members.
+            SupabaseConfig.client.from("votes").delete {
+                filter {
+                    eq("trip_id", tripId)
+                    eq("user_id", userId)
+                }
+            }
+
             call.respond(HttpStatusCode.NoContent)
         }
     }
