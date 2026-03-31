@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -7,17 +8,25 @@ plugins {
     alias(libs.plugins.composeCompiler)
 }
 
+val mapsStaticApiKey: String = run {
+    val props = Properties()
+    val f = rootProject.file("local.properties")
+    if (f.exists()) f.inputStream().use { props.load(it) }
+    props.getProperty("MAPS_STATIC_API_KEY") ?: ""
+}
+
 kotlin {
+    applyDefaultHierarchyTemplate()
+
     androidTarget {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
     jvm()
-    listOf(
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
+    val iosArm64 = iosArm64()
+    val iosSimulatorArm64 = iosSimulatorArm64()
+    listOf(iosArm64, iosSimulatorArm64).forEach { iosTarget ->
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
@@ -28,6 +37,9 @@ kotlin {
     }
 
     sourceSets {
+        iosMain.dependencies {
+            implementation("io.ktor:ktor-client-darwin:3.0.3")
+        }
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
@@ -36,9 +48,6 @@ kotlin {
             implementation(project.dependencies.platform(libs.supabase.bom))
             implementation(libs.supabase.composeAuth)
             implementation(libs.supabase.auth)
-        }
-        iosMain.dependencies {
-            implementation("io.ktor:ktor-client-darwin:3.0.3")
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -61,7 +70,6 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
-        // Android/JVM-only: Compose UI tests (ui-test-junit4 has no iOS artifact; we only run tests on Android)
         jvmTest.dependencies {
             implementation(libs.kotlin.test)
             implementation("org.jetbrains.compose.ui:ui-test-junit4:${libs.versions.composeMultiplatform.get()}")
@@ -73,12 +81,21 @@ android {
     namespace = "org.allaboard.project"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "org.allaboard.project"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+        val escaped =
+            mapsStaticApiKey
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+        buildConfigField("String", "MAPS_STATIC_API_KEY", "\"$escaped\"")
     }
     packaging {
         resources {
