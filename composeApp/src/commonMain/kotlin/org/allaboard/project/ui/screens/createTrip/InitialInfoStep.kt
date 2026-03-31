@@ -112,7 +112,7 @@ fun InitialInfoStep(
                 ) {
                     if (vm.uiState.country.isEmpty()) {
                         Text(
-                            "Country",
+                            "Country *",
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -140,7 +140,7 @@ fun InitialInfoStep(
                 ) {
                     if (vm.uiState.region.isEmpty()) {
                         Text(
-                            "Region",
+                            "City / Region",
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -179,7 +179,7 @@ fun InitialInfoStep(
                     )
                     if (vm.uiState.dateRange.isEmpty()) {
                         Text(
-                            "Date",
+                            "Date *",
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -306,6 +306,15 @@ fun InitialInfoStep(
             )
         }
 
+        if (state.error != null) {
+            Spacer(Modifier.height(12.dp))
+            Text(
+                text = state.error ?: "",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
         Spacer(Modifier.weight(1f))
 
         // Action buttons
@@ -329,7 +338,11 @@ fun InitialInfoStep(
             Spacer(Modifier.width(12.dp))
 
             Button(
-                onClick = onNext,
+                onClick = {
+                    if (vm.validateRequiredFields()) {
+                        onNext()
+                    }
+                },
                 modifier = Modifier
                     .height(48.dp)
                     .weight(1f),

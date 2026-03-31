@@ -39,7 +39,7 @@ import org.allaboard.project.ui.theme.TextSecondary
  *
  * @param result The activity vote result data (activity, votes, voters).
  * @param showMostVotesTag When true, shows a "Most Votes" badge (e.g. for the top result).
- * @param imageContent Optional custom image content; defaults to placeholder/prettyplace.
+ * @param imageContent Optional custom image content; defaults to placeholder/default.
  * @param onClick Optional click handler; when set, tapping the card opens activity details.
  * @param modifier Optional modifier for the card.
  */

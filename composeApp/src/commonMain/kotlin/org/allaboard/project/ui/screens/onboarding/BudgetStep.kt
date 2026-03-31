@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.allaboard.project.ui.theme.BluePrimary
 import org.allaboard.project.ui.theme.FieldBackground
+import org.allaboard.project.ui.theme.fuzzyBubblesFontFamily
 import org.allaboard.project.ui.theme.TextSecondary
 import org.allaboard.project.domain.BudgetLevel
 import org.jetbrains.compose.resources.painterResource
@@ -76,7 +77,9 @@ fun BudgetStep(
             Spacer(Modifier.width(8.dp))
             Text(
                 "All Aboard",
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontFamily = fuzzyBubblesFontFamily()
+                ),
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )

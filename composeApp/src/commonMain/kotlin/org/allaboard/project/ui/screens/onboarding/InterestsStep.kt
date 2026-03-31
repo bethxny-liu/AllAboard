@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.allaboard.project.ui.theme.FieldBackground
+import org.allaboard.project.ui.theme.fuzzyBubblesFontFamily
 import org.jetbrains.compose.resources.painterResource
 import team_102_8.composeapp.generated.resources.Res
 import team_102_8.composeapp.generated.resources.logo
@@ -65,7 +66,9 @@ fun InterestsStep(
                     Spacer(Modifier.width(8.dp))
                     Text(
                         "All Aboard",
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontFamily = fuzzyBubblesFontFamily()
+                        ),
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
                     )

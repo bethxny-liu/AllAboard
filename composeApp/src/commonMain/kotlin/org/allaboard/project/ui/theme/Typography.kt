@@ -8,6 +8,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.Font
 import team_102_8.composeapp.generated.resources.Res
+import team_102_8.composeapp.generated.resources.fuzzy_bubbles_bold
+import team_102_8.composeapp.generated.resources.fuzzy_bubbles_regular
 import team_102_8.composeapp.generated.resources.geist_bold
 import team_102_8.composeapp.generated.resources.geist_medium
 import team_102_8.composeapp.generated.resources.geist_regular
@@ -54,5 +56,13 @@ fun appTypography(): Typography {
             fontWeight = FontWeight.Medium,
             fontFamily = geistFontFamily
         )
+    )
+}
+
+@Composable
+fun fuzzyBubblesFontFamily(): FontFamily {
+    return FontFamily(
+        Font(Res.font.fuzzy_bubbles_regular, weight = FontWeight.Normal),
+        Font(Res.font.fuzzy_bubbles_bold, weight = FontWeight.Bold)
     )
 }
