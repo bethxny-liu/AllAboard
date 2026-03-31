@@ -21,7 +21,6 @@ import org.allaboard.project.ui.theme.FieldBackground
 import org.allaboard.project.ui.theme.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -235,52 +234,39 @@ private fun CreateCustomActivityContent(
 
         Spacer(Modifier.height(20.dp))
 
-        Text("Add Photo or Link", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+        Text("Add Cover Image Link", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
         Spacer(Modifier.height(12.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
-            verticalAlignment = Alignment.CenterVertically
+        Box(
+            modifier = Modifier
+                .size(60.dp)
+                .border(BorderStroke(1.dp, Color.Black), RoundedCornerShape(16.dp))
+                .background(FieldBackground, RoundedCornerShape(16.dp))
+                .clickable { showLinkDialog = true },
+            contentAlignment = Alignment.Center
         ) {
-            // Upload button
-            Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .border(BorderStroke(1.dp, Color.Black), RoundedCornerShape(16.dp))
-                    .background(FieldBackground, RoundedCornerShape(16.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(imageVector = Icons.Filled.CloudUpload, contentDescription = "Upload", tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(24.dp))
-            }
-
-            // Link button
-            Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .border(BorderStroke(1.dp, Color.Black), RoundedCornerShape(16.dp))
-                    .background(FieldBackground, RoundedCornerShape(16.dp))
-                    .clickable { showLinkDialog = true },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(imageVector = Icons.Filled.Link, contentDescription = "Add link", tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(24.dp))
-            }
+            Icon(
+                imageVector = Icons.Filled.Link,
+                contentDescription = "Add cover image link",
+                tint = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.size(24.dp)
+            )
         }
 
         // Link entry dialog (reuses ViewModel's link state via onLinkChange)
         if (showLinkDialog) {
             AlertDialog(
                 onDismissRequest = { showLinkDialog = false },
-                title = { Text("Add a link") },
+                title = { Text("Add cover image link") },
                 text = {
                     Column {
-                        Text("Paste a website URL or reservation link below:")
+                        Text("Paste an image URL for the activity cover:")
                         Spacer(Modifier.height(8.dp))
                         TextField(
                             value = uiState.link,
                             onValueChange = onLinkChange,
                             singleLine = true,
-                            placeholder = { Text("https://example.com") },
+                            placeholder = { Text("https://example.com/cover.jpg") },
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
