@@ -69,4 +69,7 @@ class MockUserRepository : UserRepository {
             )
         }
     }
+    override suspend fun clearCache() {
+        // No caching in mock, so nothing to clear
+    }
 }

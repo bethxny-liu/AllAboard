@@ -135,25 +135,25 @@ class LoginScreen : Screen {
                         .padding(bottom = 60.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Temporary sign up button to jump into onboarding
-                    Button(
-                        onClick = { navigator?.push(OnboardingScreen()) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .clip(RoundedCornerShape(28.dp))
-                            .border(2.dp, Color.White, RoundedCornerShape(28.dp))
-                            .testTag("sign_up_button"),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFECEFF1),
-                            contentColor = TextPrimary
-                        ),
-                        shape = RoundedCornerShape(28.dp)
-                    ) {
-                        Text("Sign up (Onboarding)")
-                    }
-
-                    Spacer(Modifier.height(12.dp))
+//                    // Temporary sign up button to jump into onboarding
+//                    Button(
+//                        onClick = { navigator?.push(OnboardingScreen()) },
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .height(56.dp)
+//                            .clip(RoundedCornerShape(28.dp))
+//                            .border(2.dp, Color.White, RoundedCornerShape(28.dp))
+//                            .testTag("sign_up_button"),
+//                        colors = ButtonDefaults.buttonColors(
+//                            containerColor = Color(0xFFECEFF1),
+//                            contentColor = TextPrimary
+//                        ),
+//                        shape = RoundedCornerShape(28.dp)
+//                    ) {
+//                        Text("Sign up (Onboarding)")
+//                    }
+//
+//                    Spacer(Modifier.height(12.dp))
 
                     Button(
                         onClick = {
