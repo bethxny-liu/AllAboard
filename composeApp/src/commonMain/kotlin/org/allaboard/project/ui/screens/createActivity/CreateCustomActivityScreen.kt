@@ -234,7 +234,7 @@ private fun CreateCustomActivityContent(
 
         Spacer(Modifier.height(20.dp))
 
-        Text("Add Cover Image Link", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+        Text("Add Link", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
         Spacer(Modifier.height(12.dp))
 
         Box(
@@ -247,7 +247,7 @@ private fun CreateCustomActivityContent(
         ) {
             Icon(
                 imageVector = Icons.Filled.Link,
-                contentDescription = "Add cover image link",
+                contentDescription = "Add link",
                 tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.size(24.dp)
             )
@@ -257,16 +257,16 @@ private fun CreateCustomActivityContent(
         if (showLinkDialog) {
             AlertDialog(
                 onDismissRequest = { showLinkDialog = false },
-                title = { Text("Add cover image link") },
+                title = { Text("Add a link") },
                 text = {
                     Column {
-                        Text("Paste an image URL for the activity cover:")
+                        Text("Paste a website URL or reservation link below:")
                         Spacer(Modifier.height(8.dp))
                         TextField(
                             value = uiState.link,
                             onValueChange = onLinkChange,
                             singleLine = true,
-                            placeholder = { Text("https://example.com/cover.jpg") },
+                            placeholder = { Text("https://example.com") },
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
