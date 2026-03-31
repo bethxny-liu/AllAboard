@@ -7,6 +7,7 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.*
 import org.allaboard.project.SupabaseConfig
+import org.allaboard.project.activitySuggestion.suggestActivities
 import org.allaboard.project.auth.userId
 import org.allaboard.project.domain.Trip
 import org.allaboard.project.domain.User
@@ -100,7 +101,7 @@ fun Route.tripRoutes() {
             )
 
             val withMembers = fetchTripWithMembers(created.id)
-            call.respond(withMembers ?: Trip(
+            val ret = withMembers ?: Trip(
                 id = created.id,
                 title = created.title,
                 destination = created.destination,
@@ -109,8 +110,9 @@ fun Route.tripRoutes() {
                 endDate = created.endDate,
                 imageUrl = created.imageUrl,
                 status = created.status,
-                members = emptyList()
-            ))
+                members = emptyList())
+            suggestActivities(ret)
+            call.respond(ret)
         }
 
         patch("/trips/{id}") {
