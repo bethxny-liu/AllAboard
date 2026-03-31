@@ -39,6 +39,7 @@ import org.allaboard.project.ui.theme.FieldBackground
 import org.allaboard.project.ui.theme.TextHint
 import org.allaboard.project.ui.theme.TextPrimary
 import org.allaboard.project.ui.theme.TextSecondary
+import org.allaboard.project.ui.theme.fuzzyBubblesFontFamily
 import org.jetbrains.compose.resources.painterResource
 import team_102_8.composeapp.generated.resources.Res
 import team_102_8.composeapp.generated.resources.logo
@@ -89,7 +90,9 @@ fun HomeScreenContent(
                 Spacer(Modifier.width(12.dp))
                 Text(
                     text = "All Aboard",
-                    style = MaterialTheme.typography.headlineLarge,
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        fontFamily = fuzzyBubblesFontFamily()
+                    ),
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary
                 )

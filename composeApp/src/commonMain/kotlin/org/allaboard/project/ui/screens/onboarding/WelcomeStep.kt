@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.draw.clip
 import org.allaboard.project.ui.theme.BluePrimary
 import org.allaboard.project.ui.theme.TextPrimary
+import org.allaboard.project.ui.theme.fuzzyBubblesFontFamily
 import org.jetbrains.compose.resources.painterResource
 import team_102_8.composeapp.generated.resources.Res
 import team_102_8.composeapp.generated.resources.logo
@@ -79,7 +80,9 @@ fun WelcomeStep(
                 Spacer(Modifier.width(8.dp))
                 Text(
                     "All Aboard",
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontFamily = fuzzyBubblesFontFamily()
+                    ),
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 )

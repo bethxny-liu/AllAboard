@@ -8,11 +8,11 @@ import androidx.compose.ui.layout.ContentScale
 import coil3.compose.rememberAsyncImagePainter
 import org.jetbrains.compose.resources.painterResource
 import team_102_8.composeapp.generated.resources.Res
-import team_102_8.composeapp.generated.resources.prettyplace
+import team_102_8.composeapp.generated.resources.default
 
 /**
  * A composable that displays an image from a URL with a fallback to a default drawable.
- * If imageUrl is null or fails to load, it falls back to prettyplace drawable.
+ * If imageUrl is null or fails to load, it falls back to default drawable.
  */
 @Composable
 fun NetworkImage(
@@ -20,7 +20,7 @@ fun NetworkImage(
     contentDescription: String?,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
-    fallback: Painter = painterResource(Res.drawable.prettyplace)
+    fallback: Painter = painterResource(Res.drawable.default)
 ) {
     val painter = if (imageUrl != null) {
         rememberAsyncImagePainter(
