@@ -24,6 +24,7 @@ import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
+import kotlin.random.Random
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -70,6 +71,10 @@ private data class ReservedMeal(
     val slot: DaySlot
 )
 
+private data class ReservedAfternoonActivity(
+    val candidate: ActivityCandidate
+)
+
 private data class DayPlanContext(
     var currentMinute: Int,
     var lastActivity: Activity?,
@@ -83,6 +88,9 @@ private data class DayPlanContext(
 
 private val DISPLAY_TIME_FORMATTER: DateTimeFormatter =
     DateTimeFormatter.ofPattern("h:mm a", Locale.US)
+private const val START_TIME_RANDOM_STEP_MINUTES = 5
+private const val START_TIME_RANDOM_MAX_OFFSET_MINUTES = 30
+private const val VOTE_WEIGHT_MULTIPLIER = 3.0
 
 private fun parseIsoDateOrNull(raw: String): LocalDate? =
     runCatching { LocalDate.parse(raw) }.getOrNull()
@@ -117,19 +125,22 @@ private fun tuneForGroupVibe(vibes: List<TravelVibe>): GenerationTuning {
             maxActivitiesPerDay = 4,
             travelPenaltyWeight = 0.30,
             bufferMinutes = 15,
-            dayEndMinute = 22 * 60
+            dayEndMinute = 23 * 60
         )
         else -> GenerationTuning(
             maxActivitiesPerDay = 5,
             travelPenaltyWeight = 0.20,
             bufferMinutes = 10,
-            dayEndMinute = 23 * 60
+            dayEndMinute = 24 * 60
         )
     }
 }
 
 private fun isNightlife(activity: Activity): Boolean {
-    return activity.preference?.trim()?.equals("nightlife", ignoreCase = true) == true
+    val preference = activity.preference?.trim()?.lowercase() ?: ""
+    return preference == "nightlife" ||
+            preference == "night life" ||
+            preference.contains("nightlife")
 }
 
 private fun isFoodActivity(activity: Activity): Boolean {
@@ -139,7 +150,7 @@ private fun isFoodActivity(activity: Activity): Boolean {
 }
 
 private fun activityDurationMinutes(activity: Activity): Int {
-    if (isNightlife(activity)) return 120
+    if (isNightlife(activity)) return 60
     return when (activity.type.name) {
         "RESTAURANT" -> 90
         "EXPERIENCES" -> 120
@@ -158,8 +169,8 @@ private fun slotRanges(): Map<DaySlot, IntRange> = mapOf(
     DaySlot.MORNING to (8 * 60 until 11 * 60 + 30),
     DaySlot.LUNCH to (11 * 60 + 30 until 14 * 60),
     DaySlot.AFTERNOON to (14 * 60 until 18 * 60),
-    DaySlot.DINNER to (18 * 60 until 21 * 60),
-    DaySlot.NIGHT to (21 * 60 until 24 * 60)
+    DaySlot.DINNER to (18 * 60 until 20 * 60),
+    DaySlot.NIGHT to (20 * 60 until 24 * 60)
 )
 
 private fun slotForMinute(minute: Int): DaySlot? {
@@ -248,16 +259,25 @@ private fun firstValidStartMinute(
     return allowed
         .mapNotNull { slot ->
             val range = ranges[slot] ?: return@mapNotNull null
-            val start = maxOf(earliestMinute, range.first)
+            val earliestStart = maxOf(earliestMinute, range.first)
+            val latestStart = minOf(range.last, latestAllowedEndMinute - durationMinutes)
+            if (earliestStart > latestStart) return@mapNotNull null
 
-            if (start > range.last) return@mapNotNull null
-
-            val end = start + durationMinutes
-            if (end > latestAllowedEndMinute) return@mapNotNull null
-
-            start
+            randomizedStartMinute(earliestStart, latestStart)
         }
         .minOrNull()
+}
+
+private fun randomizedStartMinute(earliestStart: Int, latestStart: Int): Int {
+    if (earliestStart >= latestStart) return earliestStart
+    val randomizedUpperBound = minOf(
+        latestStart,
+        earliestStart + START_TIME_RANDOM_MAX_OFFSET_MINUTES
+    )
+    val candidateWindow = randomizedUpperBound - earliestStart
+    val steps = (candidateWindow / START_TIME_RANDOM_STEP_MINUTES) + 1
+    val randomStep = if (steps > 1) Random.nextInt(steps) else 0
+    return earliestStart + (randomStep * START_TIME_RANDOM_STEP_MINUTES)
 }
 
 private fun candidateStartMinute(
@@ -288,18 +308,15 @@ private fun reserveRestaurantForDay(
 ): ReservedMeal? {
     if (restaurantTarget <= 0) return null
 
-    var best: ReservedMeal? = null
-    var bestScore = Double.NEGATIVE_INFINITY
+    fun bestMealForSlot(slot: DaySlot): ReservedMeal? {
+        var best: ReservedMeal? = null
+        var bestScore = Double.NEGATIVE_INFINITY
 
-    for (candidate in candidates) {
-        if (candidate.typeBucket != "food") continue
-
-        for (slot in listOf(DaySlot.LUNCH, DaySlot.DINNER)) {
+        for (candidate in candidates) {
+            if (candidate.typeBucket != "food") continue
             if (slot !in candidate.allowedSlots) continue
 
-            val score = candidate.voteScore.toDouble() +
-                    if (slot == DaySlot.LUNCH) 0.25 else 0.0
-
+            val score = candidate.voteScore * VOTE_WEIGHT_MULTIPLIER
             if (score > bestScore) {
                 bestScore = score
                 best = ReservedMeal(
@@ -308,9 +325,12 @@ private fun reserveRestaurantForDay(
                 )
             }
         }
+
+        return best
     }
 
-    return best
+    // Prefer dinner when available; lunch is fallback.
+    return bestMealForSlot(DaySlot.DINNER) ?: bestMealForSlot(DaySlot.LUNCH)
 }
 
 private fun computeReservedMealPlacement(
@@ -318,12 +338,72 @@ private fun computeReservedMealPlacement(
     context: DayPlanContext,
     tuning: GenerationTuning
 ): Pair<Int, Int>? {
-    val range = slotRanges()[reservedMeal.slot] ?: return null
+    return computeReservedPlacement(
+        slot = reservedMeal.slot,
+        durationMinutes = reservedMeal.candidate.durationMinutes,
+        context = context,
+        latestAllowedEndMinute = tuning.dayEndMinute
+    )
+}
 
-    val startMinute = maxOf(context.currentMinute, range.first)
-    if (startMinute > range.last) return null
+private fun reserveAfternoonNonFoodForDay(
+    candidates: List<ActivityCandidate>
+): ReservedAfternoonActivity? {
+    var best: ReservedAfternoonActivity? = null
+    var bestScore = Double.NEGATIVE_INFINITY
 
-    val endMinute = startMinute + reservedMeal.candidate.durationMinutes
+    for (candidate in candidates) {
+        if (candidate.typeBucket == "food" || candidate.typeBucket == "nightlife") continue
+        if (DaySlot.AFTERNOON !in candidate.allowedSlots) continue
+
+        val score = (candidate.voteScore * VOTE_WEIGHT_MULTIPLIER) + 0.25
+        if (score > bestScore) {
+            bestScore = score
+            best = ReservedAfternoonActivity(candidate = candidate)
+        }
+    }
+
+    return best
+}
+
+private fun computeReservedPlacement(
+    slot: DaySlot,
+    durationMinutes: Int,
+    context: DayPlanContext,
+    latestAllowedEndMinute: Int
+): Pair<Int, Int>? {
+    val startMinute = firstValidStartMinute(
+        allowed = setOf(slot),
+        earliestMinute = context.currentMinute,
+        durationMinutes = durationMinutes,
+        latestAllowedEndMinute = latestAllowedEndMinute
+    ) ?: return null
+
+    val endMinute = startMinute + durationMinutes
+    if (endMinute > latestAllowedEndMinute) return null
+
+    return startMinute to endMinute
+}
+
+private fun computeReservedAfternoonPlacement(
+    reservedAfternoon: ReservedAfternoonActivity,
+    context: DayPlanContext,
+    tuning: GenerationTuning
+): Pair<Int, Int>? {
+    val range = slotRanges()[DaySlot.AFTERNOON] ?: return null
+    val earliestStart = maxOf(context.currentMinute, range.first)
+    val latestStart = minOf(
+        range.last,
+        minOf(
+            tuning.dayEndMinute - reservedAfternoon.candidate.durationMinutes,
+            (range.last + 1) - reservedAfternoon.candidate.durationMinutes
+        )
+    )
+    if (earliestStart > latestStart) return null
+    val startMinute = randomizedStartMinute(earliestStart, latestStart)
+
+    val endMinute = startMinute + reservedAfternoon.candidate.durationMinutes
+    if (endMinute > (range.last + 1)) return null
     if (endMinute > tuning.dayEndMinute) return null
 
     return startMinute to endMinute
@@ -334,8 +414,7 @@ private fun chooseBestCandidateForWindow(
     tuning: GenerationTuning,
     context: DayPlanContext,
     windowEndMinute: Int,
-    reservedMeal: ReservedMeal?,
-    forceNonFoodOnly: Boolean
+    deferredActivityIds: Set<String>
 ): Triple<ActivityCandidate, Int, Int>? {
     val preferredNonFoodSlots = setOf(DaySlot.MORNING, DaySlot.AFTERNOON)
 
@@ -346,8 +425,7 @@ private fun chooseBestCandidateForWindow(
 
     for (candidate in candidates) {
         if (!canAddBucket(candidate.typeBucket, context.bucketCount)) continue
-        if (forceNonFoodOnly && candidate.typeBucket == "food") continue
-        if (reservedMeal != null && candidate.activity.id == reservedMeal.candidate.activity.id) continue
+        if (candidate.activity.id in deferredActivityIds) continue
 
         val travelMinutes = estimateTravelMinutes(context.lastActivity, candidate.activity)
         val earliest = context.currentMinute + travelMinutes
@@ -381,7 +459,7 @@ private fun chooseBestCandidateForWindow(
                 slot !in context.coveredNonFoodSlots
             ) 3.0 else 0.0
 
-        val score = candidate.voteScore -
+        val score = (candidate.voteScore * VOTE_WEIGHT_MULTIPLIER) -
                 (tuning.travelPenaltyWeight * travelMinutes) -
                 repeatPenalty -
                 diversityPenalty +
@@ -433,8 +511,7 @@ private fun fillWindowGreedy(
     tuning: GenerationTuning,
     context: DayPlanContext,
     windowEndMinute: Int,
-    reservedMeal: ReservedMeal?,
-    forceNonFoodOnly: Boolean,
+    deferredActivityIds: Set<String>,
     reservedSlotsToKeep: Int
 ) {
     while (
@@ -448,8 +525,7 @@ private fun fillWindowGreedy(
             tuning = tuning,
             context = context,
             windowEndMinute = windowEndMinute,
-            reservedMeal = reservedMeal,
-            forceNonFoodOnly = forceNonFoodOnly
+            deferredActivityIds = deferredActivityIds
         )
 
         if (choice == null) {
@@ -469,7 +545,7 @@ private fun generateDayPlan(
     candidates: MutableList<ActivityCandidate>,
     tuning: GenerationTuning,
     restaurantTarget: Int,
-    dayStartMinute: Int = 8 * 60
+    dayStartMinute: Int = 9 * 60
 ): List<PlannedActivity> {
     val context = DayPlanContext(
         currentMinute = dayStartMinute,
@@ -484,8 +560,14 @@ private fun generateDayPlan(
 
     val reservedMeal = reserveRestaurantForDay(
         candidates = candidates,
-        restaurantTarget = restaurantTarget
+        restaurantTarget = maxOf(1, restaurantTarget)
     )
+    val reservedAfternoon = reserveAfternoonNonFoodForDay(candidates)
+
+    val deferredActivityIds = mutableSetOf<String>().apply {
+        reservedMeal?.candidate?.activity?.id?.let(::add)
+        reservedAfternoon?.candidate?.activity?.id?.let(::add)
+    }
 
     logger.debug(
         "Reserved meal: title={} slot={} voteScore={}",
@@ -493,15 +575,18 @@ private fun generateDayPlan(
         reservedMeal?.slot,
         reservedMeal?.candidate?.voteScore
     )
-
-    if (reservedMeal == null) {
+    logger.debug(
+        "Reserved afternoon non-food: title={} voteScore={}",
+        reservedAfternoon?.candidate?.activity?.title,
+        reservedAfternoon?.candidate?.voteScore
+    )
+    if (reservedMeal == null && reservedAfternoon == null) {
         fillWindowGreedy(
             candidates = candidates,
             tuning = tuning,
             context = context,
             windowEndMinute = tuning.dayEndMinute,
-            reservedMeal = null,
-            forceNonFoodOnly = false,
+            deferredActivityIds = emptySet(),
             reservedSlotsToKeep = 0
         )
         return context.plan
@@ -514,63 +599,118 @@ private fun generateDayPlan(
         context.plan.map { it.activity.title }
     )
 
-    val reservedSlotStart = slotRanges()[reservedMeal.slot]?.first ?: tuning.dayEndMinute
+    val reservedAfternoonSlotStart = if (reservedAfternoon != null) {
+        slotRanges()[DaySlot.AFTERNOON]?.first ?: tuning.dayEndMinute
+    } else {
+        tuning.dayEndMinute
+    }
 
-    // Fill before the reserved meal, but keep 1 slot open for it.
+    // Fill morning window before the reserved afternoon anchor.
     fillWindowGreedy(
         candidates = candidates,
         tuning = tuning,
         context = context,
-        windowEndMinute = reservedSlotStart,
-        reservedMeal = reservedMeal,
-        forceNonFoodOnly = true,
-        reservedSlotsToKeep = 1
+        windowEndMinute = reservedAfternoonSlotStart,
+        deferredActivityIds = deferredActivityIds,
+        reservedSlotsToKeep = deferredActivityIds.size
     )
 
-    val reservedPlacement = computeReservedMealPlacement(
-        reservedMeal = reservedMeal,
-        context = context,
-        tuning = tuning
-    )
-
-    logger.debug("Reserved placement: {}", reservedPlacement)
-
-    if (reservedPlacement != null && context.plan.size < tuning.maxActivitiesPerDay) {
-        val (mealStart, mealEnd) = reservedPlacement
-
-        logger.debug(
-            "Inserting reserved meal: {} at {}-{}",
-            reservedMeal.candidate.activity.title,
-            mealStart,
-            mealEnd
-        )
-
-        appendPlannedActivity(
+    fun placeReservedMeal() {
+        val meal = reservedMeal ?: return
+        val reservedPlacement = computeReservedMealPlacement(
+            reservedMeal = meal,
             context = context,
-            candidate = reservedMeal.candidate,
-            startMinute = mealStart,
-            endMinute = mealEnd,
             tuning = tuning
         )
+        logger.debug("Reserved meal placement: {}", reservedPlacement)
 
-        candidates.remove(reservedMeal.candidate)
-    } else {
-        logger.debug(
-            "Skipped reserved meal: reservedPlacement={} planSize={} maxActivitiesPerDay={}",
-            reservedPlacement,
-            context.plan.size,
-            tuning.maxActivitiesPerDay
-        )
+        if (reservedPlacement != null && context.plan.size < tuning.maxActivitiesPerDay) {
+            val (mealStart, mealEnd) = reservedPlacement
+
+            logger.debug(
+                "Inserting reserved meal: {} at {}-{}",
+                meal.candidate.activity.title,
+                mealStart,
+                mealEnd
+            )
+
+            appendPlannedActivity(
+                context = context,
+                candidate = meal.candidate,
+                startMinute = mealStart,
+                endMinute = mealEnd,
+                tuning = tuning
+            )
+
+            candidates.remove(meal.candidate)
+        } else {
+            logger.debug(
+                "Skipped reserved meal: reservedPlacement={} planSize={} maxActivitiesPerDay={}",
+                reservedPlacement,
+                context.plan.size,
+                tuning.maxActivitiesPerDay
+            )
+        }
+        deferredActivityIds.remove(meal.candidate.activity.id)
     }
 
-    // Fill the rest of the day after the meal.
+    fun placeReservedAfternoon() {
+        val afternoon = reservedAfternoon ?: return
+        val reservedAfternoonPlacement = computeReservedAfternoonPlacement(
+            reservedAfternoon = afternoon,
+            context = context,
+            tuning = tuning
+        )
+        logger.debug("Reserved afternoon placement: {}", reservedAfternoonPlacement)
+
+        if (reservedAfternoonPlacement != null && context.plan.size < tuning.maxActivitiesPerDay) {
+            val (afternoonStartMinute, afternoonEndMinute) = reservedAfternoonPlacement
+            logger.debug(
+                "Inserting reserved afternoon activity: {} at {}-{}",
+                afternoon.candidate.activity.title,
+                afternoonStartMinute,
+                afternoonEndMinute
+            )
+            appendPlannedActivity(
+                context = context,
+                candidate = afternoon.candidate,
+                startMinute = afternoonStartMinute,
+                endMinute = afternoonEndMinute,
+                tuning = tuning
+            )
+            candidates.remove(afternoon.candidate)
+        } else {
+            logger.debug(
+                "Skipped reserved afternoon activity: reservedPlacement={} planSize={} maxActivitiesPerDay={}",
+                reservedAfternoonPlacement,
+                context.plan.size,
+                tuning.maxActivitiesPerDay
+            )
+        }
+        deferredActivityIds.remove(afternoon.candidate.activity.id)
+    }
+
+    val dinnerAnchorStart = slotRanges()[DaySlot.DINNER]?.first ?: tuning.dayEndMinute
+    placeReservedAfternoon()
+
+    // Fill from afternoon toward dinner while keeping the reserved meal available.
+    fillWindowGreedy(
+        candidates = candidates,
+        tuning = tuning,
+        context = context,
+        windowEndMinute = dinnerAnchorStart,
+        deferredActivityIds = deferredActivityIds,
+        reservedSlotsToKeep = deferredActivityIds.size
+    )
+    placeReservedMeal()
+
+    // Fill the remaining part of the day after the meal.
     fillWindowGreedy(
         candidates = candidates,
         tuning = tuning,
         context = context,
         windowEndMinute = tuning.dayEndMinute,
-        reservedMeal = reservedMeal,
-        forceNonFoodOnly = false,
+        deferredActivityIds = emptySet(),
         reservedSlotsToKeep = 0
     )
 
@@ -667,7 +807,11 @@ private suspend fun generateAndPersistItinerary(tripId: String) {
             candidates.count { it.typeBucket == "food" },
             restaurantTarget
         )
-        val planned = generateDayPlan(candidates, tuning, restaurantTarget)
+        val planned = generateDayPlan(
+            candidates = candidates,
+            tuning = tuning,
+            restaurantTarget = restaurantTarget
+        )
 
         planned.forEachIndexed { idx, item ->
             SupabaseConfig.client.from("scheduled_activities").insert(
