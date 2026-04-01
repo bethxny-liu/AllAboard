@@ -40,11 +40,7 @@ fun InitialInfoStep(
     val state = vm.uiState
     var showDatePicker by remember { mutableStateOf(false) }
     var showBackgroundLinkDialog by remember { mutableStateOf(false) }
-    val selectableDates = if (vm.uiState.isEditMode) {
-        UnrestrictedSelectableDates
-    } else {
-        FutureTripSelectableDates
-    }
+    val selectableDates = FutureTripSelectableDates
     val dateRangePickerState = rememberDateRangePickerState(selectableDates = selectableDates)
     val dateTextStyle = TextStyle(
         color = MaterialTheme.colorScheme.onBackground,
@@ -382,12 +378,6 @@ private fun formatDate(utcTimeMillis: Long): String {
         .toLocalDateTime(TimeZone.UTC)
         .date
     return date.toString()
-}
-
-/** Edit flow may include trips that already started; allow any date in the picker. */
-private object UnrestrictedSelectableDates : SelectableDates {
-    override fun isSelectableDate(utcTimeMillis: Long) = true
-    override fun isSelectableYear(year: Int) = true
 }
 
 /**

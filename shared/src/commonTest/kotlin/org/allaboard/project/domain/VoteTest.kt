@@ -2,10 +2,11 @@ package org.allaboard.project.domain
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 /**
  * Unit tests for Vote, VoteType, and ActivityVoteResult. Verifies Vote creation and all fields;
- * VoteType enum values (YES, NO, SKIP); ActivityVoteResult creation with activity, counts,
+ * VoteType enum values (YES, NO, SUPER); ActivityVoteResult creation with activity, counts,
  * percentage, completion/confirmation flags, and voter names.
  */
 internal class VoteTest {
@@ -65,5 +66,35 @@ internal class VoteTest {
         assertEquals(true, result.isConfirmed)
         assertEquals(3, result.voterNames.size)
         assertEquals("Alice", result.voterNames[0])
+    }
+
+    @Test
+    fun vote_idNullable_defaults() {
+        val vote = Vote(
+            id = null,
+            activityId = "a1",
+            userId = "u1",
+            tripId = "t1",
+            voteType = VoteType.SUPER
+        )
+        assertNull(vote.id)
+        assertEquals(VoteType.SUPER, vote.voteType)
+    }
+
+    @Test
+    fun activityVoteResult_zeroVotes_edgeCase() {
+        val activity = createActivity()
+        val result = ActivityVoteResult(
+            activity = activity,
+            yesVotes = 0,
+            noVotes = 0,
+            totalVotes = 0,
+            yesPercentage = 0f,
+            isComplete = false,
+            isConfirmed = false,
+            voterNames = emptyList()
+        )
+        assertEquals(0, result.totalVotes)
+        assertEquals(true, result.voterNames.isEmpty())
     }
 }

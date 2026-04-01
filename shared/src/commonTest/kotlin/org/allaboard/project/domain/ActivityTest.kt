@@ -5,7 +5,8 @@ import kotlin.test.assertEquals
 
 /**
  * Unit tests for Activity and ActivityType. Verifies Activity creation with all properties and with
- * optional defaults (rating, priceLevel, voteCount, imageUrl, link); ActivityType enum values.
+ * optional defaults (rating, priceLevel, voteCount, imageUrl, link); [Activity.mapPinDisplay];
+ * ActivityType enum values.
  */
 internal class ActivityTest {
 
@@ -60,5 +61,55 @@ internal class ActivityTest {
         assertEquals(ActivityType.LANDMARK, ActivityType.LANDMARK)
         assertEquals(ActivityType.RESTAURANT, ActivityType.RESTAURANT)
         assertEquals(ActivityType.EXPERIENCES, ActivityType.EXPERIENCES)
+    }
+
+    @Test
+    fun mapPinDisplay_usesTitleWhenMapPinLabelNull() {
+        val a = Activity(
+            title = "Tower",
+            location = "X",
+            mapPinLabel = null,
+            type = ActivityType.LANDMARK
+        )
+        assertEquals("Tower", a.mapPinDisplay)
+    }
+
+    @Test
+    fun mapPinDisplay_usesLabelWhenNonBlank() {
+        val a = Activity(
+            title = "Full name",
+            location = "X",
+            mapPinLabel = "Pin",
+            type = ActivityType.LANDMARK
+        )
+        assertEquals("Pin", a.mapPinDisplay)
+    }
+
+    @Test
+    fun mapPinDisplay_blankLabelFallsBackToTitle() {
+        val a = Activity(
+            title = "Only title",
+            location = "X",
+            mapPinLabel = "   ",
+            type = ActivityType.RESTAURANT
+        )
+        assertEquals("Only title", a.mapPinDisplay)
+    }
+
+    @Test
+    fun activity_optionalGeoAndMeta() {
+        val a = Activity(
+            title = "T",
+            location = "L",
+            type = ActivityType.EXPERIENCES,
+            preference = "outdoor",
+            latitude = 35.6,
+            longitude = 139.7,
+            addedBy = "user-1"
+        )
+        assertEquals("outdoor", a.preference)
+        assertEquals(35.6, a.latitude)
+        assertEquals(139.7, a.longitude)
+        assertEquals("user-1", a.addedBy)
     }
 }
