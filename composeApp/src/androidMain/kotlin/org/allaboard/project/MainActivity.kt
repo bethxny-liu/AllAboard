@@ -13,6 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.user.UserSession
 import kotlinx.coroutines.launch
+import org.allaboard.project.data.repository.GoogleOAuthTokenStore
 import org.allaboard.project.data.repository.SupabaseClientProvider
 import org.allaboard.project.ui.App
 
@@ -47,14 +48,28 @@ class MainActivity : ComponentActivity() {
 
         // The tokens are in the fragment (after #)
         val fragment = uri.fragment ?: return
-        val params = fragment.split("&").associate {
-            val (key, value) = it.split("=", limit = 2)
-            key to value
-        }
+        val params = fragment.split("&").mapNotNull { entry ->
+            val parts = entry.split("=", limit = 2)
+            val key = parts.getOrNull(0) ?: return@mapNotNull null
+            val value = parts.getOrNull(1).orEmpty()
+            key to Uri.decode(value)
+        }.toMap()
+
+        // Supabase callback may include Google provider tokens when available.
+        GoogleOAuthTokenStore.providerAccessToken = params["provider_token"]
+        GoogleOAuthTokenStore.providerRefreshToken = params["provider_refresh_token"]
+
         val accessToken = params["access_token"] ?: return
         val refreshToken = params["refresh_token"] ?: return
         val expiresIn = params["expires_in"]?.toLongOrNull() ?: 3600
         val tokenType = params["token_type"] ?: "bearer"
+
+        if (GoogleOAuthTokenStore.providerAccessToken.isNullOrBlank()) {
+            Log.w(
+                "auth",
+                "Missing provider_token in OAuth callback. Google Calendar sync may require re-login with proper scopes."
+            )
+        }
 
         lifecycleScope.launch {
             SupabaseClientProvider.client.auth.importSession(

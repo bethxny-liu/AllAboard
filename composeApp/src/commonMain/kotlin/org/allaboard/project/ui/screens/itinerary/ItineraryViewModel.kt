@@ -15,7 +15,9 @@ data class ItineraryUiState(
     val itinerary: Itinerary? = null,
     val days: List<ItineraryDay> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val isExporting: Boolean = false,
+    val exportMessage: String? = null
 )
 
 class ItineraryViewModel(
@@ -59,5 +61,28 @@ class ItineraryViewModel(
     fun refresh() {
         _uiState.value = _uiState.value.copy(isLoading = true)
         loadItinerary()
+    }
+
+    fun exportAllDaysToGoogleCalendar() {
+        if (_uiState.value.isExporting) return
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isExporting = true, exportMessage = null)
+            try {
+                val created = model.exportItineraryToGoogleCalendar(tripId)
+                _uiState.value = _uiState.value.copy(
+                    isExporting = false,
+                    exportMessage = if (created > 0) {
+                        "Added $created event${if (created == 1) "" else "s"} to Google Calendar."
+                    } else {
+                        "No itinerary events were exported."
+                    }
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isExporting = false,
+                    exportMessage = e.message ?: "Failed to export itinerary to Google Calendar."
+                )
+            }
+        }
     }
 }

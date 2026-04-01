@@ -29,10 +29,14 @@ class DatabaseRepositoryImpl(
 ) : DatabaseRepository {
 
     override suspend fun signInWithGoogle(): Result<Unit> = runCatching {
-        supabaseClient.auth.signInWith(Google, redirectUrl = "org.allaboard.project://callback")
+        GoogleOAuthTokenStore.clear()
+        supabaseClient.auth.signInWith(Google, redirectUrl = "org.allaboard.project://callback") {
+            scopes.add("https://www.googleapis.com/auth/calendar.events")
+        }
     }
 
     override suspend fun logout() {
-        supabaseClient.auth.signOut();
+        supabaseClient.auth.signOut()
+        GoogleOAuthTokenStore.clear()
     }
 }

@@ -2,6 +2,7 @@ package org.allaboard.project.domain
 
 import org.allaboard.project.data.repository.ActivityRepository
 import org.allaboard.project.data.repository.DatabaseRepository
+import org.allaboard.project.data.repository.GoogleOAuthTokenStore
 import org.allaboard.project.data.repository.ItineraryRepository
 import org.allaboard.project.data.repository.TripRepository
 import org.allaboard.project.data.repository.UserRepository
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
 
 /**
@@ -297,6 +299,20 @@ class AllAboardModel(
             }
             itineraryRepository.getItinerary(tripId)
         }
+    }
+
+    suspend fun exportItineraryToGoogleCalendar(tripId: String): Int {
+        val providerToken = GoogleOAuthTokenStore.providerAccessToken
+            ?: throw IllegalStateException(
+                "Google Calendar permission is missing. Please log out and sign in with Google again."
+            )
+
+        return itineraryRepository.exportToGoogleCalendar(
+            tripId = tripId,
+            googleAccessToken = providerToken,
+            timeZone = TimeZone.currentSystemDefault().id,
+            calendarId = "primary"
+        )
     }
 
     // ========================================

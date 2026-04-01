@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,7 +41,6 @@ import org.allaboard.project.domain.ActivityType
 import org.allaboard.project.domain.ItineraryDay
 import org.allaboard.project.domain.ScheduledActivity
 import org.allaboard.project.navigator.pushIfNotTop
-import org.allaboard.project.ui.components.ScreenTopBar
 import org.allaboard.project.ui.screens.activityDetails.ActivityDetailsScreen
 import org.allaboard.project.ui.theme.BluePrimaryDark
 import org.allaboard.project.ui.theme.CoralAccent
@@ -60,6 +60,7 @@ class ItineraryScreen(private val tripId: String) : Screen {
         ItineraryContent(
             uiState = uiState,
             onBack = { navigator?.pop() },
+            onExportAllToGoogleCalendar = viewModel::exportAllDaysToGoogleCalendar,
             onActivityClick = { activity ->
                 navigator?.pushIfNotTop(ActivityDetailsScreen(tripId = tripId, activity = activity, fallbackActivityId = activity.id))
             }
@@ -71,8 +72,12 @@ class ItineraryScreen(private val tripId: String) : Screen {
 fun ItineraryContent(
     onBack: () -> Unit,
     uiState: ItineraryUiState,
+    onExportAllToGoogleCalendar: () -> Unit,
     onActivityClick: (Activity) -> Unit = {}
 ) {
+    val allScheduledActivities = remember(uiState.days) {
+        uiState.days.flatMap { day -> day.activities.map { scheduled -> day to scheduled } }
+    }
     var selectedDayIndex by remember(uiState.days) { mutableIntStateOf(0) }
     val selectedDay = uiState.days.getOrNull(selectedDayIndex)
 
@@ -134,7 +139,26 @@ fun ItineraryContent(
             onSelected = { selectedDayIndex = it }
         )
 
-        Spacer(Modifier.height(40.dp))
+        Spacer(Modifier.height(16.dp))
+
+        Button(
+            onClick = onExportAllToGoogleCalendar,
+            enabled = allScheduledActivities.isNotEmpty() && !uiState.isExporting,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(if (uiState.isExporting) "Exporting..." else "Export to Google Calendar")
+        }
+
+        if (uiState.exportMessage != null) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = uiState.exportMessage,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        Spacer(Modifier.height(24.dp))
 
         if (selectedDay == null || selectedDay.activities.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

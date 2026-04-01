@@ -1,6 +1,7 @@
 package org.allaboard.project
 
 import io.ktor.http.content.*
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import org.slf4j.LoggerFactory
@@ -30,7 +31,7 @@ val RequestLoggingMiddleware = createApplicationPlugin(name = "RequestLogging") 
 
     // ── Log the outgoing response (including body) ──────────────────────
     onCallRespond { call, body ->
-        val status = call.response.status()?.value ?: "?"
+        val status = (call.response.status() ?: HttpStatusCode.OK).value
         val method = call.request.httpMethod.value
         val uri = call.request.uri
 
@@ -39,6 +40,7 @@ val RequestLoggingMiddleware = createApplicationPlugin(name = "RequestLogging") 
         val bodyText = when (body) {
             is OutgoingContent.NoContent -> "<no body>"
             is String -> body
+            is TextContent -> body.text
             else -> body.toString()
         }
 

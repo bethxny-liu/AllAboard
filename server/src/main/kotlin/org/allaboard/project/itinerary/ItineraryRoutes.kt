@@ -1,7 +1,19 @@
 package org.allaboard.project.itinerary
 
 import io.github.jan.supabase.postgrest.from
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.encodeURLPathPart
+import io.ktor.http.isSuccess
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -9,6 +21,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.patch
+import io.ktor.serialization.kotlinx.json.json
 import org.allaboard.project.SupabaseConfig
 import org.allaboard.project.auth.userId
 import org.allaboard.project.domain.Activity
@@ -26,13 +39,16 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.random.Random
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.Serializable
 
 private enum class DaySlot {
     MORNING,
@@ -44,6 +60,11 @@ private enum class DaySlot {
 
 private val logger = LoggerFactory.getLogger("ItineraryRoutes")
 private val tripGenerationLocks = ConcurrentHashMap<String, Mutex>()
+private val googleCalendarHttpClient = HttpClient(CIO) {
+    install(ContentNegotiation) {
+        json()
+    }
+}
 
 private data class ActivityCandidate(
     val activity: Activity,
@@ -92,8 +113,63 @@ private const val START_TIME_RANDOM_STEP_MINUTES = 5
 private const val START_TIME_RANDOM_MAX_OFFSET_MINUTES = 30
 private const val VOTE_WEIGHT_MULTIPLIER = 7.0
 
+private val GOOGLE_RFC3339_FORMATTER: DateTimeFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
+private val DISPLAY_TIME_PARSERS: List<DateTimeFormatter> = listOf(
+    DateTimeFormatter.ofPattern("h:mm a", Locale.US),
+    DateTimeFormatter.ofPattern("h:mma", Locale.US),
+    DateTimeFormatter.ofPattern("h a", Locale.US),
+    DateTimeFormatter.ofPattern("ha", Locale.US),
+    DateTimeFormatter.ofPattern("H:mm:ss", Locale.US),
+    DateTimeFormatter.ofPattern("HH:mm:ss", Locale.US),
+    DateTimeFormatter.ofPattern("H:mm", Locale.US),
+    DateTimeFormatter.ofPattern("HH:mm", Locale.US)
+)
+
+@Serializable
+private data class GoogleCalendarEventDateTime(
+    val dateTime: String,
+    val timeZone: String
+)
+
+@Serializable
+private data class GoogleCalendarEventInsertRequest(
+    val summary: String,
+    val location: String? = null,
+    val description: String? = null,
+    val start: GoogleCalendarEventDateTime,
+    val end: GoogleCalendarEventDateTime
+)
+
 private fun parseIsoDateOrNull(raw: String): LocalDate? =
     runCatching { LocalDate.parse(raw) }.getOrNull()
+
+private fun parseDisplayTimeOrNull(raw: String): LocalTime? {
+    val text = raw.trim()
+    if (text.isEmpty()) return null
+
+    val normalized = text
+        .replace(Regex("\\s+"), " ")
+        .replace(Regex("(?i)\\b(am|pm)\\b")) { it.value.uppercase(Locale.US) }
+
+    DISPLAY_TIME_PARSERS.forEach { formatter ->
+        runCatching { LocalTime.parse(normalized, formatter) }
+            .getOrNull()
+            ?.let { return it }
+    }
+    return null
+}
+
+private fun toGoogleRfc3339(
+    date: String,
+    time: String,
+    timeZone: String
+): String? {
+    val localDate = parseIsoDateOrNull(date) ?: return null
+    val localTime = parseDisplayTimeOrNull(time) ?: return null
+    val zoneId = runCatching { ZoneId.of(timeZone) }.getOrElse { ZoneId.of("UTC") }
+    val zoned = LocalDateTime.of(localDate, localTime).atZone(zoneId)
+    return GOOGLE_RFC3339_FORMATTER.format(zoned)
+}
 
 private fun datesBetweenInclusive(start: LocalDate, end: LocalDate): List<LocalDate> {
     if (end.isBefore(start)) return listOf(start)
@@ -844,6 +920,35 @@ private suspend fun clearItineraryForTrip(tripId: String) {
         .delete { filter { eq("trip_id", tripId) } }
 }
 
+private suspend fun insertEventIntoGoogleCalendar(
+    accessToken: String,
+    calendarId: String,
+    request: GoogleCalendarEventInsertRequest
+): Boolean {
+    val url = "https://www.googleapis.com/calendar/v3/calendars/${calendarId.encodeURLPathPart()}/events"
+    return try {
+        val response = googleCalendarHttpClient.post(url) {
+            bearerAuth(accessToken)
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody(request)
+        }
+        val bodyText = response.bodyAsText()
+        if (!response.status.isSuccess()) {
+            logger.warn(
+                "Google Calendar insert failed status={} body={}",
+                response.status.value,
+                bodyText
+            )
+            return false
+        }
+
+        true
+    } catch (t: Throwable) {
+        logger.warn("Google Calendar insert exception: {}", t.message)
+        false
+    }
+}
+
 /**
  * Shared helper used by multiple routes: fetches an itinerary (days + scheduled activities)
  * for a trip, or null if there are no itinerary days yet.
@@ -951,6 +1056,91 @@ fun Route.itineraryRoutes() {
                     "Itinerary regeneration failed: ${t.message}"
                 )
             }
+        }
+
+        post("/trips/{id}/itinerary/export/google-calendar") {
+            val tripId = call.parameters["id"] ?: run {
+                call.respond(HttpStatusCode.BadRequest, "Missing trip id")
+                return@post
+            }
+
+            call.userId
+
+            val body = call.receive<ExportGoogleCalendarRequest>()
+            if (body.googleAccessToken.isBlank()) {
+                call.respond(HttpStatusCode.BadRequest, "Missing Google access token")
+                return@post
+            }
+
+            val itinerary = fetchItinerary(tripId) ?: run {
+                call.respond(ExportGoogleCalendarResponse(created = 0, failed = 0))
+                return@post
+            }
+
+            var created = 0
+            var failed = 0
+
+            itinerary.days.forEach { day ->
+                day.activities.forEach { scheduled ->
+                    val start = toGoogleRfc3339(
+                        date = day.date,
+                        time = scheduled.startTime,
+                        timeZone = body.timeZone
+                    )
+                    val end = toGoogleRfc3339(
+                        date = day.date,
+                        time = scheduled.endTime,
+                        timeZone = body.timeZone
+                    )
+
+                    if (start == null || end == null) {
+                        logger.warn(
+                            "Skipping itinerary activity during Google Calendar export due to invalid date/time tripId={} date={} title='{}' start='{}' end='{}'",
+                            tripId,
+                            day.date,
+                            scheduled.activity.title,
+                            scheduled.startTime,
+                            scheduled.endTime
+                        )
+                        failed += 1
+                        return@forEach
+                    }
+
+                    val details = buildList<String> {
+                        val description = scheduled.activity.description?.trim().orEmpty()
+                        if (description.isNotBlank()) add(description)
+                        val notes = scheduled.notes.trim()
+                        if (notes.isNotBlank()) add("Notes: $notes")
+                    }.joinToString("\n\n").ifBlank { null }
+
+                    val createdEvent = insertEventIntoGoogleCalendar(
+                        accessToken = body.googleAccessToken,
+                        calendarId = body.calendarId.ifBlank { "primary" },
+                        request = GoogleCalendarEventInsertRequest(
+                            summary = scheduled.activity.title,
+                            location = scheduled.activity.location.ifBlank { null },
+                            description = details,
+                            start = GoogleCalendarEventDateTime(
+                                dateTime = start,
+                                timeZone = body.timeZone
+                            ),
+                            end = GoogleCalendarEventDateTime(
+                                dateTime = end,
+                                timeZone = body.timeZone
+                            )
+                        )
+                    )
+
+                    if (createdEvent) created += 1 else failed += 1
+                }
+            }
+
+            call.respond(
+                ExportGoogleCalendarResponse(
+                    created = created,
+                    failed = failed
+                )
+            )
         }
 
         patch("/trips/{id}/itinerary/days/{date}/activities") {

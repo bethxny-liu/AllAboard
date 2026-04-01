@@ -47,3 +47,16 @@ data class UpdateScheduledActivityRequest(
     val endTime: String,
     val notes: String = ""
 )
+
+@Serializable
+data class ExportGoogleCalendarRequest(
+    val googleAccessToken: String,
+    val timeZone: String = "UTC",
+    val calendarId: String = "primary"
+)
+
+@Serializable
+data class ExportGoogleCalendarResponse(
+    val created: Int,
+    val failed: Int
+)
