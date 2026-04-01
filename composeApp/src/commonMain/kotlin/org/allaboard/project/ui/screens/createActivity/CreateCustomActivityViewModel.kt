@@ -11,13 +11,24 @@ import org.allaboard.project.domain.Activity
 import org.allaboard.project.domain.AllAboardModel
 import org.allaboard.project.domain.ActivityType
 
+private val activityPreferenceOptions = listOf(
+    "Food & Drink",
+    "Arts & Culture",
+    "Nightlife",
+    "Outdoors",
+    "Shopping",
+    "Sightseeing"
+)
+
 /**
  * UI state for the Create Custom Activity screen.
  */
 data class CreateCustomActivityUiState(
     val categories: List<Category> = Category.allCategories.filter { it != Category.ALL },
     val selectedCategoryIndex: Int = 0,
+    val typeOptions: List<String> = activityPreferenceOptions,
     val name: String = "",
+    val type: String = activityPreferenceOptions.first(),
     val location: String = "",
     val description: String = "",
     val link: String = "",
@@ -44,10 +55,14 @@ class CreateCustomActivityViewModel(
     private val _uiState = MutableStateFlow(
         if (existingActivity != null) {
             val index = categories.indexOfFirst { it.type == existingActivity.type }.takeIf { it >= 0 } ?: 0
+            val selectedPreference = activityPreferenceOptions.firstOrNull {
+                it.equals(existingActivity.preference, ignoreCase = true)
+            } ?: activityPreferenceOptions.first()
             CreateCustomActivityUiState(
                 categories = categories,
                 selectedCategoryIndex = index,
                 name = existingActivity.title,
+                type = selectedPreference,
                 location = existingActivity.location,
                 description = existingActivity.description ?: "",
                 link = existingActivity.link ?: ""
@@ -64,6 +79,10 @@ class CreateCustomActivityViewModel(
 
     fun updateName(name: String) {
         _uiState.value = _uiState.value.copy(name = name)
+    }
+
+    fun updateType(type: String) {
+        _uiState.value = _uiState.value.copy(type = type)
     }
 
     fun updateLocation(location: String) {
@@ -96,6 +115,7 @@ class CreateCustomActivityViewModel(
                         location = state.location,
                         description = state.description,
                         type = activityType,
+                        preference = state.type.ifBlank { null },
                         link = state.link.ifBlank { null },
                         mapPinLabel = state.name.ifEmpty { state.location }
                     )
@@ -107,6 +127,7 @@ class CreateCustomActivityViewModel(
                         location = state.location,
                         description = state.description,
                         type = activityType,
+                        preference = state.type.ifBlank { null },
                         imageUrl = null,
                         link = state.link.ifBlank { null }
                     )

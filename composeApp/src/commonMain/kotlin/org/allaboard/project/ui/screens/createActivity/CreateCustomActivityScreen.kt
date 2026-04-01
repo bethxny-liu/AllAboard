@@ -1,14 +1,12 @@
 package org.allaboard.project.ui.screens.createActivity
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,6 +27,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import org.allaboard.project.domain.Activity
 import org.allaboard.project.ui.components.CategoryDropdown
+import org.allaboard.project.ui.components.OptionDropdown
 import org.allaboard.project.ui.components.ScreenTopBar
 import org.allaboard.project.ui.components.ScreenTopBarDefaults
 import org.allaboard.project.di.AppModule
@@ -74,6 +73,7 @@ class CreateCustomActivityScreen(
                 onCreate = viewModel::onCreateOrUpdateActivity,
                 onCategoryChange = viewModel::updateCategory,
                 onNameChange = viewModel::updateName,
+                onTypeChange = viewModel::updateType,
                 onLocationChange = viewModel::updateLocation,
                 onDescriptionChange = viewModel::updateDescription,
                 onLinkChange = viewModel::updateLink
@@ -90,6 +90,7 @@ private fun CreateCustomActivityContent(
     onBack: () -> Unit = {},
     onCategoryChange: (Int) -> Unit = {},
     onNameChange: (String) -> Unit = {},
+    onTypeChange: (String) -> Unit = {},
     onLocationChange: (String) -> Unit = {},
     onDescriptionChange: (String) -> Unit = {},
     onLinkChange: (String) -> Unit = {},
@@ -133,6 +134,17 @@ private fun CreateCustomActivityContent(
 
         Spacer(Modifier.height(16.dp))
 
+        Text("Type", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+        Spacer(Modifier.height(8.dp))
+        OptionDropdown(
+            options = uiState.typeOptions,
+            selectedOption = uiState.type,
+            onOptionSelected = onTypeChange,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(Modifier.height(16.dp))
+
         // Activity Name
         Text("Activity Name", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
         Spacer(Modifier.height(8.dp))
@@ -147,13 +159,6 @@ private fun CreateCustomActivityContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp)
-                        .border(
-                            BorderStroke(
-                                width = if (uiState.error == "Name required") 2.dp else 1.dp,
-                                color = if (uiState.error == "Name required") MaterialTheme.colorScheme.error else Color.Black
-                            ),
-                            RoundedCornerShape(25.dp)
-                        )
                         .background(FieldBackground, RoundedCornerShape(25.dp))
                         .padding(start = 20.dp),
                     contentAlignment = Alignment.CenterStart
@@ -190,7 +195,6 @@ private fun CreateCustomActivityContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp)
-                        .border(BorderStroke(1.dp, Color.Black), RoundedCornerShape(25.dp))
                         .background(FieldBackground, RoundedCornerShape(25.dp))
                         .padding(start = 20.dp),
                     contentAlignment = Alignment.CenterStart
@@ -219,7 +223,6 @@ private fun CreateCustomActivityContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(100.dp)
-                        .border(BorderStroke(1.dp, Color.Black), RoundedCornerShape(16.dp))
                         .background(FieldBackground, RoundedCornerShape(16.dp))
                         .padding(all = 16.dp),
                     contentAlignment = Alignment.TopStart
@@ -242,7 +245,6 @@ private fun CreateCustomActivityContent(
         Box(
             modifier = Modifier
                 .size(60.dp)
-                .border(BorderStroke(1.dp, Color.Black), RoundedCornerShape(16.dp))
                 .background(FieldBackground, RoundedCornerShape(16.dp))
                 .clickable { showLinkDialog = true },
             contentAlignment = Alignment.Center
@@ -349,4 +351,3 @@ private fun SuccessScreen(isEditMode: Boolean = false) {
         }
     }
 }
-
