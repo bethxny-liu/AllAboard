@@ -43,7 +43,8 @@ fun InitialInfoStep(
     val selectableDates = FutureTripSelectableDates
     val dateRangePickerState = rememberDateRangePickerState(selectableDates = selectableDates)
     val dateTextStyle = TextStyle(
-        color = MaterialTheme.colorScheme.onBackground,
+        color = if (state.isEditMode) MaterialTheme.colorScheme.onSurfaceVariant
+        else MaterialTheme.colorScheme.onBackground,
         fontSize = 14.sp
     )
 
@@ -91,12 +92,17 @@ fun InitialInfoStep(
         )
 
         Spacer(Modifier.height(10.dp))
+        val destinationReadOnly = state.isEditMode
+        val destinationTextColor =
+            if (destinationReadOnly) MaterialTheme.colorScheme.onSurfaceVariant
+            else MaterialTheme.colorScheme.onBackground
         // Country
         BasicTextField(
             value = vm.uiState.country,
             onValueChange = { vm.updateCountry(it) },
+            readOnly = destinationReadOnly,
             singleLine = true,
-            textStyle = TextStyle(color = MaterialTheme.colorScheme.onBackground),
+            textStyle = TextStyle(color = destinationTextColor),
             modifier = Modifier.fillMaxWidth(),
             decorationBox = { innerTextField ->
                 Box(
@@ -123,8 +129,9 @@ fun InitialInfoStep(
         BasicTextField(
             value = vm.uiState.region,
             onValueChange = { vm.updateRegion(it) },
+            readOnly = destinationReadOnly,
             singleLine = true,
-            textStyle = TextStyle(color = MaterialTheme.colorScheme.onBackground),
+            textStyle = TextStyle(color = destinationTextColor),
             modifier = Modifier.fillMaxWidth(),
             decorationBox = { innerTextField ->
                 Box(
@@ -183,7 +190,10 @@ fun InitialInfoStep(
                     }
                 }
                 Box(modifier = Modifier.padding(end = 12.dp)) {
-                    IconButton(onClick = { showDatePicker = true }) {
+                    IconButton(
+                        onClick = { showDatePicker = true },
+                        enabled = !state.isEditMode
+                    ) {
                         Icon(
                             imageVector = Icons.Outlined.DateRange,
                             contentDescription = "Select dates"
@@ -194,7 +204,7 @@ fun InitialInfoStep(
             }
         }
 
-        if (showDatePicker) {
+        if (showDatePicker && !state.isEditMode) {
             DatePickerDialog(
                 onDismissRequest = { showDatePicker = false },
                 confirmButton = {
