@@ -32,6 +32,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.allaboard.project.Category
 import org.allaboard.project.ui.theme.FieldBackground
 import org.allaboard.project.ui.theme.TextPrimary
@@ -242,6 +243,7 @@ fun SearchableOptionDropdownField(
             placeholder = {
                 Text(
                     text = placeholder,
+                    fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
