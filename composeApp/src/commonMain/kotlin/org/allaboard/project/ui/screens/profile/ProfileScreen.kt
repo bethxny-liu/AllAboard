@@ -93,20 +93,21 @@ fun ProfileScreenContent(
                         .border(width = 2.dp, color = TextPrimary, shape = CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    NetworkImage(
-                        imageUrl = uiState.profileImageUrl,
-                        contentDescription = "Profile photo",
-                        modifier = Modifier
-                            .matchParentSize()
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
                     if (uiState.profileImageUrl.isNullOrBlank()) {
                         Icon(
                             imageVector = Icons.Filled.Person,
                             contentDescription = "Avatar",
                             tint = TextPrimary,
                             modifier = Modifier.size(56.dp)
+                        )
+                    } else {
+                        NetworkImage(
+                            imageUrl = uiState.profileImageUrl,
+                            contentDescription = "Profile photo",
+                            modifier = Modifier
+                                .matchParentSize()
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
                         )
                     }
                 }
