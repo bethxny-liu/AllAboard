@@ -179,28 +179,14 @@ class JoinTripScreen : Screen {
                         }
                         scope.launch {
                             isLoading = true
-                            errorMessage = null
-
                             try {
-                                // Join succeeded only if the backend returned 2xx.
-                                AppModule.allAboardModel.joinTrip(tripId)
-
-                                val trip = AppModule.allAboardModel.getTrip(tripId)
+                                runCatching { AppModule.allAboardModel.joinTrip(tripId) }
+                                val trip = runCatching { AppModule.allAboardModel.getTrip(tripId) }.getOrNull()
                                 if (trip != null) {
-                                    navigator?.pushIfNotTop(TripHomeScreen(trip.id))
+                                    navigator?.push(TripHomeScreen(trip.id))
                                 } else {
-                                    errorMessage = "Joined, but unable to open this trip right now."
+                                    errorMessage = "No trip exists for that code."
                                 }
-                            } catch (e: ClientRequestException) {
-                                // 409 means join failed (already member or invalid join).
-                                // IMPORTANT: never treat 409 as "joined=true".
-                                errorMessage = when (e.response.status.value) {
-                                    404 -> "No trip exists for that code."
-                                    409 -> "You’re already a member of this trip."
-                                    else -> "Unable to join this trip right now."
-                                }
-                            } catch (_: Throwable) {
-                                errorMessage = "Unable to join this trip right now."
                             } finally {
                                 isLoading = false
                             }
