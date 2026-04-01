@@ -272,16 +272,21 @@ private fun CreateCustomActivityContent(
                     }
                 },
                 confirmButton = {
-                    TextButton(onClick = { showLinkDialog = false }) {
+                    TextButton(
+                        onClick = { showLinkDialog = false },
+                        colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)
+                    ) {
                         Text("Done")
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = {
-                        // clear link and close
-                        onLinkChange("")
-                        showLinkDialog = false
-                    }) {
+                    TextButton(
+                        onClick = {
+                            onLinkChange("")
+                            showLinkDialog = false
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)
+                    ) {
                         Text("Clear")
                     }
                 }
