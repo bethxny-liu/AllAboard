@@ -14,4 +14,5 @@ interface UserRepository {
         vibe: TravelVibe,
         interests: Set<String>
     )
+    suspend fun clearCache()
 }

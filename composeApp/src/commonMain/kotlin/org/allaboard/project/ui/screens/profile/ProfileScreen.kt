@@ -28,12 +28,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import org.allaboard.project.di.AppModule
-import org.allaboard.project.navigator.pushIfNotTop
+import org.allaboard.project.ui.components.NetworkImage
 import org.allaboard.project.ui.components.ScreenTopBar
 import org.allaboard.project.ui.components.ScreenTopBarDefaults
 import org.allaboard.project.ui.screens.login.LoginScreen
@@ -54,8 +55,8 @@ class ProfileScreen : Screen {
         ProfileScreenContent(
             uiState = uiState,
             onBack = { navigator?.pop() },
-            onChangePreferences = { navigator?.pushIfNotTop(OnboardingScreen(editMode = true)) },
-            onLogOut = { /* TODO: figure out login/logout process */ }
+            onChangePreferences = { navigator?.replace(OnboardingScreen(editMode = true)) },
+            onLogOut = { viewModel.logout(navigator);},
         )
     }
 }
@@ -94,12 +95,23 @@ fun ProfileScreenContent(
                         .border(width = 2.dp, color = TextPrimary, shape = CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Person,
-                        contentDescription = "Avatar",
-                        tint = TextPrimary,
-                        modifier = Modifier.size(56.dp)
-                    )
+                    if (uiState.profileImageUrl.isNullOrBlank()) {
+                        Icon(
+                            imageVector = Icons.Filled.Person,
+                            contentDescription = "Avatar",
+                            tint = TextPrimary,
+                            modifier = Modifier.size(56.dp)
+                        )
+                    } else {
+                        NetworkImage(
+                            imageUrl = uiState.profileImageUrl,
+                            contentDescription = "Profile photo",
+                            modifier = Modifier
+                                .matchParentSize()
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                 }
 
                 Spacer(Modifier.height(12.dp))
