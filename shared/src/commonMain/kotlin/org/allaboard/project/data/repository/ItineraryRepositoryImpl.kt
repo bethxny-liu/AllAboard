@@ -26,6 +26,14 @@ class ItineraryRepositoryImpl : ItineraryRepository {
         }
     }
 
+    override suspend fun regenerateItinerary(tripId: String): Itinerary? {
+        return try {
+            ApiClient.postNoBodyResponse<Itinerary>("/trips/$tripId/itinerary/regenerate")
+        } catch (e: ClientRequestException) {
+            if (e.response.status.value == 404) null else throw e
+        }
+    }
+
     override suspend fun updateScheduledActivity(tripId: String, date: String, scheduledActivity: ScheduledActivity) {
         val body = UpdateScheduledActivityRequest(
             activityId = scheduledActivity.activity.id,

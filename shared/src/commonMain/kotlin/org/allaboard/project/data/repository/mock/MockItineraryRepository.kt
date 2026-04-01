@@ -79,6 +79,10 @@ class MockItineraryRepository : ItineraryRepository {
         return store["trip-1"] // Always return the seeded itinerary for demo purposes
     }
 
+    override suspend fun regenerateItinerary(tripId: String): Itinerary? {
+        return getItinerary(tripId)
+    }
+
     override suspend fun updateScheduledActivity(tripId: String, date: String, scheduledActivity: ScheduledActivity) {
         val itinerary = store[tripId] ?: return
         val updatedDays = itinerary.days.map { day ->
