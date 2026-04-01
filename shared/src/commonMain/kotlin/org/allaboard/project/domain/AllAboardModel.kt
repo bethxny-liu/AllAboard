@@ -285,27 +285,11 @@ class AllAboardModel(
     // ========================================
 
     /**
-     * Get all data needed for TripHomeScreen in one call.
-     * This is where the Model adds value - coordinating multiple fetches.
+     * Get all data needed for TripHomeScreen in one backend call.
+     * Backend aggregates trip + activities + voting results + itinerary.
      */
     suspend fun getTripDashboard(tripId: String): TripDashboard {
-        val trip = tripRepository.getTrip(tripId)
-        val activities = activityRepository.getActivitiesForTrip(tripId)
-        val votingResults = voteRepository.getVotingResultsForTrip(tripId)
-        val itinerary = itineraryRepository.getItinerary(tripId)
-
-        val votesByActivity = votingResults.associateBy { it.activity.id }
-        val mergedActivities = activities.map { activity ->
-            val vr = votesByActivity[activity.id]
-            if (vr != null) activity.copy(voteCount = vr.totalVotes) else activity
-        }
-
-        return TripDashboard(
-            trip = trip,
-            activities = mergedActivities,
-            votingResults = votingResults,
-            itinerary = itinerary
-        )
+        return tripRepository.getTripDashboard(tripId)
     }
 
 }
