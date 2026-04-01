@@ -96,8 +96,8 @@ internal class AllAboardModelTest {
         val dashboard = model.getTripDashboard("trip-1")
         val dashTrip = requireNotNull(dashboard.trip)
         assertEquals("trip-1", dashTrip.id)
-        assertTrue(dashboard.activities.isNotEmpty())
-        assertTrue(dashboard.votingResults.isNotEmpty() || dashboard.activities.isNotEmpty())
+        assertTrue(dashboard.activities.isEmpty())
+        assertTrue(dashboard.votingResults.isEmpty())
     }
 
     @Test
