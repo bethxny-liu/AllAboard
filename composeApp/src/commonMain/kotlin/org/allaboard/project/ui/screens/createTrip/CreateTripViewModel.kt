@@ -138,16 +138,12 @@ class CreateTripViewModel(
             try {
                 when (mode) {
                     Mode.Create -> {
-                        val currentUser = allAboardModel.getCurrentUser()
-                            ?: error("No current user available")
-
                         val createdTrip = allAboardModel.createTrip(
                             destination = destination,
                             region = region,
                             startDate = startDate,
                             endDate = endDate,
                             imageUrl = state.tripBackgroundUrl.trim().ifBlank { null },
-                            creatorId = currentUser.id,
                             tripId = state.tripId
                         )
 
@@ -213,7 +209,7 @@ class CreateTripViewModel(
     private fun loadCreateDefaults() {
         uiState = uiState.copy(isLoading = true, error = null, isEditMode = false)
         viewModelScope.launch {
-            val currentUser = allAboardModel.getCurrentUser()
+            val currentUser = runCatching { allAboardModel.getCurrentUser() }.getOrNull()
             val crew = currentUser?.let { listOf(it.toCrewMemberUi()) } ?: emptyList()
             uiState = CreateTripUiState(
                 country = "",

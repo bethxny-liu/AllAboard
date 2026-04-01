@@ -5,5 +5,6 @@ import org.allaboard.project.domain.ScheduledActivity
 
 interface ItineraryRepository {
     suspend fun getItinerary(tripId: String): Itinerary?
+    suspend fun regenerateItinerary(tripId: String): Itinerary?
     suspend fun updateScheduledActivity(tripId: String, date: String, scheduledActivity: ScheduledActivity)
 }

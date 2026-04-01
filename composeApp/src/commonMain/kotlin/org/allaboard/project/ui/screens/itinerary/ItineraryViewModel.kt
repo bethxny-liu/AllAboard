@@ -26,6 +26,14 @@ class ItineraryViewModel(
     val uiState: StateFlow<ItineraryUiState> = _uiState.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            model.events.collect { eventTripId ->
+                if (eventTripId == tripId) {
+                    refresh()
+                }
+            }
+        }
+
         loadItinerary()
     }
 

@@ -5,6 +5,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.*
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -43,6 +44,12 @@ object ApiClient {
     @PublishedApi
     internal val client: HttpClient = HttpClient {
 
+        install(HttpTimeout) {
+            requestTimeoutMillis = 60_000
+            socketTimeoutMillis = 60_000
+            connectTimeoutMillis = 15_000
+        }
+
         install(ContentNegotiation) {
             json(json)
         }
@@ -70,6 +77,14 @@ object ApiClient {
             url(path)
             authHeaderOrNull()?.let { header(HttpHeaders.Authorization, it) }
             setBody(body)
+        }.body()
+    }
+
+    /** Use for POST requests with no request body but JSON response body. */
+    suspend inline fun <reified Res> postNoBodyResponse(path: String): Res {
+        return client.post {
+            url(path)
+            authHeaderOrNull()?.let { header(HttpHeaders.Authorization, it) }
         }.body()
     }
 
