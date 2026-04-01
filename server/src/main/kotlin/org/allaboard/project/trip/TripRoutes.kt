@@ -186,18 +186,27 @@ fun Route.tripRoutes() {
             }
 
             val userId = call.userId
-            val inserted = runCatching {
-                SupabaseConfig.client.from("trip_members").insert(
-                    TripMemberRow(tripId = tripId, userId = userId, role = "MEMBER")
-                ) {
-                    select(); single()
-                }.decodeSingleOrNull<TripMemberRow>()
-            }.getOrNull()
-
-            if (inserted == null) {
-                call.respond(HttpStatusCode.Conflict, "Already a member or trip not found")
+            val trip = fetchTripWithMembers(tripId) ?: run {
+                call.respond(HttpStatusCode.NotFound, "Trip not found")
                 return@post
             }
+
+            val existingMember = SupabaseConfig.client.from("trip_members")
+                .select { filter { eq("trip_id", tripId); eq("user_id", userId) } }
+                .decodeList<TripMemberRow>()
+                .firstOrNull()
+
+            if (existingMember != null) {
+                call.respond(HttpStatusCode.Conflict, "Already a member")
+                return@post
+            }
+
+            SupabaseConfig.client.from("trip_members").insert(
+                TripMemberRow(tripId = tripId, userId = userId, role = "MEMBER")
+            )
+
+            val updatedTrip = fetchTripWithMembers(tripId) ?: trip
+            suggestActivities(updatedTrip)
             call.respond(HttpStatusCode.OK)
         }
 
