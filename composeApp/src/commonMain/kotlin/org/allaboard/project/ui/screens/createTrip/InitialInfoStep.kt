@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.window.DialogProperties
+import org.allaboard.project.ui.components.SearchableOptionDropdownField
 import org.allaboard.project.ui.theme.FieldBackground
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -93,39 +94,19 @@ fun InitialInfoStep(
 
         Spacer(Modifier.height(10.dp))
         val destinationReadOnly = state.isEditMode
-        val destinationTextColor =
-            if (destinationReadOnly) MaterialTheme.colorScheme.onSurfaceVariant
-            else MaterialTheme.colorScheme.onBackground
-        // Country
-        BasicTextField(
+        SearchableOptionDropdownField(
             value = vm.uiState.country,
-            onValueChange = { vm.updateCountry(it) },
+            options = CountryData.allCountries,
+            onValueChange = vm::updateCountry,
             readOnly = destinationReadOnly,
-            singleLine = true,
-            textStyle = TextStyle(color = destinationTextColor),
-            modifier = Modifier.fillMaxWidth(),
-            decorationBox = { innerTextField ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .background(FieldBackground, RoundedCornerShape(25.dp))
-                        .padding(start = 24.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    if (vm.uiState.country.isEmpty()) {
-                        Text(
-                            "Country *",
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    innerTextField()
-                }
-            }
+            placeholder = "Country *",
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(Modifier.height(15.dp))
+        val destinationTextColor =
+            if (destinationReadOnly) MaterialTheme.colorScheme.onSurfaceVariant
+            else MaterialTheme.colorScheme.onBackground
         BasicTextField(
             value = vm.uiState.region,
             onValueChange = { vm.updateRegion(it) },
