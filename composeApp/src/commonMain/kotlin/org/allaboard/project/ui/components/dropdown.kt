@@ -21,7 +21,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.allaboard.project.Category
@@ -103,6 +105,87 @@ fun CategoryDropdown(
                     onClick = {
                         expanded = false
                         onCategorySelected(index)
+                    }
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun OptionDropdown(
+    options: List<String>,
+    selectedOption: String,
+    onOptionSelected: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    textStyle: TextStyle = MaterialTheme.typography.titleMedium.copy(
+        color = TextPrimary,
+        textAlign = TextAlign.Center
+    ),
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val interactionSource = remember { MutableInteractionSource() }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = modifier,
+    ) {
+        BasicTextField(
+            value = selectedOption,
+            onValueChange = {},
+            readOnly = true,
+            singleLine = true,
+            textStyle = textStyle,
+            interactionSource = interactionSource,
+            modifier = Modifier
+                .menuAnchor()
+                .then(modifier)
+                .height(40.dp)
+        ) { innerTextField ->
+            TextFieldDefaults.DecorationBox(
+                value = selectedOption,
+                innerTextField = {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        innerTextField()
+                    }
+                },
+                enabled = true,
+                singleLine = true,
+                visualTransformation = VisualTransformation.None,
+                interactionSource = interactionSource,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = FieldBackground,
+                    unfocusedContainerColor = FieldBackground,
+                    disabledContainerColor = FieldBackground,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                    focusedTextColor = TextPrimary,
+                    unfocusedTextColor = TextPrimary
+                ),
+                contentPadding = TextFieldDefaults.contentPaddingWithoutLabel(
+                    top = 4.dp,
+                    bottom = 4.dp
+                ),
+                shape = RoundedCornerShape(999.dp)
+            )
+        }
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(text = option, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    onClick = {
+                        expanded = false
+                        onOptionSelected(option)
                     }
                 )
             }

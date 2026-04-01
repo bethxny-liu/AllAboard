@@ -175,6 +175,7 @@ class AllAboardModel(
         location: String,
         description: String,
         type: ActivityType?,
+        preference: String? = null,
         imageUrl: String? = null,
         link: String? = null
     ): Activity {
@@ -188,7 +189,8 @@ class AllAboardModel(
             voteCount = 0,
             imageUrl = imageUrl,
             link = link,
-            type = type ?: ActivityType.EXPERIENCES
+            type = type ?: ActivityType.EXPERIENCES,
+            preference = preference
         )
         activityRepository.addActivity(tripId, activity)
         itineraryDirtyTrips += tripId
