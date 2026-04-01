@@ -1,6 +1,7 @@
 package org.allaboard.project.data.repository.mock
 
 import kotlinx.coroutines.delay
+import kotlinx.serialization.modules.EmptySerializersModule
 import org.allaboard.project.data.repository.TripRepository
 import org.allaboard.project.domain.*
 
@@ -79,5 +80,16 @@ class MockTripRepository : TripRepository {
         val trip = trips.find { it.id == tripId } ?: return
         val updatedTrip = trip.copy(members = trip.members.filter { it.id != userId })
         updateTrip(updatedTrip)
+    }
+
+    override suspend fun getTripDashboard(tripId: String): TripDashboard {
+        delay(100)
+        val trip = trips.find { it.id == tripId } ?: throw IllegalArgumentException("Trip not found")
+        return TripDashboard(
+            trip = trip,
+            activities = emptyList(),
+            votingResults = emptyList(), // For simplicity, no voting results in mock
+            itinerary = null
+        )
     }
 }

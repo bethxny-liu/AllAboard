@@ -3,6 +3,7 @@ package org.allaboard.project.data.repository
 import io.ktor.client.plugins.ClientRequestException
 import org.allaboard.project.data.network.ApiClient
 import org.allaboard.project.domain.Trip
+import org.allaboard.project.domain.TripDashboard
 
 /**
  * Real TripRepository implementation backed by your backend server.
@@ -41,5 +42,9 @@ class TripRepositoryImpl : TripRepository {
 
     override suspend fun removeMemberFromTrip(tripId: String, userId: String) {
         ApiClient.deleteNoBody("/trips/$tripId/members/$userId")
+    }
+
+    override suspend fun getTripDashboard(tripId: String): TripDashboard {
+        return ApiClient.get("/trips/$tripId/dashboard")
     }
 }
