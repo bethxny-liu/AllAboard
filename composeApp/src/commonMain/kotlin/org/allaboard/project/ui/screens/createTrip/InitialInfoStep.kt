@@ -16,12 +16,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.outlined.DateRange
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.DateRangePicker
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,9 +24,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.window.DialogProperties
 import org.allaboard.project.ui.theme.FieldBackground
+import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.todayIn
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,7 +40,12 @@ fun InitialInfoStep(
     val state = vm.uiState
     var showDatePicker by remember { mutableStateOf(false) }
     var showBackgroundLinkDialog by remember { mutableStateOf(false) }
-    val dateRangePickerState = rememberDateRangePickerState()
+    val selectableDates = if (vm.uiState.isEditMode) {
+        UnrestrictedSelectableDates
+    } else {
+        FutureTripSelectableDates
+    }
+    val dateRangePickerState = rememberDateRangePickerState(selectableDates = selectableDates)
     val dateTextStyle = TextStyle(
         color = MaterialTheme.colorScheme.onBackground,
         fontSize = 14.sp
@@ -212,17 +213,23 @@ fun InitialInfoStep(
                             }
                             showDatePicker = false
                         },
-                        enabled = dateRangePickerState.selectedStartDateMillis != null
+                        enabled = dateRangePickerState.selectedStartDateMillis != null,
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = Color.Black,
+                            disabledContentColor = Color.Black.copy(alpha = 0.38f)
+                        )
                     ) {
                         Text("OK")
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showDatePicker = false }) {
+                    TextButton(
+                        onClick = { showDatePicker = false },
+                        colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)
+                    ) {
                         Text("Cancel")
                     }
-                }
-                ,
+                },
                 properties = DialogProperties(usePlatformDefaultWidth = true)
             ) {
                 DateRangePicker(
@@ -282,15 +289,21 @@ fun InitialInfoStep(
                     }
                 },
                 confirmButton = {
-                    TextButton(onClick = { showBackgroundLinkDialog = false }) {
+                    TextButton(
+                        onClick = { showBackgroundLinkDialog = false },
+                        colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)
+                    ) {
                         Text("Done")
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = {
-                        vm.updateTripBackgroundUrl("")
-                        showBackgroundLinkDialog = false
-                    }) {
+                    TextButton(
+                        onClick = {
+                            vm.updateTripBackgroundUrl("")
+                            showBackgroundLinkDialog = false
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)
+                    ) {
                         Text("Clear")
                     }
                 }
@@ -360,9 +373,40 @@ private fun formatDateRange(startMillis: Long?, endMillis: Long?): String {
     return if (end == null) start else "$start - $end"
 }
 
-private fun formatDate(millis: Long): String {
-    val date = Instant.fromEpochMilliseconds(millis)
-        .toLocalDateTime(TimeZone.currentSystemDefault())
+/**
+ * Calendar day for the picker cell. Material3 passes [utcTimeMillis] as UTC midnight for that
+ * Gregorian day — use UTC here so e.g. Mar 31 is not shifted to Mar 30 in US timezones.
+ */
+private fun formatDate(utcTimeMillis: Long): String {
+    val date = Instant.fromEpochMilliseconds(utcTimeMillis)
+        .toLocalDateTime(TimeZone.UTC)
         .date
     return date.toString()
+}
+
+/** Edit flow may include trips that already started; allow any date in the picker. */
+private object UnrestrictedSelectableDates : SelectableDates {
+    override fun isSelectableDate(utcTimeMillis: Long) = true
+    override fun isSelectableYear(year: Int) = true
+}
+
+/**
+ * Picker millis are UTC per cell; decode with UTC so the grid day matches. "Today" is still the
+ * user's local calendar ([TimeZone.currentSystemDefault]) so they can start a trip today.
+ */
+private object FutureTripSelectableDates : SelectableDates {
+    private val localZone: TimeZone get() = TimeZone.currentSystemDefault()
+
+    override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+        val cellDate = Instant.fromEpochMilliseconds(utcTimeMillis)
+            .toLocalDateTime(TimeZone.UTC)
+            .date
+        val todayLocal = Clock.System.todayIn(localZone)
+        return cellDate >= todayLocal
+    }
+
+    override fun isSelectableYear(year: Int): Boolean {
+        val todayLocal = Clock.System.todayIn(localZone)
+        return year >= todayLocal.year
+    }
 }

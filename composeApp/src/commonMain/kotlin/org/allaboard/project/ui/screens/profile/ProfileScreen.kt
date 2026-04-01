@@ -51,7 +51,7 @@ class ProfileScreen : Screen {
         ProfileScreenContent(
             uiState = uiState,
             onBack = { navigator?.pop() },
-            onChangePreferences = { navigator?.replace(OnboardingScreen(editMode = true)) },
+            onChangePreferences = { navigator?.push(OnboardingScreen(editMode = true)) },
             onLogOut = { /* TODO: figure out login/logout process */ }
         )
     }
