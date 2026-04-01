@@ -73,4 +73,19 @@ internal class ItineraryTest {
         assertEquals(1, itinerary.days.size)
         assertEquals(1, itinerary.days[0].dayNumber)
     }
+
+    @Test
+    fun itinerary_multipleDays_ordered() {
+        val d1 = ItineraryDay(date = "2025-01-10", dayNumber = 1, activities = emptyList())
+        val d2 = ItineraryDay(date = "2025-01-11", dayNumber = 2, activities = emptyList())
+        val it = Itinerary(tripId = "t-multi", days = listOf(d1, d2))
+        assertEquals(2, it.days.size)
+        assertEquals("2025-01-11", it.days[1].date)
+    }
+
+    @Test
+    fun itineraryDay_emptyActivitiesList() {
+        val day = ItineraryDay(date = "2025-06-01", dayNumber = 3, activities = emptyList())
+        assertEquals(0, day.activities.size)
+    }
 }

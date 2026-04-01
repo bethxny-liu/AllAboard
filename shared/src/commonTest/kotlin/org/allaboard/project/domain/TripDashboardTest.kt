@@ -70,4 +70,31 @@ internal class TripDashboardTest {
         assertNull(dashboard.itinerary)
         assertEquals(0, dashboard.activities.size)
     }
+
+    @Test
+    fun tripDashboard_emptyVotingResults_allowed() {
+        val trip = createTrip()
+        val dashboard = TripDashboard(
+            trip = trip,
+            activities = emptyList(),
+            votingResults = emptyList(),
+            itinerary = null
+        )
+        assertEquals(0, dashboard.votingResults.size)
+        assertEquals(trip.id, dashboard.trip?.id)
+    }
+
+    @Test
+    fun tripDashboard_preservesActivityOrder() {
+        val a1 = createActivity("z-first")
+        val a2 = createActivity("y-second")
+        val dashboard = TripDashboard(
+            trip = createTrip(),
+            activities = listOf(a1, a2),
+            votingResults = emptyList(),
+            itinerary = null
+        )
+        assertEquals("z-first", dashboard.activities[0].id)
+        assertEquals("y-second", dashboard.activities[1].id)
+    }
 }

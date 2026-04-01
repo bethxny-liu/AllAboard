@@ -105,4 +105,39 @@ internal class TripTest {
         assertEquals("not-a-date", "not-a-date".toTripDisplayDate())
         assertEquals("2025-13-01", "2025-13-01".toTripDisplayDate())
     }
+
+    @Test
+    fun trip_displayDateRange_blankEndDate_usesStartOnly() {
+        val trip = Trip(
+            id = "t6",
+            title = "X",
+            destination = "Y",
+            region = "Z",
+            startDate = "2025-02-01",
+            endDate = "",
+            members = emptyList()
+        )
+        assertEquals("Feb 1", trip.displayDateRange)
+    }
+
+    @Test
+    fun toTripDisplayDate_januaryAndDecember() {
+        assertEquals("Jan 1", "2026-01-01".toTripDisplayDate())
+        assertEquals("Dec 31", "2026-12-31".toTripDisplayDate())
+    }
+
+    @Test
+    fun trip_defaults_statusAndImage() {
+        val trip = Trip(
+            id = "t7",
+            title = "T",
+            destination = "D",
+            region = "R",
+            startDate = "2025-01-01",
+            endDate = "2025-01-02",
+            members = emptyList()
+        )
+        assertEquals(TripStatus.UPCOMING, trip.status)
+        assertEquals(null, trip.imageUrl)
+    }
 }

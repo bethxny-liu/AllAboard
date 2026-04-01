@@ -1,3 +1,4 @@
+import org.gradle.api.tasks.testing.Test
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.File
 
@@ -7,6 +8,11 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
 }
+
+/*
+ * Tests: `commonTest` (UI state / kotlin.test), `androidUnitTest` (ViewModels + Main dispatcher via kotlinx-coroutines-test).
+ * Domain tests live in :shared. No instrumented Compose UI suite in this module.
+ */
 
 /** Reads KEY=value from [server/.env] (# comments ignored). */
 fun loadEnvValue(f: File, key: String): String? {
@@ -36,7 +42,6 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
-    jvm()
     val iosArm64 = iosArm64()
     val iosSimulatorArm64 = iosSimulatorArm64()
     listOf(iosArm64, iosSimulatorArm64).forEach { iosTarget ->
@@ -80,12 +85,14 @@ kotlin {
             implementation("io.coil-kt.coil3:coil-network-ktor3:3.0.4")
             implementation(projects.shared)
         }
+        // kotlin.test — same dependency as slide `testImplementation(kotlin("test"))`, in KMP `commonTest` form
         commonTest.dependencies {
-            implementation(libs.kotlin.test)
+            implementation(kotlin("test"))
         }
-        jvmTest.dependencies {
-            implementation(libs.kotlin.test)
-            implementation("org.jetbrains.compose.ui:ui-test-junit4:${libs.versions.composeMultiplatform.get()}")
+        // JVM Android unit tests: ViewModelTestBase uses Dispatchers.setMain (kotlinx-coroutines-test; pulls in coroutines-core)
+        androidUnitTest.dependencies {
+            implementation(kotlin("test"))
+            implementation(libs.kotlinx.coroutines.test)
         }
     }
 }
@@ -129,8 +136,8 @@ android {
 dependencies {
     debugImplementation("org.jetbrains.compose.ui:ui-tooling:${libs.versions.composeMultiplatform.get()}")
 }
-tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
-    useJUnit()
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }
 tasks.matching { it.name.contains("ios") && it.name.contains("Test") }
     .configureEach {

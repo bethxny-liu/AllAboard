@@ -39,5 +39,9 @@ dependencies {
     implementation("io.ktor:ktor-client-cio:${libs.versions.ktor.get()}")
 
     testImplementation(libs.ktor.serverTestHost)
-    testImplementation(libs.kotlin.testJunit)
+    testImplementation(kotlin("test"))
+}
+
+tasks.test {
+    useJUnitPlatform()
 }

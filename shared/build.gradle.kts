@@ -48,8 +48,9 @@ kotlin {
         jvmMain.dependencies {
             implementation("io.ktor:ktor-client-okhttp:3.0.3")
         }
+        // Domain tests go here first (course: prioritize domain). Same lib as slides' kotlin("test").
         commonTest.dependencies {
-            implementation(libs.kotlin.test)
+            implementation(kotlin("test"))
         }
     }
 }

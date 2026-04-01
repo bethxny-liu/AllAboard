@@ -60,4 +60,16 @@ internal class UserTest {
         assertNull(TravelVibe.fromString("unknown"))
         assertNull(TravelVibe.fromString(null))
     }
+
+    @Test
+    fun travelVibe_fromString_isCaseInsensitive() {
+        assertEquals(TravelVibe.RELAXED, TravelVibe.fromString("RELAXED"))
+        assertEquals(TravelVibe.BALANCED, TravelVibe.fromString("Balanced"))
+    }
+
+    @Test
+    fun budgetLevel_entries_count() {
+        assertEquals(3, BudgetLevel.entries.size)
+        assertEquals(3, TravelVibe.entries.size)
+    }
 }
