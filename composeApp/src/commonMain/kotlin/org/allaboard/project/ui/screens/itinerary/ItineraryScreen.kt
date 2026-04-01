@@ -41,13 +41,16 @@ import org.allaboard.project.domain.Activity
 import org.allaboard.project.domain.ActivityType
 import org.allaboard.project.domain.ItineraryDay
 import org.allaboard.project.domain.ScheduledActivity
+import org.allaboard.project.navigator.pushIfNotTop
 import org.allaboard.project.ui.components.ScreenTopBar
 import org.allaboard.project.ui.screens.activityDetails.ActivityDetailsScreen
 import org.allaboard.project.ui.theme.BluePrimaryDark
 import org.allaboard.project.ui.theme.CoralAccent
 import org.allaboard.project.ui.theme.GreenAccent
+import kotlin.random.Random
 
 class ItineraryScreen(private val tripId: String) : Screen {
+    override val key = super.key + "${Random.nextDouble(Double.MIN_VALUE, Double.MAX_VALUE)}"
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
@@ -60,7 +63,7 @@ class ItineraryScreen(private val tripId: String) : Screen {
             uiState = uiState,
             onBack = { navigator?.pop() },
             onActivityClick = { activity ->
-                navigator?.push(ActivityDetailsScreen(tripId = tripId, activity = activity, fallbackActivityId = activity.id))
+                navigator?.pushIfNotTop(ActivityDetailsScreen(tripId = tripId, activity = activity, fallbackActivityId = activity.id))
             }
         )
     }

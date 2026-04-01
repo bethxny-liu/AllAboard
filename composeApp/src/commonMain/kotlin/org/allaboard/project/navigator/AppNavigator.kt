@@ -33,6 +33,7 @@ import cafe.adriel.voyager.transitions.SlideTransition
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Luggage
+import cafe.adriel.voyager.core.screen.Screen
 import org.allaboard.project.ui.screens.home.HomeScreen
 import org.allaboard.project.ui.screens.login.LoginScreen
 import org.allaboard.project.ui.screens.onboarding.OnboardingScreen
@@ -41,6 +42,13 @@ import org.allaboard.project.ui.screens.createTrip.CreateTripScreen
 import org.allaboard.project.ui.screens.joinTrip.JoinTripScreen
 import org.allaboard.project.ui.theme.BluePrimary
 import org.allaboard.project.ui.theme.TextPrimary
+
+fun Navigator.pushIfNotTop(screen: Screen) {
+    val top = lastItem
+    if (top::class != screen::class) {
+        push(screen)
+    }
+}
 
 @OptIn(ExperimentalVoyagerApi::class)
 @Composable
@@ -54,7 +62,6 @@ fun AppNavigator() {
         val activeItem = when (currentItem) {
             is HomeScreen -> FooterItem.HOME
             is ProfileScreen -> FooterItem.PROFILE
-            // TODO: Add cases for ProfileScreen when implemented
             else -> FooterItem.TRIPS // default to Home styling for now
         }
         val hideFooter = currentItem is LoginScreen || currentItem is OnboardingScreen
