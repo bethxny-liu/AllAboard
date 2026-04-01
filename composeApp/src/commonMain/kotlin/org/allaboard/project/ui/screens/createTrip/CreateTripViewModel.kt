@@ -64,14 +64,17 @@ class CreateTripViewModel(
 
     // Trip field updates (Step 0)
     fun updateCountry(v: String) {
+        if (uiState.isEditMode) return
         uiState = uiState.copy(country = v, error = null)
     }
 
     fun updateRegion(v: String) {
+        if (uiState.isEditMode) return
         uiState = uiState.copy(region = v)
     }
 
     fun updateDateRange(v: String) {
+        if (uiState.isEditMode) return
         val (startDate, endDate) = parseDateRange(v)
         uiState = uiState.copy(
             dateRange = v,
