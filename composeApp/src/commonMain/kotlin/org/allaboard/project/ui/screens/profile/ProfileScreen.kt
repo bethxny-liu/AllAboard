@@ -33,6 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import org.allaboard.project.di.AppModule
+import org.allaboard.project.navigator.pushIfNotTop
 import org.allaboard.project.ui.components.ScreenTopBar
 import org.allaboard.project.ui.components.ScreenTopBarDefaults
 import org.allaboard.project.ui.screens.login.LoginScreen
@@ -40,8 +41,10 @@ import org.allaboard.project.ui.screens.onboarding.OnboardingScreen
 import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextPrimary
 import org.allaboard.project.ui.theme.TextSecondary
+import kotlin.random.Random
 
 class ProfileScreen : Screen {
+    override val key = super.key + "${Random.nextDouble(Double.MIN_VALUE, Double.MAX_VALUE)}"
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
@@ -51,7 +54,7 @@ class ProfileScreen : Screen {
         ProfileScreenContent(
             uiState = uiState,
             onBack = { navigator?.pop() },
-            onChangePreferences = { navigator?.push(OnboardingScreen(editMode = true)) },
+            onChangePreferences = { navigator?.pushIfNotTop(OnboardingScreen(editMode = true)) },
             onLogOut = { /* TODO: figure out login/logout process */ }
         )
     }

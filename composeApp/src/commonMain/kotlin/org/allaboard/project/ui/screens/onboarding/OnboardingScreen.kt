@@ -11,13 +11,14 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import org.allaboard.project.di.AppModule
 import org.allaboard.project.ui.screens.home.HomeScreen
+import kotlin.random.Random
 
 /**
  * Single onboarding screen with 4 step components.
  * Step is UI-only state (remember); user data is in OnboardingViewModel.
  */
 class OnboardingScreen (private val editMode: Boolean = false): Screen {
-
+    override val key = super.key + "${Random.nextDouble(Double.MIN_VALUE, Double.MAX_VALUE)}"
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current

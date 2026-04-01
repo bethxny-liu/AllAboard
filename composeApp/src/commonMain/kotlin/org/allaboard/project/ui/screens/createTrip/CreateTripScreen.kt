@@ -10,12 +10,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import org.allaboard.project.di.AppModule
+import kotlin.random.Random
 
 class CreateTripScreen(
     private val mode: CreateTripViewModel.Mode = CreateTripViewModel.Mode.Create,
     private val tripId: String? = null,
     private val startStep: Int = 0
 ) : Screen {
+    override val key = super.key + "${Random.nextDouble(Double.MIN_VALUE, Double.MAX_VALUE)}"
 
     @Composable
     override fun Content() {

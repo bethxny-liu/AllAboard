@@ -33,6 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import org.allaboard.project.di.AppModule
+import org.allaboard.project.navigator.pushIfNotTop
 import org.allaboard.project.ui.screens.tripHome.TripHomeScreen
 import org.allaboard.project.ui.theme.Background
 import org.allaboard.project.ui.theme.FieldBackground
@@ -43,8 +44,10 @@ import org.allaboard.project.ui.theme.fuzzyBubblesFontFamily
 import org.jetbrains.compose.resources.painterResource
 import team_102_8.composeapp.generated.resources.Res
 import team_102_8.composeapp.generated.resources.logo
+import kotlin.random.Random
 
 class HomeScreen : Screen {
+    override val key = super.key + "${Random.nextDouble(Double.MIN_VALUE, Double.MAX_VALUE)}"
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
@@ -54,7 +57,7 @@ class HomeScreen : Screen {
         HomeScreenContent(
             uiState = uiState,
             onSearchQueryChange = viewModel::onSearchQueryChange,
-            onTripClick = { tripId -> navigator?.push(TripHomeScreen(tripId)) }
+            onTripClick = { tripId -> navigator?.pushIfNotTop(TripHomeScreen(tripId)) }
         )
     }
 }
