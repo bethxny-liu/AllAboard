@@ -148,8 +148,18 @@ suspend fun suggestActivities(
         .filter { it.isNotBlank() }
         .distinct()
 
+    val normalizedInterests = interests.map { normalizeInterest(it) }
+        .filter { it.isNotBlank() }
+        .distinct()
+
     val topics = interests.mapNotNull { toSearchTopic(it, destination) }
         .distinctBy { it.query }
+        .toMutableList()
+
+    val hasFoodPreference = normalizedInterests.contains("food and drink")
+    if (topics.none { it.preference == "food and drink" }) {
+        topics.add(SearchTopic("food and drink", "food and drink in $destination", ActivityType.RESTAURANT))
+    }
 
     if (topics.isEmpty()) return
 
@@ -157,11 +167,19 @@ suspend fun suggestActivities(
         .select { filter { eq("trip_id", trip.id) } }
         .decodeList<Activity>()
 
-    val existingKeys = existing.map { "${it.title}|${it.location}" }.toMutableSet()
+    val existingKeys = existing.mapNotNull { activity ->
+        normalizeTitleForDedupe(activity.title).takeIf { key -> key.isNotBlank() }
+    }.toMutableSet()
     var insertedCount = 0
 
     //Ignore budget for sightseeing, since sights stay low in budget but are relevant for all travelers
     topics.forEach { topic ->
+        val isFoodTopic = topic.preference == "food and drink"
+        val limit = if (isFoodTopic) {
+            if (hasFoodPreference) 8 else 3
+        } else {
+            5
+        }
         val effectivePriceLevels = if (topic.preference.equals("sightseeing", ignoreCase = true)) {
             emptyList()
         } else {
@@ -169,15 +187,15 @@ suspend fun suggestActivities(
         }
         val places = fetchPlaces(
             topic.query,
-            limit = 5,
+            limit = limit,
             bounds = bounds,
             priceLevels = effectivePriceLevels
         )
         if (places.isEmpty()) return@forEach
 
         places.forEach { place ->
-            val key = "${place.name}|${place.formattedAddress}"
-            if (key in existingKeys) return@forEach
+            val key = normalizeTitleForDedupe(place.name)
+            if (key.isBlank() || key in existingKeys) return@forEach
             existingKeys.add(key)
 
             //If the place is related to a restaurant, classify it as such regardless of what search it came from
@@ -222,26 +240,34 @@ suspend fun suggestActivities(
 }
 
 private fun toSearchTopic(interest: String, destination: String): SearchTopic? {
-    val trimmed = interest.trim()
-    if (trimmed.isBlank()) return null
+    val normalized = normalizeInterest(interest)
+    if (normalized.isBlank()) return null
 
-    val type = when (trimmed.lowercase()) {
+    val type = when (normalized) {
         "food and drink" -> ActivityType.RESTAURANT
         "sightseeing" -> ActivityType.LANDMARK
         "arts and culture" -> ActivityType.EXPERIENCES
         "nightlife" -> ActivityType.EXPERIENCES
         "outdoors" -> ActivityType.EXPERIENCES
         "shopping" -> ActivityType.EXPERIENCES
-        else -> ActivityType.RESTAURANT
+        else -> ActivityType.EXPERIENCES
     }
 
-    val queryLabel = if (trimmed.equals("sightseeing", ignoreCase = true)) {
+    val queryLabel = if (normalized == "sightseeing") {
         "top sights" //Ensures most famous sights
     } else {
-        trimmed
+        normalized
     }
 
-    return SearchTopic(trimmed, "$queryLabel in $destination", type)
+    return SearchTopic(normalized, "$queryLabel in $destination", type)
+}
+
+private fun normalizeInterest(value: String): String {
+    return value
+        .trim()
+        .lowercase()
+        .replace("&", "and")
+        .replace(Regex("\\s+"), " ")
 }
 
 private fun priceLevelToSymbol(priceLevel: Int?): String {
@@ -381,3 +407,17 @@ private data class LatLng(
     val latitude: Double,
     val longitude: Double
 )
+
+private fun normalizeTitleForDedupe(title: String): String {
+    val normalized = title
+        .lowercase()
+        .replace(Regex("[^a-z0-9]+"), " ")
+        .trim()
+    if (normalized.isBlank()) return ""
+
+    val words = normalized.split(Regex("\\s+")).filter { it.isNotBlank() }
+    if (words.size >= 2) {
+        return words.take(2).joinToString(" ")
+    }
+    return words.joinToString(" ")
+}
