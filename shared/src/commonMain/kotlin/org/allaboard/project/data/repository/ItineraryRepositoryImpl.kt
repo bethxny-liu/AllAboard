@@ -18,6 +18,19 @@ class ItineraryRepositoryImpl : ItineraryRepository {
         val notes: String = ""
     )
 
+    @kotlinx.serialization.Serializable
+    private data class GoogleCalendarExportRequest(
+        val googleAccessToken: String,
+        val timeZone: String = "UTC",
+        val calendarId: String = "primary"
+    )
+
+    @kotlinx.serialization.Serializable
+    private data class GoogleCalendarExportResponse(
+        val created: Int,
+        val failed: Int
+    )
+
     override suspend fun getItinerary(tripId: String): Itinerary? {
         return try {
             ApiClient.get<Itinerary>("/trips/$tripId/itinerary")
@@ -47,5 +60,22 @@ class ItineraryRepositoryImpl : ItineraryRepository {
             "/trips/$tripId/itinerary/days/$date/activities",
             body
         )
+    }
+
+    override suspend fun exportToGoogleCalendar(
+        tripId: String,
+        googleAccessToken: String,
+        timeZone: String,
+        calendarId: String
+    ): Int {
+        val response = ApiClient.post<GoogleCalendarExportRequest, GoogleCalendarExportResponse>(
+            "/trips/$tripId/itinerary/export/google-calendar",
+            GoogleCalendarExportRequest(
+                googleAccessToken = googleAccessToken,
+                timeZone = timeZone,
+                calendarId = calendarId
+            )
+        )
+        return response.created
     }
 }

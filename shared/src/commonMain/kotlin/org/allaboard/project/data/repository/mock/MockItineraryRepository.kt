@@ -92,4 +92,14 @@ class MockItineraryRepository : ItineraryRepository {
         }
         store[tripId] = itinerary.copy(days = updatedDays)
     }
+
+    override suspend fun exportToGoogleCalendar(
+        tripId: String,
+        googleAccessToken: String,
+        timeZone: String,
+        calendarId: String
+    ): Int {
+        val itinerary = getItinerary(tripId) ?: return 0
+        return itinerary.days.sumOf { it.activities.size }
+    }
 }
