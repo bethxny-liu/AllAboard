@@ -17,7 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -26,7 +25,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -41,13 +39,16 @@ import org.allaboard.project.domain.Activity
 import org.allaboard.project.domain.ActivityType
 import org.allaboard.project.domain.ItineraryDay
 import org.allaboard.project.domain.ScheduledActivity
+import org.allaboard.project.navigator.pushIfNotTop
 import org.allaboard.project.ui.components.ScreenTopBar
 import org.allaboard.project.ui.screens.activityDetails.ActivityDetailsScreen
 import org.allaboard.project.ui.theme.BluePrimaryDark
 import org.allaboard.project.ui.theme.CoralAccent
 import org.allaboard.project.ui.theme.GreenAccent
+import kotlin.random.Random
 
 class ItineraryScreen(private val tripId: String) : Screen {
+    override val key = super.key + "${Random.nextDouble(Double.MIN_VALUE, Double.MAX_VALUE)}"
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
@@ -60,7 +61,7 @@ class ItineraryScreen(private val tripId: String) : Screen {
             uiState = uiState,
             onBack = { navigator?.pop() },
             onActivityClick = { activity ->
-                navigator?.push(ActivityDetailsScreen(tripId = tripId, activity = activity, fallbackActivityId = activity.id))
+                navigator?.pushIfNotTop(ActivityDetailsScreen(tripId = tripId, activity = activity, fallbackActivityId = activity.id))
             }
         )
     }
@@ -225,7 +226,7 @@ private fun TimelineItem(
                 )
                 Spacer(Modifier.width(10.dp))
                 Text(
-                    text = scheduledActivity.startTime.lowercase(),
+                    text = formatTimeLabel(scheduledActivity.startTime),
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp
                 )
@@ -295,4 +296,26 @@ private fun activityTag(type: ActivityType): Pair<String, Color> {
         ActivityType.RESTAURANT -> Category.fromType(type).displayName to CoralAccent
         ActivityType.EXPERIENCES -> Category.fromType(type).displayName to GreenAccent
     }
+}
+
+private fun formatTimeLabel(raw: String): String {
+    val trimmed = raw.trim()
+
+    // Handle backend times like "08:00:00" or "14:30:00"
+    Regex("""^(\d{1,2}):(\d{2})(?::\d{2})?$""").matchEntire(trimmed)?.let { match ->
+        val hour24 = match.groupValues[1].toIntOrNull() ?: return@let
+        val minute = match.groupValues[2]
+        val meridiem = if (hour24 >= 12) "pm" else "am"
+        val hour12 = when {
+            hour24 == 0 -> 12
+            hour24 > 12 -> hour24 - 12
+            else -> hour24
+        }
+        return "$hour12:$minute $meridiem"
+    }
+
+    // Handle already-12h values like "9:00AM", "9:00 AM", etc.
+    val compact = trimmed.replace(Regex("\\s+"), " ")
+    val spaced = compact.replace(Regex("(?i)(\\d)(am|pm)$"), "$1 $2")
+    return spaced.replace(Regex("(?i)\\b(am|pm)\\b")) { it.value.lowercase() }
 }

@@ -34,6 +34,7 @@ import org.allaboard.project.ui.components.ScreenTopBarDefaults
 import org.allaboard.project.di.AppModule
 import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.delay
+import kotlin.random.Random
 
 /**
  * Create Custom Activity screen. When [existingActivity] is non-null, the screen is in edit mode.
@@ -42,6 +43,7 @@ class CreateCustomActivityScreen(
     private val tripId: String,
     private val existingActivity: Activity? = null
 ) : Screen {
+    override val key = super.key + "${Random.nextDouble(Double.MIN_VALUE, Double.MAX_VALUE)}"
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current

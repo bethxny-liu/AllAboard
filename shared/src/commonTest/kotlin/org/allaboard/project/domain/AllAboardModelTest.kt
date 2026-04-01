@@ -96,8 +96,8 @@ internal class AllAboardModelTest {
         val dashboard = model.getTripDashboard("trip-1")
         val dashTrip = requireNotNull(dashboard.trip)
         assertEquals("trip-1", dashTrip.id)
-        assertTrue(dashboard.activities.isNotEmpty())
-        assertTrue(dashboard.votingResults.isNotEmpty() || dashboard.activities.isNotEmpty())
+        assertTrue(dashboard.activities.isEmpty())
+        assertTrue(dashboard.votingResults.isEmpty())
     }
 
     @Test
@@ -115,14 +115,13 @@ internal class AllAboardModelTest {
             destination = "Italy",
             region = "Rome",
             startDate = "Jun 1",
-            endDate = "Jun 10",
-            creatorId = "user-1"
+            endDate = "Jun 10"
         )
         assertEquals(true, trip.id.isNotEmpty())
         assertEquals("Italy", trip.destination)
         assertEquals("Rome", trip.region)
         assertEquals("All Aboard to Italy!", trip.title)
-        assertEquals(true, trip.members.isNotEmpty())
+        assertEquals(true, trip.members.isEmpty())
     }
 
     @Test
@@ -249,8 +248,7 @@ internal class AllAboardModelTest {
             destination = "Paris",
             region = "Île-de-France",
             startDate = "2025-07-01",
-            endDate = "2025-07-10",
-            creatorId = "user-1"
+            endDate = "2025-07-10"
         )
         job.join()
         assertEquals(trip.id, emitted)

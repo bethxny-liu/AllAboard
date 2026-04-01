@@ -32,6 +32,8 @@ import org.allaboard.project.ui.theme.TextPrimary
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.allaboard.project.navigator.pushIfNotTop
+import kotlin.random.Random
 
 /**
  * Screen showing swiping results: category filter and "Top Matches" list (scrollable,
@@ -40,7 +42,7 @@ import androidx.compose.ui.unit.dp
 class SwipingResultsScreen(
     private val tripId: String
 ) : Screen {
-
+    override val key = super.key + "${Random.nextDouble(Double.MIN_VALUE, Double.MAX_VALUE)}"
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
@@ -67,7 +69,7 @@ class SwipingResultsScreen(
             onBack = { navigator?.pop() },
             onCategorySelected = viewModel::onCategorySelected,
             onActivityClick = { result ->
-                navigator?.push(ActivityDetailsScreen(tripId = tripId, activity = result.activity, fallbackActivityId = result.activity.id))
+                navigator?.pushIfNotTop(ActivityDetailsScreen(tripId = tripId, activity = result.activity, fallbackActivityId = result.activity.id))
             }
         )
     }

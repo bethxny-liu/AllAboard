@@ -11,6 +11,13 @@ data class ItineraryDayRow(
     @SerialName("day_number") val dayNumber: Int
 )
 
+@Serializable
+data class ItineraryDayInsert(
+    @SerialName("trip_id") val tripId: String,
+    @SerialName("day_date") val dayDate: String,
+    @SerialName("day_number") val dayNumber: Int
+)
+
 
 @Serializable
 data class ScheduledActivityRow(

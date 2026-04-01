@@ -26,7 +26,6 @@ val RequestLoggingMiddleware = createApplicationPlugin(name = "RequestLogging") 
         val hasAuth = request.headers["Authorization"] != null
 
         logger.info("→ $method $uri (auth=${if (hasAuth) "yes" else "no"})")
-        logger.info("request jwt" + request.headers["Authorization"])
     }
 
     // ── Log the outgoing response (including body) ──────────────────────

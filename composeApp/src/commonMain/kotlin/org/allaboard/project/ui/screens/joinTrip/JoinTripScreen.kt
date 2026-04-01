@@ -37,16 +37,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
+import io.ktor.client.plugins.ClientRequestException
 import kotlinx.coroutines.launch
 import org.allaboard.project.di.AppModule
+import org.allaboard.project.navigator.pushIfNotTop
 import org.allaboard.project.ui.screens.tripHome.TripHomeScreen
 import org.allaboard.project.ui.theme.Background
 import org.allaboard.project.ui.theme.BluePrimary
 import org.allaboard.project.ui.theme.Error
 import org.allaboard.project.ui.theme.FieldBackground
 import org.allaboard.project.ui.theme.TextHint
+import kotlin.random.Random
 
 class JoinTripScreen : Screen {
+    override val key = super.key + "${Random.nextDouble(Double.MIN_VALUE, Double.MAX_VALUE)}"
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current

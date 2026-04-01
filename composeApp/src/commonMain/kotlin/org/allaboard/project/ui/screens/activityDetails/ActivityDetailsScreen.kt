@@ -61,6 +61,7 @@ import org.allaboard.project.maps.googleMapsExternalUrl
 import org.allaboard.project.maps.googleStaticMapImageUrl
 import org.allaboard.project.maps.hasUsableMapCoordinates
 import org.allaboard.project.maps.mapsStaticApiKey
+import org.allaboard.project.navigator.pushIfNotTop
 import org.allaboard.project.ui.components.NetworkImage
 import org.allaboard.project.ui.components.ScreenTopBar
 import org.allaboard.project.ui.components.TitleAlignment
@@ -69,6 +70,7 @@ import org.allaboard.project.ui.theme.BluePrimary
 import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextPrimary
 import org.allaboard.project.ui.theme.TextSecondary
+import kotlin.random.Random
 
 /**
  * Activity/place details screen: app bar, hero image, title, location, rating, price,
@@ -79,6 +81,7 @@ class ActivityDetailsScreen(
     private val activity: Activity? = null,
     private val fallbackActivityId: String,
 ) : Screen {
+    override val key = super.key + "${Random.nextDouble(Double.MIN_VALUE, Double.MAX_VALUE)}"
 
     @Composable
     override fun Content() {
@@ -104,7 +107,7 @@ class ActivityDetailsScreen(
             onSeeMoreClick = viewModel::toggleDescriptionExpanded,
             onEditClick = {
                 val a = uiState.activity ?: return@ActivityDetailsContent
-                navigator?.push(CreateCustomActivityScreen(tripId = tripId, existingActivity = a))
+                navigator?.pushIfNotTop(CreateCustomActivityScreen(tripId = tripId, existingActivity = a))
             },
             onDeleteClick = { showDeleteDialog = true }
         )

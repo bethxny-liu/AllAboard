@@ -1,19 +1,16 @@
 package org.allaboard.project.domain
 
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.auth.status.SessionStatus
 import org.allaboard.project.data.repository.ActivityRepository
 import org.allaboard.project.data.repository.DatabaseRepository
 import org.allaboard.project.data.repository.ItineraryRepository
-import org.allaboard.project.data.repository.SupabaseClientProvider
 import org.allaboard.project.data.repository.TripRepository
 import org.allaboard.project.data.repository.UserRepository
 import org.allaboard.project.data.repository.VoteRepository
-import kotlin.random.Random
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.todayIn
 
 /**
@@ -41,6 +38,15 @@ class AllAboardModel(
     // Events to notify viewmodels about backend changes (e.g., votes submitted)
     private val _events = MutableSharedFlow<String>(extraBufferCapacity = 64)
     val events: SharedFlow<String> = _events.asSharedFlow()
+    private val itineraryDirtyTrips = mutableSetOf<String>()
+    private val itineraryLocks = mutableMapOf<String, Mutex>()
+    private val itineraryLocksGuard = Mutex()
+
+    private suspend fun itineraryLockFor(tripId: String): Mutex {
+        return itineraryLocksGuard.withLock {
+            itineraryLocks.getOrPut(tripId) { Mutex() }
+        }
+    }
 
     // ========================================
     // AUTH / LOGIN OPERATIONS
@@ -90,10 +96,8 @@ class AllAboardModel(
         startDate: String,
         endDate: String,
         imageUrl: String? = null,
-        creatorId: String,
         tripId: String? = null
     ): Trip {
-        val creator = userRepository.getCurrentUser()
         val trip = Trip(
             id = tripId ?: "",
             title = "All Aboard to $destination!",
@@ -102,7 +106,8 @@ class AllAboardModel(
             startDate = startDate,
             endDate = endDate,
             imageUrl = imageUrl,
-            members = creator?.let { listOf(it) } ?: emptyList()
+            // Backend derives creator/member from JWT; frontend should not depend on /user/me here.
+            members = emptyList()
         )
         val createdTrip = tripRepository.createTrip(trip)
 
@@ -186,6 +191,7 @@ class AllAboardModel(
             type = type ?: ActivityType.EXPERIENCES
         )
         activityRepository.addActivity(tripId, activity)
+        itineraryDirtyTrips += tripId
 
         // Notify listeners that activities changed for this trip so UI can refresh
         _events.emit(tripId)
@@ -195,11 +201,13 @@ class AllAboardModel(
 
     suspend fun updateActivity(activity: Activity, tripId: String) {
         activityRepository.updateActivity(activity)
+        itineraryDirtyTrips += tripId
         _events.emit(tripId)
     }
 
     suspend fun deleteActivity(activityId: String, tripId: String) {
         activityRepository.deleteActivity(activityId)
+        itineraryDirtyTrips += tripId
         _events.emit(tripId)
     }
 
@@ -228,6 +236,7 @@ class AllAboardModel(
             voteType = voteType
         )
         voteRepository.submitVote(vote)
+        itineraryDirtyTrips += tripId
 
         // Notify listeners that votes changed for this trip so UI can refresh
         _events.emit(tripId)
@@ -248,7 +257,6 @@ class AllAboardModel(
         val allActivities = activityRepository.getActivitiesForTrip(tripId)
         return allActivities.filter { it.id !in votedIds }
     }
-
 
     // ========================================
     // USER OPERATIONS
@@ -276,7 +284,17 @@ class AllAboardModel(
     // ========================================
 
     suspend fun getItinerary(tripId: String): Itinerary? {
-        return itineraryRepository.getItinerary(tripId)
+        val lock = itineraryLockFor(tripId)
+        return lock.withLock {
+            if (tripId in itineraryDirtyTrips) {
+                val regenerated = itineraryRepository.regenerateItinerary(tripId)
+                if (regenerated != null) {
+                    itineraryDirtyTrips -= tripId
+                    return@withLock regenerated
+                }
+            }
+            itineraryRepository.getItinerary(tripId)
+        }
     }
 
     // ========================================
