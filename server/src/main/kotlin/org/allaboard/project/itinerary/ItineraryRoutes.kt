@@ -90,7 +90,7 @@ private val DISPLAY_TIME_FORMATTER: DateTimeFormatter =
     DateTimeFormatter.ofPattern("h:mm a", Locale.US)
 private const val START_TIME_RANDOM_STEP_MINUTES = 5
 private const val START_TIME_RANDOM_MAX_OFFSET_MINUTES = 30
-private const val VOTE_WEIGHT_MULTIPLIER = 3.0
+private const val VOTE_WEIGHT_MULTIPLIER = 7.0
 
 private fun parseIsoDateOrNull(raw: String): LocalDate? =
     runCatching { LocalDate.parse(raw) }.getOrNull()
