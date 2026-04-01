@@ -700,7 +700,11 @@ private suspend fun clearItineraryForTrip(tripId: String) {
         .delete { filter { eq("trip_id", tripId) } }
 }
 
-private suspend fun fetchItinerary(tripId: String): Itinerary? {
+/**
+ * Shared helper used by multiple routes: fetches an itinerary (days + scheduled activities)
+ * for a trip, or null if there are no itinerary days yet.
+ */
+suspend fun fetchItineraryForTrip(tripId: String): Itinerary? {
     val dayRows = SupabaseConfig.client.from("itinerary_days")
         .select { filter { eq("trip_id", tripId) } }
         .decodeList<ItineraryDayRow>()
@@ -746,6 +750,8 @@ private suspend fun fetchItinerary(tripId: String): Itinerary? {
 
     return Itinerary(tripId = tripId, days = days)
 }
+
+private suspend fun fetchItinerary(tripId: String): Itinerary? = fetchItineraryForTrip(tripId)
 
 fun Route.itineraryRoutes() {
     authenticate("supabase-jwt") {

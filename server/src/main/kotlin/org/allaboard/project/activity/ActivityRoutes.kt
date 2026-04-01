@@ -53,6 +53,16 @@ fun Route.activityRoutes() {
             val userId = call.userId
             val body = call.receive<Activity>()
 
+            val coords = if (body.latitude == null || body.longitude == null) {
+                geocodeLocation(
+                    address = body.location,
+                    city = null,
+                    country = null
+                )
+            } else {
+                null
+            }
+
             val insert = ActivityInsert(
                 tripId = tripId,
                 title = body.title,
@@ -65,8 +75,8 @@ fun Route.activityRoutes() {
                 link = body.link,
                 type = body.type,
                 preference = body.preference,
-                latitude = body.latitude,
-                longitude = body.longitude,
+                latitude = body.latitude ?: coords?.first,
+                longitude = body.longitude ?: coords?.second,
                 addedBy = userId
             )
 
@@ -95,6 +105,16 @@ fun Route.activityRoutes() {
                 return@patch
             }
 
+            val coords = if (body.latitude == null || body.longitude == null) {
+                geocodeLocation(
+                    address = body.location,
+                    city = null,
+                    country = null
+                )
+            } else {
+                null
+            }
+
             val updated = SupabaseConfig.client.from("activities").update({
                 set("title", body.title)
                 set("location", body.location)
@@ -106,8 +126,8 @@ fun Route.activityRoutes() {
                 set("link", body.link)
                 set("activity_type", body.type.name)
                 set("activity_preference", body.preference)
-                set("latitude", body.latitude)
-                set("longitude", body.longitude)
+                set("latitude", body.latitude ?: coords?.first)
+                set("longitude", body.longitude ?: coords?.second)
             }) {
                 filter { eq("id", id) }
                 select()

@@ -65,12 +65,15 @@ import org.allaboard.project.ui.theme.MintAccent
 import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextPrimary
 import org.allaboard.project.di.AppModule
+import org.allaboard.project.navigator.pushIfNotTop
+import kotlin.random.Random
 
 class TripHomeScreen(private val tripId: String) : Screen {
 
     // Unique key per tripId so Voyager treats each trip as a different screen
-    override val key: cafe.adriel.voyager.core.screen.ScreenKey
-        get() = "TripHomeScreen-$tripId"
+//    override val key: cafe.adriel.voyager.core.screen.ScreenKey
+//        get() = "TripHomeScreen-$tripId"
+    override val key = super.key + "${Random.nextDouble(Double.MIN_VALUE, Double.MAX_VALUE)}"
 
     @Composable
     override fun Content() {
@@ -101,9 +104,9 @@ class TripHomeScreen(private val tripId: String) : Screen {
         TripHomeScreenContent(
             trip = tripNonNull,
             activities = uiState.activities,
-            onStartSwipingClick = { navigator?.push(SwipingScreen(tripNonNull.id)) },
+            onStartSwipingClick = { navigator?.pushIfNotTop(SwipingScreen(tripNonNull.id)) },
             onEditTrip = {
-                navigator?.push(
+                navigator?.pushIfNotTop(
                     CreateTripScreen(
                         mode = CreateTripViewModel.Mode.Edit,
                         tripId = tripNonNull.id,
@@ -112,9 +115,9 @@ class TripHomeScreen(private val tripId: String) : Screen {
                 )
             },
             onDeleteTrip = { showDeleteDialog = true },
-            onCreateCustomActivity = { navigator?.push(CreateCustomActivityScreen(tripNonNull.id)) },
-            onActivitySelected = { activity -> navigator?.push(ActivityDetailsScreen(tripId = tripNonNull.id, activity = activity, fallbackActivityId = activity.id?:"")) },
-            onViewItinerary = { navigator?.push(ItineraryScreen(tripNonNull.id)) }
+            onCreateCustomActivity = { navigator?.pushIfNotTop(CreateCustomActivityScreen(tripNonNull.id)) },
+            onActivitySelected = { activity -> navigator?.pushIfNotTop(ActivityDetailsScreen(tripId = tripNonNull.id, activity = activity, fallbackActivityId = activity.id?:"")) },
+            onViewItinerary = { navigator?.pushIfNotTop(ItineraryScreen(tripNonNull.id)) }
         )
 
         if (showDeleteDialog) {

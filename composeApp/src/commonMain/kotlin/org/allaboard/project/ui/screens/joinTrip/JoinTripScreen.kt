@@ -37,16 +37,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
+import io.ktor.client.plugins.ClientRequestException
 import kotlinx.coroutines.launch
 import org.allaboard.project.di.AppModule
+import org.allaboard.project.navigator.pushIfNotTop
 import org.allaboard.project.ui.screens.tripHome.TripHomeScreen
 import org.allaboard.project.ui.theme.Background
 import org.allaboard.project.ui.theme.BluePrimary
 import org.allaboard.project.ui.theme.Error
 import org.allaboard.project.ui.theme.FieldBackground
 import org.allaboard.project.ui.theme.TextHint
+import kotlin.random.Random
 
 class JoinTripScreen : Screen {
+    override val key = super.key + "${Random.nextDouble(Double.MIN_VALUE, Double.MAX_VALUE)}"
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
@@ -175,17 +179,30 @@ class JoinTripScreen : Screen {
                         }
                         scope.launch {
                             isLoading = true
-                            val joined = runCatching { AppModule.allAboardModel.joinTrip(tripId) }.isSuccess
-                            val trip = AppModule.allAboardModel.getTrip(tripId)
-                            isLoading = false
-                            if (trip != null) {
-                                navigator?.push(TripHomeScreen(trip.id))
-                            } else {
-                                errorMessage = if (joined) {
-                                    "Unable to open this trip right now."
+                            errorMessage = null
+
+                            try {
+                                // Join succeeded only if the backend returned 2xx.
+                                AppModule.allAboardModel.joinTrip(tripId)
+
+                                val trip = AppModule.allAboardModel.getTrip(tripId)
+                                if (trip != null) {
+                                    navigator?.pushIfNotTop(TripHomeScreen(trip.id))
                                 } else {
-                                    "No trip exists for that code."
+                                    errorMessage = "Joined, but unable to open this trip right now."
                                 }
+                            } catch (e: ClientRequestException) {
+                                // 409 means join failed (already member or invalid join).
+                                // IMPORTANT: never treat 409 as "joined=true".
+                                errorMessage = when (e.response.status.value) {
+                                    404 -> "No trip exists for that code."
+                                    409 -> "You’re already a member of this trip."
+                                    else -> "Unable to join this trip right now."
+                                }
+                            } catch (_: Throwable) {
+                                errorMessage = "Unable to join this trip right now."
+                            } finally {
+                                isLoading = false
                             }
                         }
                     },

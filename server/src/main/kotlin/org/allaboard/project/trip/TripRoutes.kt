@@ -9,8 +9,15 @@ import io.ktor.server.routing.*
 import org.allaboard.project.SupabaseConfig
 import org.allaboard.project.activitySuggestion.suggestActivities
 import org.allaboard.project.auth.userId
+import org.allaboard.project.domain.Activity
+import org.allaboard.project.domain.ActivityVoteResult
 import org.allaboard.project.domain.Trip
+import org.allaboard.project.domain.TripDashboard
 import org.allaboard.project.domain.User
+import org.allaboard.project.domain.Vote
+import org.allaboard.project.domain.VoteType
+import org.allaboard.project.itinerary.fetchItineraryForTrip
+import org.allaboard.project.vote.computeVotingResultsForTrip
 
 /** Fetches a single trip by id with members, or null if not found. */
 suspend fun fetchTripWithMembers(tripId: String): Trip? {
@@ -224,6 +231,41 @@ fun Route.tripRoutes() {
             }
 
             call.respond(HttpStatusCode.NoContent)
+        }
+
+        get("/trips/{id}/dashboard") {
+            val tripId = call.parameters["id"] ?: run {
+                call.respond(HttpStatusCode.BadRequest, "Missing trip id")
+                return@get
+            }
+
+            val trip = fetchTripWithMembers(tripId)
+            if (trip == null) {
+                call.respond(HttpStatusCode.NotFound, "Trip not found")
+                return@get
+            }
+
+            val activities = SupabaseConfig.client.from("activities")
+                .select { filter { eq("trip_id", tripId) } }
+                .decodeList<Activity>()
+
+            val votingResults = computeVotingResultsForTrip(tripId, activities)
+
+            val votesByActivity = votingResults.associateBy { it.activity.id }
+            val mergedActivities = activities.map { activity ->
+                val vr = votesByActivity[activity.id]
+                if (vr != null) activity.copy(voteCount = vr.totalVotes) else activity
+            }
+            val itinerary = fetchItineraryForTrip(tripId)
+
+            call.respond(
+                TripDashboard(
+                    trip = trip,
+                    activities = mergedActivities,
+                    votingResults = votingResults,
+                    itinerary = itinerary
+                )
+            )
         }
     }
 }

@@ -42,8 +42,10 @@ import org.allaboard.project.ui.screens.onboarding.OnboardingScreen
 import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextPrimary
 import org.allaboard.project.ui.theme.TextSecondary
+import kotlin.random.Random
 
 class ProfileScreen : Screen {
+    override val key = super.key + "${Random.nextDouble(Double.MIN_VALUE, Double.MAX_VALUE)}"
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current

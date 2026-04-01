@@ -62,8 +62,11 @@ import org.allaboard.project.Category
 import org.allaboard.project.ui.components.CategoryDropdown
 import org.allaboard.project.di.AppModule
 import org.allaboard.project.domain.VoteType
+import org.allaboard.project.navigator.pushIfNotTop
+import kotlin.random.Random
 
 class SwipingScreen(private val tripId: String) : Screen {
+    override val key = super.key + "${Random.nextDouble(Double.MIN_VALUE, Double.MAX_VALUE)}"
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.current
@@ -81,7 +84,7 @@ class SwipingScreen(private val tripId: String) : Screen {
             vote = viewModel::vote,
             onCategorySelected = viewModel::onCategorySelected,
             onLearnMore = { activity ->
-                navigator?.push(ActivityDetailsScreen(tripId = tripId, activity = activity, fallbackActivityId = activity.id))
+                navigator?.pushIfNotTop(ActivityDetailsScreen(tripId = tripId, activity = activity, fallbackActivityId = activity.id))
             },
             onAllDone = {
                 // Replace the screen so it gets destroyed - fresh data will load next time

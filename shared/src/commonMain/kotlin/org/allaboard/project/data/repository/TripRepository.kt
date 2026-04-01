@@ -1,7 +1,7 @@
 package org.allaboard.project.data.repository
 
 import org.allaboard.project.domain.Trip
-import org.allaboard.project.domain.User
+import org.allaboard.project.domain.TripDashboard
 
 interface TripRepository {
     suspend fun getTrip(tripId: String): Trip?
@@ -11,4 +11,7 @@ interface TripRepository {
     suspend fun deleteTrip(tripId: String)
     suspend fun joinTrip(tripId: String)
     suspend fun removeMemberFromTrip(tripId: String, userId: String)
+
+    /** Fetches all data needed for TripHome in one backend call. */
+    suspend fun getTripDashboard(tripId: String): TripDashboard
 }

@@ -41,8 +41,10 @@ import org.jetbrains.compose.resources.painterResource
 import team_102_8.composeapp.generated.resources.Res
 import team_102_8.composeapp.generated.resources.google_logo
 import team_102_8.composeapp.generated.resources.login_background
+import kotlin.random.Random
 
 class LoginScreen : Screen {
+    override val key = super.key + "${Random.nextDouble(Double.MIN_VALUE, Double.MAX_VALUE)}"
     @Preview
     @Composable
     override fun Content() {
