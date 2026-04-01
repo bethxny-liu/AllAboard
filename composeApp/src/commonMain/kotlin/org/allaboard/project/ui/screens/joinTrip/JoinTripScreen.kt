@@ -175,17 +175,16 @@ class JoinTripScreen : Screen {
                         }
                         scope.launch {
                             isLoading = true
-                            val joined = runCatching { AppModule.allAboardModel.joinTrip(tripId) }.isSuccess
-                            val trip = AppModule.allAboardModel.getTrip(tripId)
-                            isLoading = false
-                            if (trip != null) {
-                                navigator?.push(TripHomeScreen(trip.id))
-                            } else {
-                                errorMessage = if (joined) {
-                                    "Unable to open this trip right now."
+                            try {
+                                runCatching { AppModule.allAboardModel.joinTrip(tripId) }
+                                val trip = runCatching { AppModule.allAboardModel.getTrip(tripId) }.getOrNull()
+                                if (trip != null) {
+                                    navigator?.push(TripHomeScreen(trip.id))
                                 } else {
-                                    "No trip exists for that code."
+                                    errorMessage = "No trip exists for that code."
                                 }
+                            } finally {
+                                isLoading = false
                             }
                         }
                     },

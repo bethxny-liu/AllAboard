@@ -5,11 +5,8 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.annotations.SupabaseInternal
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
-import io.ktor.client.*
 import io.ktor.client.plugins.*
-import io.ktor.http.isSuccess
 import org.slf4j.LoggerFactory
-import kotlinx.coroutines.CancellationException
 
 /**
  * Server-side Supabase client configured with the **service_role** key.
@@ -51,36 +48,6 @@ object SupabaseConfig {
                 connectTimeoutMillis = 15_000
                 requestTimeoutMillis = 15_000
                 socketTimeoutMillis = 15_000
-            }
-
-            install(HttpRequestRetry) {
-                maxRetries = 3
-
-                // Retry when we got an HTTP response and it's not a success
-                retryIf { request, response ->
-                    val should = !response.status.isSuccess()
-                    if (should) {
-                        logger.warn(
-                            "Retrying Supabase request due to HTTP ${response.status.value} " +
-                                "(attempt=${retryCount + 1}/$maxRetries) url=${request.url}"
-                        )
-                    }
-                    should
-                }
-
-                // Retry on connect timeouts / DNS / socket issues (no response was returned)
-                retryOnExceptionIf { request, cause ->
-                    val should = cause !is CancellationException
-                    if (should) {
-                        logger.warn(
-                            "Retrying Supabase request due to exception ${cause::class.simpleName}: ${cause.message} " +
-                                "(attempt=${retryCount + 1}/$maxRetries) url=${request.url}"
-                        )
-                    }
-                    should
-                }
-
-                exponentialDelay()
             }
         }
     }
