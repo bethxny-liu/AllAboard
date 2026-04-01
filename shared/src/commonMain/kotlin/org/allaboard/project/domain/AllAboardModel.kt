@@ -60,6 +60,12 @@ class AllAboardModel(
         databaseRepository.signInWithGoogle()
     }
 
+    suspend fun logout() {
+        databaseRepository.logout()
+        println("Logged out from Supabase")
+        userRepository.clearCache()
+    }
+
     // ========================================
     // TRIP OPERATIONS (Simple delegation)
     // ========================================
@@ -73,15 +79,15 @@ class AllAboardModel(
     }
 
     /** Upcoming = trip has not ended yet (endDate >= today). Ignores TripStatus since it doesn't auto-update. */
-    suspend fun getUpcomingTrips(): List<Trip> {
+    suspend fun getUpcomingTrips(trips: List<Trip>): List<Trip> {
         val today = kotlinx.datetime.Clock.System.todayIn(kotlinx.datetime.TimeZone.UTC).toString()
-        return getAllTripsForUser().filter { it.endDate >= today }
+        return trips.filter { it.endDate >= today }
     }
 
     /** Past = trip has ended (endDate < today). Ignores TripStatus since it doesn't auto-update. */
-    suspend fun getPastTrips(): List<Trip> {
+    suspend fun getPastTrips(trips: List<Trip>): List<Trip> {
         val today = kotlinx.datetime.Clock.System.todayIn(kotlinx.datetime.TimeZone.UTC).toString()
-        return getAllTripsForUser().filter { it.endDate < today }
+        return trips.filter { it.endDate < today }
     }
 
     suspend fun createTrip(

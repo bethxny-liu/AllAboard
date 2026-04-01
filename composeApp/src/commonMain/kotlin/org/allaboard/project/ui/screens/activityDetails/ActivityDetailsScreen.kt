@@ -45,6 +45,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -52,6 +57,10 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import org.allaboard.project.di.AppModule
 import org.allaboard.project.domain.Activity
+import org.allaboard.project.maps.googleMapsExternalUrl
+import org.allaboard.project.maps.googleStaticMapImageUrl
+import org.allaboard.project.maps.hasUsableMapCoordinates
+import org.allaboard.project.maps.mapsStaticApiKey
 import org.allaboard.project.ui.components.NetworkImage
 import org.allaboard.project.ui.components.ScreenTopBar
 import org.allaboard.project.ui.components.TitleAlignment
@@ -313,8 +322,13 @@ private fun ActivityDetailsContent(
 
                         Spacer(Modifier.height(32.dp))
 
-                        // Map section
-                        MapPlaceholder(pinLabel = activity.mapPinDisplay)
+                        // Map section (Static Maps API preview; tap opens Google Maps)
+                        ActivityLocationMap(
+                            pinLabel = activity.mapPinDisplay,
+                            latitude = activity.latitude,
+                            longitude = activity.longitude,
+                            locationText = activity.location
+                        )
                     }
                 }
             }
@@ -339,35 +353,79 @@ private fun HeroImage(imageUrl: String?) {
 }
 
 @Composable
-private fun MapPlaceholder(pinLabel: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(180.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFFE5E7EB))
-    ) {
-        // Map pin and label overlay
-        Row(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.LocationOn,
-                contentDescription = "Map pin",
-                modifier = Modifier.size(32.dp),
-                tint = Color(0xFFDC2626)
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(
-                text = pinLabel,
-                style = MaterialTheme.typography.titleMedium,
-                color = TextPrimary,
-                fontWeight = FontWeight.Medium
-            )
+private fun ActivityLocationMap(
+    pinLabel: String,
+    latitude: Double?,
+    longitude: Double?,
+    locationText: String,
+) {
+    val uriHandler = LocalUriHandler.current
+    val coordsOk = hasUsableMapCoordinates(latitude, longitude)
+    val apiKey = remember { mapsStaticApiKey() }
+    val staticMapUrl = remember(latitude, longitude, apiKey, coordsOk) {
+        if (!coordsOk) null
+        else googleStaticMapImageUrl(latitude!!, longitude!!, apiKey)
+    }
+    val openInMapsUrl = remember(latitude, longitude, locationText) {
+        googleMapsExternalUrl(latitude, longitude, locationText)
+    }
+    val mapModifier = Modifier
+        .fillMaxWidth()
+        .height(180.dp)
+        .clip(RoundedCornerShape(16.dp))
+    val openDescription = "Open location in Google Maps"
+    val baseModifier = if (openInMapsUrl != null) {
+        mapModifier
+            .semantics {
+                contentDescription = openDescription
+                role = Role.Button
+            }
+            .clickable { uriHandler.openUri(openInMapsUrl) }
+    } else {
+        mapModifier
+    }
+
+    Box(modifier = baseModifier.background(Color(0xFFE5E7EB))) {
+        when {
+            staticMapUrl != null -> {
+                NetworkImage(
+                    imageUrl = staticMapUrl,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+            !coordsOk -> {
+                Text(
+                    text = "No location found",
+                    modifier = Modifier.align(Alignment.Center).padding(12.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextSecondary
+                )
+            }
+            else -> {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.LocationOn,
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp),
+                        tint = Color(0xFFDC2626)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = pinLabel,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = TextPrimary,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
         }
     }
 }

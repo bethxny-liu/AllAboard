@@ -29,14 +29,29 @@ class OnboardingScreen (private val editMode: Boolean = false): Screen {
 
         when (step) {
             0 -> WelcomeStep(onNext = { step++ })
-            1 -> TravelVibeStep(uiState = uiState, vm = vm, onNext = { step++ }, onBack = { step-- })
+            1 -> TravelVibeStep(
+                uiState = uiState,
+                vm = vm,
+                onNext = { step++ },
+                onBack = {
+                    if (editMode) {
+                        navigator?.pop()
+                    } else {
+                        step--
+                    }
+                }
+            )
             2 -> BudgetStep(uiState = uiState, vm = vm, onNext = { step++ }, onBack = { step-- })
             3 -> InterestsStep(
                 uiState = uiState,
                 vm = vm,
                 onFinish = {
                     vm.savePreferences {
-                        navigator?.replace(HomeScreen())
+                        if (editMode) {
+                            navigator?.pop()
+                        } else {
+                            navigator?.replace(HomeScreen())
+                        }
                     }
                 },
                 onBack = { step-- }

@@ -15,7 +15,16 @@ class UserRepositoryImpl : UserRepository {
     private var currentUserId: String? = null
     private var cachedUser: User? = null
 
+    override suspend fun clearCache() {
+        cachedUser = null
+        currentUserId = null
+    }
+
+
     override suspend fun getCurrentUser(): User? {
+        if (cachedUser != null) {
+            return cachedUser;
+        }
         // Backend validates the JWT and returns the user row from your custom users table.
         // Returns null when there is no valid session or the call fails.
         return try {
@@ -39,7 +48,7 @@ class UserRepositoryImpl : UserRepository {
         vibe: TravelVibe,
         interests: Set<String>
     ) {
-        val current = cachedUser ?: getCurrentUser() ?: return
+        val current = getCurrentUser() ?: return
         val userBody = current.copy(budget = budget, travelVibe = vibe, interests = interests)
         val updatedUser = ApiClient.patch<User, User>("/user/me/preferences", userBody)
         cachedUser = updatedUser

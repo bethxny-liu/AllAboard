@@ -31,4 +31,8 @@ class DatabaseRepositoryImpl(
     override suspend fun signInWithGoogle(): Result<Unit> = runCatching {
         supabaseClient.auth.signInWith(Google, redirectUrl = "org.allaboard.project://callback")
     }
+
+    override suspend fun logout() {
+        supabaseClient.auth.signOut();
+    }
 }

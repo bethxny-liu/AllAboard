@@ -29,6 +29,7 @@ internal class AllAboardModelTest {
         val itineraryRepo = MockItineraryRepository()
         val databaseRepo = object : DatabaseRepository {
             override suspend fun signInWithGoogle(): Result<Unit> = Result.success(Unit)
+            override suspend fun logout() { /* no-op */ }
         }
         return AllAboardModel(
             tripRepository = tripRepo,
@@ -74,7 +75,8 @@ internal class AllAboardModelTest {
     @Test
     fun getUpcomingTrips_returnsOnlyUpcoming() = runBlocking {
         val model = createModel()
-        val upcoming = model.getUpcomingTrips()
+        val trips = model.getAllTripsForUser()
+        val upcoming = model.getUpcomingTrips(trips)
         assertTrue(upcoming.isNotEmpty())
         assertEquals(2, upcoming.size)
         assertEquals("trip-1", upcoming.first().id)
@@ -83,7 +85,8 @@ internal class AllAboardModelTest {
     @Test
     fun getPastTrips_returnsOnlyCompleted() = runBlocking {
         val model = createModel()
-        val past = model.getPastTrips()
+        val trips = model.getAllTripsForUser()
+        val past = model.getPastTrips(trips)
         assertEquals(0, past.size)
     }
 
