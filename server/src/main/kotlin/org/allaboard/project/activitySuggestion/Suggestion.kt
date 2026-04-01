@@ -81,7 +81,8 @@ private data class PlaceResultV1(
     val rating: Double? = null,
     @SerialName("priceLevel") val priceLevel: String? = null,
     val location: PlaceLocationV1? = null,
-    val types: List<String> = emptyList()
+    val types: List<String> = emptyList(),
+    val photos: List<PlacePhotoV1> = emptyList()
 )
 
 @Serializable
@@ -98,6 +99,11 @@ private data class PlaceLocationV1(
 @Serializable
 private data class PlacePhoto(
     @SerialName("photo_reference") val photoReference: String = ""
+)
+
+@Serializable
+private data class PlacePhotoV1(
+    val name: String = ""
 )
 
 @Serializable
@@ -181,6 +187,10 @@ suspend fun suggestActivities(
             val effectivePreference = if (isRestaurant) "Food & drink" else topic.preference
             val effectiveType = if (isRestaurant) ActivityType.RESTAURANT else topic.type
 
+            val photoUrl = place.photos.firstOrNull()?.photoReference
+                ?.takeIf { it.isNotBlank() }
+                ?.let { "https://places.googleapis.com/v1/$it/media?maxWidthPx=800&key=$googlePlacesApiKey" }
+
             val insert = ActivityInsert(
                 tripId = trip.id,
                 title = place.name.ifBlank { effectivePreference },
@@ -189,7 +199,7 @@ suspend fun suggestActivities(
                 rating = place.rating?.toFloat() ?: 0f,
                 priceLevel = priceLevelToSymbol(place.priceLevel),
                 mapPinLabel = place.name.ifBlank { effectivePreference },
-                imageUrl = null,
+                imageUrl = photoUrl,
                 link = place.placeId.takeIf { it.isNotBlank() }
                     ?.let { "https://www.google.com/maps/place/?q=place_id:$it" },
                 type = effectiveType,
@@ -288,7 +298,7 @@ private suspend fun fetchPlaces(
         headers.append("X-Goog-Api-Key", googlePlacesApiKey)
         headers.append(
             "X-Goog-FieldMask",
-            "places.displayName,places.formattedAddress,places.rating,places.priceLevel,places.id,places.location,places.types"
+            "places.displayName,places.formattedAddress,places.rating,places.priceLevel,places.id,places.location,places.types,places.photos"
         )
         setBody(json.encodeToString(TextSearchRequest.serializer(), request))
     }.bodyAsText()
@@ -309,7 +319,7 @@ private suspend fun fetchPlaces(
             rating = place.rating,
             priceLevel = mappedPriceLevel,
             placeId = place.id,
-            photos = emptyList<PlacePhoto>(),
+            photos = place.photos.map { PlacePhoto(photoReference = it.name) },
             geometry = place.location?.let {
                 PlaceGeometry(PlaceLocation(lat = it.lat, lng = it.lng))
             },
