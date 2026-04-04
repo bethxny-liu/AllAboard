@@ -224,6 +224,10 @@ fun InitialInfoStep(
                     title = null,
                     headline = null,
                     showModeToggle = true,
+                    colors = DatePickerDefaults.colors(
+                        todayDateBorderColor = Color.Black,
+                        todayContentColor = Color.Black,
+                    ),
                     modifier = Modifier
                         .padding(top = 8.dp)
                         .width(360.dp)
