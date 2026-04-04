@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,9 +19,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -70,6 +69,8 @@ import org.allaboard.project.ui.theme.BluePrimary
 import org.allaboard.project.ui.theme.Surface
 import org.allaboard.project.ui.theme.TextPrimary
 import org.allaboard.project.ui.theme.TextSecondary
+import org.allaboard.project.ui.theme.Warning
+import kotlin.math.roundToInt
 import kotlin.random.Random
 
 /**
@@ -106,8 +107,11 @@ class ActivityDetailsScreen(
             onBack = { navigator?.pop() },
             onSeeMoreClick = viewModel::toggleDescriptionExpanded,
             onEditClick = {
-                val a = uiState.activity ?: return@ActivityDetailsContent
-                navigator?.pushIfNotTop(CreateCustomActivityScreen(tripId = tripId, existingActivity = a))
+                uiState.activity?.let { act ->
+                    navigator?.pushIfNotTop(
+                        CreateCustomActivityScreen(tripId = tripId, existingActivity = act)
+                    )
+                }
             },
             onDeleteClick = { showDeleteDialog = true }
         )
@@ -136,6 +140,14 @@ class ActivityDetailsScreen(
 }
 
 private const val DESCRIPTION_SEE_MORE_THRESHOLD = 120
+
+/** One decimal place; KMP-safe (avoid JVM-only [String.format]). */
+private fun formatRatingOutOfFive(rating: Float): String {
+    val r = (rating * 10f).roundToInt() / 10f
+    val whole = r.toInt()
+    val tenth = ((r - whole) * 10f).roundToInt().coerceIn(0, 9)
+    return "$whole.$tenth / 5"
+}
 
 @Composable
 private fun ActivityDetailsContent(
@@ -223,10 +235,8 @@ private fun ActivityDetailsContent(
                             .padding(horizontal = 24.dp)
                             .padding(top = 32.dp, bottom = 32.dp)
                     ) {
-                        // Title row (title + stars)
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
@@ -241,17 +251,19 @@ private fun ActivityDetailsContent(
                             Spacer(Modifier.width(12.dp))
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(2.dp),
-                                modifier = Modifier.sizeIn(minWidth = 80.dp)
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                repeat(5) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.StarBorder,
-                                        contentDescription = "Rating",
-                                        modifier = Modifier.size(20.dp),
-                                        tint = TextSecondary
-                                    )
-                                }
+                                Icon(
+                                    imageVector = Icons.Filled.Star,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                    tint = Warning
+                                )
+                                Text(
+                                    text = formatRatingOutOfFive(activity.rating.coerceIn(0f, 5f)),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = TextSecondary
+                                )
                             }
                         }
 
