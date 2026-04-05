@@ -203,7 +203,7 @@ classDiagram
     }
     class CreateTripViewModel {
       +initialize(mode, tripId)
-      +onCreateOrUpdateTrip(...)
+      +onCreateTrip(...)
     }
     class TripHomeViewModel {
       +refresh()
