@@ -12,106 +12,44 @@ These diagrams focus on the most important classes in the layered architecture:
 classDiagram
     direction LR
 
-    namespace "Domain Layer (Entities / Models)" {
-        class User {
-          +String id
-          +String displayName
-          +String email
-          +BudgetLevel budget
-          +TravelVibe travelVibe
-          +Set~String~ interests
-          +String? imageUrl
-        }
-        class Trip {
-          +String id
-          +String title
-          +String destination
-          +String region
-          +String startDate
-          +String endDate
-          +String? imageUrl
-          +TripStatus status
-          +List~User~ members
-        }
-        class Activity {
-          +String id
-          +String title
-          +String location
-          +String? description
-          +Float rating
-          +String priceLevel
-          +String? mapPinLabel
-          +String? imageUrl
-          +String? link
-          +ActivityType type
-          +String? preference
-          +Double? latitude
-          +Double? longitude
-          +String? addedBy
-        }
-        class Vote {
-          +String? id
-          +String activityId
-          +String userId
-          +String tripId
-          +VoteType voteType
-        }
-        class ActivityVoteResult {
-          +Activity activity
-          +Int yesVotes
-          +Int noVotes
-          +Int totalVotes
-          +Float yesPercentage
-          +Boolean isComplete
-          +Boolean isConfirmed
-          +List~String~ voterNames
-        }
-        class Itinerary {
-          +String tripId
-          +List~ItineraryDay~ days
-        }
-        class ItineraryDay {
-          +String date
-          +Int dayNumber
-          +List~ScheduledActivity~ activities
-        }
-        class ScheduledActivity {
-          +Activity activity
-          +String startTime
-          +String endTime
-          +String notes
-        }
-        class TripDashboard {
-          +Trip? trip
-          +List~Activity~ activities
-          +List~ActivityVoteResult~ votingResults
-          +Itinerary? itinerary
-        }
+    class User
+    class Trip
+    class Activity
+    class Vote
+    class ActivityVoteResult
+    class Itinerary
+    class ItineraryDay
+    class ScheduledActivity
+    class TripDashboard
 
-        class AllAboardModel {
-          +getTrip(tripId)
-          +getTripDashboard(tripId)
-          +getActivity(activityId)
-          +createTrip(...)
-          +createActivityForTrip(...)
-          +voteOnActivity(...)
-          +getVotingResults(tripId)
-          +getItinerary(tripId)
-          +getCurrentUser()
-          +updateUserPreferences(...)
-          +signInWithGoogle()
-          +logout()
-        }
+    class AllAboardModel {
+      +getTrip(tripId)
+      +getTripDashboard(tripId)
+      +getActivity(activityId)
+      +createTrip(...)
+      +createActivityForTrip(...)
+      +voteOnActivity(...)
+      +getVotingResults(tripId)
+      +getItinerary(tripId)
+      +getCurrentUser()
+      +updateUserPreferences(...)
+      +signInWithGoogle()
+      +logout()
     }
 
-    namespace "Data Layer (Repository Interfaces)" {
-        class TripRepository <<interface>>
-        class ActivityRepository <<interface>>
-        class VoteRepository <<interface>>
-        class UserRepository <<interface>>
-        class ItineraryRepository <<interface>>
-        class DatabaseRepository <<interface>>
-    }
+    class TripRepository
+    class ActivityRepository
+    class VoteRepository
+    class UserRepository
+    class ItineraryRepository
+    class DatabaseRepository
+
+    <<interface>> TripRepository
+    <<interface>> ActivityRepository
+    <<interface>> VoteRepository
+    <<interface>> UserRepository
+    <<interface>> ItineraryRepository
+    <<interface>> DatabaseRepository
 
     Trip "1" *-- "0..*" User : members
     ActivityVoteResult "1" *-- "1" Activity
@@ -137,45 +75,43 @@ classDiagram
 classDiagram
     direction LR
 
-    namespace "Presentation Layer (ViewModels)" {
-        class LoginViewModel {
-          <<LoginScreen>>
-        }
-        class HomeViewModel {
-          <<HomeScreen>>
-        }
-        class ProfileViewModel {
-          <<ProfileScreen>>
-        }
-        class OnboardingViewModel {
-          <<OnboardingScreen>>
-        }
-        class CreateTripViewModel {
-          <<CreateTripScreen>>
-        }
-        class TripHomeViewModel {
-          <<TripHomeScreen>>
-        }
-        class SwipingViewModel {
-          <<SwipingScreen>>
-        }
-        class SwipingResultsViewModel {
-          <<SwipingResultsScreen>>
-        }
-        class ItineraryViewModel {
-          <<ItineraryScreen>>
-        }
-        class CreateCustomActivityViewModel {
-          <<CreateCustomActivityScreen>>
-        }
-        class ActivityDetailsViewModel {
-          <<ActivityDetailsScreen>>
-        }
-    }
+    class LoginScreen
+    class HomeScreen
+    class ProfileScreen
+    class OnboardingScreen
+    class CreateTripScreen
+    class TripHomeScreen
+    class SwipingScreen
+    class SwipingResultsScreen
+    class ItineraryScreen
+    class CreateCustomActivityScreen
+    class ActivityDetailsScreen
 
-    namespace "Domain Layer" {
-        class AllAboardModel
-    }
+    class LoginViewModel
+    class HomeViewModel
+    class ProfileViewModel
+    class OnboardingViewModel
+    class CreateTripViewModel
+    class TripHomeViewModel
+    class SwipingViewModel
+    class SwipingResultsViewModel
+    class ItineraryViewModel
+    class CreateCustomActivityViewModel
+    class ActivityDetailsViewModel
+
+    class AllAboardModel
+
+    LoginScreen --> LoginViewModel : supports
+    HomeScreen --> HomeViewModel : supports
+    ProfileScreen --> ProfileViewModel : supports
+    OnboardingScreen --> OnboardingViewModel : supports
+    CreateTripScreen --> CreateTripViewModel : supports
+    TripHomeScreen --> TripHomeViewModel : supports
+    SwipingScreen --> SwipingViewModel : supports
+    SwipingResultsScreen --> SwipingResultsViewModel : supports
+    ItineraryScreen --> ItineraryViewModel : supports
+    CreateCustomActivityScreen --> CreateCustomActivityViewModel : supports
+    ActivityDetailsScreen --> ActivityDetailsViewModel : supports
 
     LoginViewModel --> AllAboardModel
     HomeViewModel --> AllAboardModel
