@@ -88,15 +88,15 @@ classDiagram
           +Itinerary itinerary
         }
         class AllAboardModel {
-          +getTrip(tripId)
-          +getTripDashboard(tripId)
-          +getActivity(activityId)
+          +getTrip(tripId): Trip
+          +getTripDashboard(tripId): TripDashboard
+          +getActivity(activityId): Activity
           +createTrip(...)
           +createActivityForTrip(...)
           +voteOnActivity(...)
-          +getVotingResults(tripId)
-          +getItinerary(tripId)
-          +getCurrentUser()
+          +getVotingResults(tripId): List~ActivityVoteResult~
+          +getItinerary(tripId): Itinerary
+          +getCurrentUser(): User
           +updateUserPreferences(...)
           +signInWithGoogle()
           +logout()
@@ -106,21 +106,47 @@ classDiagram
     namespace Data_Layer_Repository_Interfaces {
         class TripRepository {
           <<interface>>
+          +getTrip(tripId)
+          +getTripsForUser()
+          +createTrip(trip)
+          +updateTrip(trip)
+          +deleteTrip(tripId)
+          +joinTrip(tripId)
+          +removeMemberFromTrip(tripId, userId)
+          +getTripDashboard(tripId)
         }
         class ActivityRepository {
           <<interface>>
+          +getActivity(activityId)
+          +getActivitiesForTrip(tripId)
+          +addActivity(tripId, activity)
+          +updateActivity(activity)
+          +deleteActivity(activityId)
         }
         class VoteRepository {
           <<interface>>
+          +submitVote(vote)
+          +getVotingResultsForTrip(tripId)
+          +getVotedActivityIds(tripId, userId)
         }
         class UserRepository {
           <<interface>>
+          +getCurrentUser()
+          +setCurrentUserId(userId)
+          +updateUserPreferences(userId, budget, vibe, interests)
+          +clearCache()
         }
         class ItineraryRepository {
           <<interface>>
+          +getItinerary(tripId)
+          +regenerateItinerary(tripId)
+          +updateScheduledActivity(tripId, date, scheduledActivity)
+          +exportToGoogleCalendar(tripId, token, timeZone, calendarId)
         }
         class DatabaseRepository {
           <<interface>>
+          +signInWithGoogle()
+          +logout()
         }
     }
 
@@ -151,29 +177,57 @@ classDiagram
     class PresentationLayer
     class DomainLayer
 
-    class LoginScreen
-    class HomeScreen
-    class ProfileScreen
-    class OnboardingScreen
-    class CreateTripScreen
-    class TripHomeScreen
-    class SwipingScreen
-    class SwipingResultsScreen
-    class ItineraryScreen
-    class CreateCustomActivityScreen
-    class ActivityDetailsScreen
+    class LoginScreenContext
+    class HomeScreenContext
+    class ProfileScreenContext
+    class OnboardingScreenContext
+    class CreateTripScreenContext
+    class TripHomeScreenContext
+    class SwipingScreenContext
+    class SwipingResultsScreenContext
+    class ItineraryScreenContext
+    class CreateCustomActivityScreenContext
+    class ActivityDetailsScreenContext
 
-    class LoginViewModel
-    class HomeViewModel
-    class ProfileViewModel
-    class OnboardingViewModel
-    class CreateTripViewModel
-    class TripHomeViewModel
-    class SwipingViewModel
-    class SwipingResultsViewModel
-    class ItineraryViewModel
-    class CreateCustomActivityViewModel
-    class ActivityDetailsViewModel
+    class LoginViewModel {
+      +signIn()
+    }
+    class HomeViewModel {
+      +onSearchQueryChange(query)
+    }
+    class ProfileViewModel {
+      +logout()
+    }
+    class OnboardingViewModel {
+      +savePreferences(...)
+    }
+    class CreateTripViewModel {
+      +initialize(mode, tripId)
+      +onCreateOrUpdateTrip(...)
+    }
+    class TripHomeViewModel {
+      +refresh()
+      +deleteTrip()
+    }
+    class SwipingViewModel {
+      +refresh()
+      +vote(voteType)
+    }
+    class SwipingResultsViewModel {
+      +refresh()
+      +onCategorySelected(index)
+    }
+    class ItineraryViewModel {
+      +refresh()
+      +exportAllDaysToGoogleCalendar()
+    }
+    class CreateCustomActivityViewModel {
+      +onCreateOrUpdateActivity()
+    }
+    class ActivityDetailsViewModel {
+      +refresh()
+      +deleteActivity()
+    }
 
     class AllAboardModel
 
@@ -190,17 +244,17 @@ classDiagram
     PresentationLayer ..> ActivityDetailsViewModel : contains
     DomainLayer ..> AllAboardModel : contains
 
-    LoginScreen --> LoginViewModel : supports
-    HomeScreen --> HomeViewModel : supports
-    ProfileScreen --> ProfileViewModel : supports
-    OnboardingScreen --> OnboardingViewModel : supports
-    CreateTripScreen --> CreateTripViewModel : supports
-    TripHomeScreen --> TripHomeViewModel : supports
-    SwipingScreen --> SwipingViewModel : supports
-    SwipingResultsScreen --> SwipingResultsViewModel : supports
-    ItineraryScreen --> ItineraryViewModel : supports
-    CreateCustomActivityScreen --> CreateCustomActivityViewModel : supports
-    ActivityDetailsScreen --> ActivityDetailsViewModel : supports
+    LoginScreenContext --> LoginViewModel : supports
+    HomeScreenContext --> HomeViewModel : supports
+    ProfileScreenContext --> ProfileViewModel : supports
+    OnboardingScreenContext --> OnboardingViewModel : supports
+    CreateTripScreenContext --> CreateTripViewModel : supports
+    TripHomeScreenContext --> TripHomeViewModel : supports
+    SwipingScreenContext --> SwipingViewModel : supports
+    SwipingResultsScreenContext --> SwipingResultsViewModel : supports
+    ItineraryScreenContext --> ItineraryViewModel : supports
+    CreateCustomActivityScreenContext --> CreateCustomActivityViewModel : supports
+    ActivityDetailsScreenContext --> ActivityDetailsViewModel : supports
 
     LoginViewModel --> AllAboardModel
     HomeViewModel --> AllAboardModel
@@ -214,6 +268,8 @@ classDiagram
     CreateCustomActivityViewModel --> AllAboardModel
     ActivityDetailsViewModel --> AllAboardModel
 ```
+
+Note: `*ScreenContext` nodes indicate mapping context only (not UI compose implementation classes).
 
 ## Screen-to-ViewModel Map
 
