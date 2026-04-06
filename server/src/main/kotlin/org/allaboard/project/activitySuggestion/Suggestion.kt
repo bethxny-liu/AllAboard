@@ -21,13 +21,21 @@ import org.allaboard.project.domain.Trip
 import org.allaboard.project.domain.BudgetLevel
 import io.github.jan.supabase.postgrest.from
 
-private val env = dotenv {
-    directory = "./server"
-    filename = ".env"
-    ignoreIfMissing = false
+// Prefer runtime environment variables (Docker/CI), fall back to server/.env for local dev.
+private fun envOrDotenv(key: String): String {
+    val fromEnv = System.getenv(key)
+    if (!fromEnv.isNullOrBlank()) return fromEnv
+
+    val envFile = dotenv {
+        directory = System.getenv("DOTENV_DIR") ?: "./server"
+        filename = ".env"
+        // In containers we typically don't ship a .env file.
+        ignoreIfMissing = true
+    }
+    return envFile[key] ?: ""
 }
 
-private val googlePlacesApiKey: String = env["GOOGLE_PLACES_API_KEY"] ?: ""
+private val googlePlacesApiKey: String = envOrDotenv("GOOGLE_PLACES_API_KEY")
 private const val PLACES_TEXT_SEARCH_URL = "https://places.googleapis.com/v1/places:searchText"
 private const val GEOCODE_URL = "https://maps.googleapis.com/maps/api/geocode/json"
 
@@ -172,6 +180,17 @@ suspend fun suggestActivities(
     }.toMutableSet()
     var insertedCount = 0
 
+    // Batch inserts to reduce HTTP round trips (helps avoid timeouts).
+    val batch = mutableListOf<ActivityInsert>()
+    val batchSize = 25
+
+    suspend fun flushBatch() {
+        if (batch.isEmpty()) return
+        SupabaseConfig.client.from("activities").insert(batch.toList())
+        insertedCount += batch.size
+        batch.clear()
+    }
+
     //Ignore budget for sightseeing, since sights stay low in budget but are relevant for all travelers
     topics.forEach { topic ->
         val isFoodTopic = topic.preference == "food and drink"
@@ -227,10 +246,15 @@ suspend fun suggestActivities(
                 addedBy = null
             )
 
-            SupabaseConfig.client.from("activities").insert(insert)
-            insertedCount += 1
+            batch.add(insert)
+            if (batch.size >= batchSize) {
+                flushBatch()
+            }
         }
     }
+
+    // Flush any remaining inserts.
+    flushBatch()
 
     if (insertedCount == 0) {
         println("[places] no new activities inserted")

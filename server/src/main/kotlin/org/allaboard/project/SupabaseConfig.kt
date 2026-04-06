@@ -6,7 +6,6 @@ import io.github.jan.supabase.annotations.SupabaseInternal
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.ktor.client.plugins.*
-import org.slf4j.LoggerFactory
 
 /**
  * Server-side Supabase client configured with the **service_role** key.
@@ -17,17 +16,23 @@ import org.slf4j.LoggerFactory
  */
 object SupabaseConfig {
 
-    private val env = dotenv {
-        directory = "./server"
-        filename = ".env"
-        ignoreIfMissing = false
+    private fun envOrDotenv(key: String): String {
+        // In Docker/production, env vars are the standard.
+        // For local development, fall back to loading server/.env (or DOTENV_DIR override).
+        val fromEnv = System.getenv(key)
+        if (!fromEnv.isNullOrBlank()) return fromEnv
+
+        val envFile = dotenv {
+            directory = System.getenv("DOTENV_DIR") ?: "./server"
+            filename = ".env"
+            ignoreIfMissing = false
+        }
+        return envFile[key] ?: error("$key is not set (checked environment variables and .env)")
     }
 
-    val supabaseUrl: String = env["SUPABASE_URL"]
-        ?: error("SUPABASE_URL is not set in .env")
+    val supabaseUrl: String = envOrDotenv("SUPABASE_URL")
 
-    val supabaseServiceRoleKey: String = env["SUPABASE_SERVICE_ROLE_KEY"]
-        ?: error("SUPABASE_SERVICE_ROLE_KEY is not set in .env")
+    val supabaseServiceRoleKey: String = envOrDotenv("SUPABASE_SERVICE_ROLE_KEY")
 
     /**
      * Singleton Supabase client for server-side use.
@@ -42,12 +47,12 @@ object SupabaseConfig {
         install(Postgrest)
 
         httpConfig {
-            val logger = LoggerFactory.getLogger("SupabaseHttp")
-
             install(HttpTimeout) {
-                connectTimeoutMillis = 15_000
-                requestTimeoutMillis = 15_000
-                socketTimeoutMillis = 15_000
+                // Trip creation can trigger many PostgREST writes (activity suggestions, members, etc.).
+                // 10s is sometimes too tight under load, so give it more headroom.
+                connectTimeoutMillis = 45_000
+                requestTimeoutMillis = 60_000
+                socketTimeoutMillis = 60_000
             }
         }
     }
