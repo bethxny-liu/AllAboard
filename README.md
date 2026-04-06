@@ -2,6 +2,8 @@
 ## AllAboard
 The Tinder for travel planning!
 
+![alt text](<Screenshot 2026-04-06 at 2.40.34 PM.png>)
+
 [Video Walkthrough](https://youtube.com/shorts/FXj01XOmQRE?feature=share)
 
 ### Team Details
