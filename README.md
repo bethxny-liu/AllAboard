@@ -8,7 +8,7 @@ The Tinder for travel planning!
 
 [Acknowledgements](https://git.uwaterloo.ca/b57liu/team-102-8/-/wikis/home/acknowledgements)
 
-[Release] (https://git.uwaterloo.ca/b57liu/team-102-8/-/wikis/home/Version-1.0.0-Release)
+[Release](https://git.uwaterloo.ca/b57liu/team-102-8/-/wikis/home/Version-1.0.0-Release)
 
 ### Team Details
 Daniel Luu; Tech Lead; d2luu@uwaterloo.ca
