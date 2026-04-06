@@ -15,7 +15,8 @@ Sarah Kwak; Frontend Designer; s3kwak@uwaterloo.ca
 
 - [Team contract](https://git.uwaterloo.ca/b57liu/team-102-8/-/wikis/home/Team-Contract)
 - [Project Proposal](https://git.uwaterloo.ca/b57liu/team-102-8/-/wikis/home/Project-Proposal)
-- [Meeting minutes](https://git.uwaterloo.ca/b57liu/team-102-8/-/wikis/home/Meeting-Minutes)
+- [Meeting Minutes](https://git.uwaterloo.ca/b57liu/team-102-8/-/wikis/home/Meeting-Minutes)
+- [Video Walkthrough] (https://youtube.com/shorts/FXj01XOmQRE?feature=share)
 - [Team Reflections] ADD THIS!! 
 
 
