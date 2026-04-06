@@ -5,6 +5,7 @@ The Tinder for travel planning!
 ![alt text](myscreenshot.png){width=50%}
 
 [Video Walkthrough](https://youtube.com/shorts/FXj01XOmQRE?feature=share)
+[Acknowledgements](https://git.uwaterloo.ca/b57liu/team-102-8/-/wikis/home/acknowledgements)
 
 ### Team Details
 Daniel Luu; Tech Lead; d2luu@uwaterloo.ca
