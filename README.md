@@ -25,5 +25,5 @@ Sarah Kwak; Frontend Designer; s3kwak@uwaterloo.ca
 - [Usage Guide](https://git.uwaterloo.ca/b57liu/team-102-8/-/wikis/home/Usage-Guide)
 
 ### Design Documents
-- [ERD Diagram] (https://git.uwaterloo.ca/b57liu/team-102-8/-/wikis/home/ERD-Diagram)
-- [UML Diagram] (https://git.uwaterloo.ca/b57liu/team-102-8/-/wikis/home/UML-Diagram)
+- [ERD Diagram](https://git.uwaterloo.ca/b57liu/team-102-8/-/wikis/home/ERD-Diagram)
+- [UML Diagram](https://git.uwaterloo.ca/b57liu/team-102-8/-/wikis/home/UML-Diagram)
