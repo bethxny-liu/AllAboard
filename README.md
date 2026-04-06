@@ -11,6 +11,18 @@ Bethany Liu; Backend Designer; b57liu@uwaterloo.ca
 
 Sarah Kwak; Frontend Designer; s3kwak@uwaterloo.ca
 
-Our [team contract](https://git.uwaterloo.ca/b57liu/team-102-8/-/wikis/home/Team-Contract) includes details on how we will work together.
+### Project Information
 
-[Project Proposal](https://git.uwaterloo.ca/b57liu/team-102-8/-/wikis/home/Project-Proposal)
+- [Team contract](https://git.uwaterloo.ca/b57liu/team-102-8/-/wikis/home/Team-Contract)
+- [Project Proposal](https://git.uwaterloo.ca/b57liu/team-102-8/-/wikis/home/Project-Proposal)
+- [Meeting minutes](https://git.uwaterloo.ca/b57liu/team-102-8/-/wikis/home/Meeting-Minutes)
+- [Team Reflections] ADD THIS!! 
+
+
+### User Guide
+- [Getting Started] ADD THIS!! 
+- [Usage Guide](https://git.uwaterloo.ca/b57liu/team-102-8/-/wikis/home/Usage-Guide)
+
+### Design Documents
+- [ERD Diagram] ADD THIS!!
+- [UML Diagram] ADD THIS!! 
