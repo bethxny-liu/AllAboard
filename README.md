@@ -1,4 +1,3 @@
-# Team-102-8
 ## AllAboard
 The Tinder for travel planning!
 
